@@ -1,0 +1,9 @@
+{
+  "name": "garden",
+  "displayName": "GARDEN",
+  "version": "0.1.0",
+  "description": "Enforce the GARDEN agent-first design principles: bootstrap new projects, retrofit legacy codebases, run GARDEN-lens reviews and compliance audits, with deterministic hooks for mechanizable rules",
+  "homepage": "https://github.com/vshuraeff/garden",
+  "repository": "https://github.com/vshuraeff/garden",
+  "author": { "name": "vshuraeff" }
+}
