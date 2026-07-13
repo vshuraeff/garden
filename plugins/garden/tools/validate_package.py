@@ -8,6 +8,8 @@ import sys
 import tomllib
 from pathlib import Path
 
+from sync_references import REFERENCE_PAIRS, render
+
 
 PLUGIN_ROOT = Path(__file__).resolve().parent.parent
 REPOSITORY_ROOT = PLUGIN_ROOT.parent.parent
@@ -102,22 +104,9 @@ def validate() -> None:
     for executable in executables:
         require(executable.stat().st_mode & 0o111 != 0, f"not executable: {executable}")
 
-    reference_pairs = {
-        REPOSITORY_ROOT / "docs" / "reference" / "principles.md": PLUGIN_ROOT
-        / "references"
-        / "principles.md",
-        REPOSITORY_ROOT / "docs" / "reference" / "checklist.md": PLUGIN_ROOT
-        / "references"
-        / "checklist.md",
-        REPOSITORY_ROOT / "docs" / "reference" / "glossary.md": PLUGIN_ROOT
-        / "references"
-        / "glossary.md",
-        REPOSITORY_ROOT / "docs" / "how-to" / "review-code-as-agent.md": PLUGIN_ROOT
-        / "references"
-        / "review-procedure.md",
-    }
-    for source, copy in reference_pairs.items():
-        require(source.read_bytes() == copy.read_bytes(), f"reference drift: {copy}")
+    for source, copy in REFERENCE_PAIRS.items():
+        copy_content = copy.read_bytes().decode("utf-8")
+        require(copy_content == render(source), f"reference drift: {copy}")
 
 
 def main() -> int:

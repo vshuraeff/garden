@@ -1,3 +1,4 @@
+<!-- Generated from docs/reference/checklist.md. Do not edit directly. Run sync_references.py --write to update. -->
 # GARDEN compliance checklist
 
 ## How to use this checklist
