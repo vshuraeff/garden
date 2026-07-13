@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import importlib
 import json
 import os
 import subprocess
@@ -56,6 +57,54 @@ class ActiveProjectTestCase(unittest.TestCase):
         self.temp.cleanup()
 
 
+class GardenModuleTests(unittest.TestCase):
+    def test_internal_modules_import_cleanly(self) -> None:
+        for module_name in (
+            "garden_report",
+            "garden_paths",
+            "garden_scanner",
+            "garden_rules",
+        ):
+            with self.subTest(module=module_name):
+                self.assertIsNotNone(importlib.import_module(module_name))
+
+    def test_modules_import_fresh_without_cycles(self) -> None:
+        for module_name in (
+            "garden_core",
+            "garden_report",
+            "garden_paths",
+            "garden_scanner",
+            "garden_rules",
+        ):
+            with self.subTest(module=module_name):
+                completed = subprocess.run(
+                    [
+                        sys.executable,
+                        "-c",
+                        f"import importlib; importlib.import_module({module_name!r})",
+                    ],
+                    cwd=TOOLS_DIR,
+                    capture_output=True,
+                    text=True,
+                    check=False,
+                )
+                self.assertEqual(0, completed.returncode, completed.stderr)
+
+    def test_facade_re_exports_internal_symbols_by_identity(self) -> None:
+        garden_core = importlib.import_module("garden_core")
+        garden_paths = importlib.import_module("garden_paths")
+        garden_report = importlib.import_module("garden_report")
+        garden_rules = importlib.import_module("garden_rules")
+        garden_scanner = importlib.import_module("garden_scanner")
+
+        self.assertIs(garden_core.Finding, garden_report.Finding)
+        self.assertIs(garden_core.ScanLimitExceeded, garden_scanner.ScanLimitExceeded)
+        self.assertIs(garden_core.find_project_root, garden_paths.find_project_root)
+        self.assertIs(garden_core.is_within, garden_paths.is_within)
+        self.assertIs(garden_core.inspect_file, garden_rules.inspect_file)
+        self.assertIs(garden_core.inspect_project, garden_rules.inspect_project)
+
+
 class GardenCoreTests(ActiveProjectTestCase):
     def test_contract_version_is_an_error(self) -> None:
         contract = self.root / "orders" / "CONTRACT.md"
@@ -98,6 +147,21 @@ class GardenCoreTests(ActiveProjectTestCase):
         self.assertIn(
             "D-project-scan-limit", [item["rule"] for item in report["findings"]]
         )
+
+    def test_project_scan_reads_patched_facade_budget(self) -> None:
+        garden_scanner = importlib.import_module("garden_scanner")
+        capability = self.root / "orders"
+        capability.mkdir()
+        for index in range(4):
+            (capability / f"empty-{index}").mkdir()
+
+        with (
+            patch("garden_core.MAX_SCAN_ENTRIES", 2),
+            self.assertRaises(garden_scanner.ScanLimitExceeded) as raised,
+        ):
+            list(garden_scanner._walk_files(self.root))
+
+        self.assertEqual("project scan exceeds 2 entries", str(raised.exception))
 
     def test_inactive_project_is_ignored(self) -> None:
         inactive = self.root / "inactive"
