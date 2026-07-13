@@ -1,32 +1,30 @@
 ---
 name: stop
-description: "Uninstall GARDEN project tooling previously installed by garden:start: remove the prompt-routing hook and/or project rules file. Use when asked to remove garden hooks, disable garden, \"убери garden-хуки\", \"отключи garden\", or via /garden:stop."
+description: "Remove project-scoped GARDEN rules and reviewer configuration previously installed by garden:start. Use when asked to remove GARDEN project rules, disable project instructions, or via /garden:stop."
 ---
 
 # Stop GARDEN project tooling
 
-Remove only routing and fallback tooling installed by `garden:start`.
+Remove only surfaces carrying valid provenance from `garden:start`.
 
-1. Remove the prompt-routing hook without disturbing other settings.
+1. Select the harnesses.
 
-   Action: If `.claude/settings.json` exists and contains valid JSON, surgically remove only the `UserPromptSubmit` command-hook entry that runs `"$CLAUDE_PROJECT_DIR/.claude/hooks/garden-prompt.sh"`. Leave every other hook entry and top-level key intact. If an enclosing `UserPromptSubmit` item becomes empty, remove that item. If the `UserPromptSubmit` array becomes empty, remove that key. Keep `hooks` when it still has any other event types; otherwise remove the now-empty `hooks` object. Do not replace the settings file wholesale. Delete `.claude/hooks/garden-prompt.sh` if it is present.
+   Ask whether to remove Claude Code, Codex, or both project surfaces. Report which managed paths currently exist.
 
-   Acceptance signal: The garden command-hook entry and hook file are gone, while unrelated settings and hooks are unchanged.
+2. Run the deterministic remover.
 
-2. Confirm rules-file deletion.
+   Invoke `uv run --no-project <plugin-root>/tools/garden_project.py remove --root <project-root> --harness <claude|codex|both>`. Do not manually edit the target files.
 
-   Action: Use `AskUserQuestion` to ask for confirmation before deleting `.claude/rules/garden.md`, because the user may have edited it. Delete it only after confirmation.
+   The remover deletes only an owned `.claude/rules/garden.md`, an owned `.codex/agents/garden-reviewer.toml`, and the exact digest-marked GARDEN block in `AGENTS.md`. It preserves all surrounding `AGENTS.md` content and leaves unmanaged files untouched.
 
-   Acceptance signal: The rules file remains unless the user explicitly confirms deletion.
+3. Handle edited managed content.
 
-3. Preserve the project's GARDEN content.
+   If the remover reports an edited owned file or block, show the difference and ask before rerunning with `--force`. Never use `--force` on an unmanaged file or malformed/duplicate marker set.
 
-   Action: Never modify `naming-registry.txt`, any `CONTEXT.md`, any `CONTRACT.md`, slice directory, or `retrofit-log.md`. This skill removes only routing and fallback tooling installed by `garden:start`.
+4. Preserve GARDEN project artifacts.
 
-   Acceptance signal: Project GARDEN artifacts remain untouched.
+   Never modify `naming-registry.txt`, `CONTEXT.md`, any `CONTRACT.md`, slice directories, or `retrofit-log.md`. Do not edit plugin-manager state, MCP configuration, hook trust, or user-level configuration.
 
-4. Report the removal.
+5. Report every removal.
 
-   Action: List exactly the removed file paths and JSON entries.
-
-   Acceptance signal: The user can account for every removed item.
+   List removed files and blocks. Explain that uninstalling or disabling the plugin is a separate plugin-manager action.

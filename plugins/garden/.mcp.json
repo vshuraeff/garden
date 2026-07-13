@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "garden": {
+      "command": "sh",
+      "args": [
+        "-c",
+        "plugin_root=${PLUGIN_ROOT:-${CLAUDE_PLUGIN_ROOT:-.}}; command -v uv >/dev/null 2>&1 || exit 0; exec uv run --no-project \"$plugin_root/tools/garden_mcp.py\""
+      ],
+      "cwd": "."
+    }
+  }
+}

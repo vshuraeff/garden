@@ -8,7 +8,7 @@ Act only as an isolated, read-only reviewer. Use Bash only for read-only work: r
 linters, tests, or grep to inspect gate status. Never use Bash to edit files or run
 mutating commands.
 
-Follow `${CLAUDE_PLUGIN_ROOT}/references/review-procedure.md` exactly. Apply its
+Follow `references/review-procedure.md` relative to the plugin root exactly. Apply its
 nine steps in this order:
 
 1. Report type-check, lint, tests, and clone-detection first, each as pass, fail, or

@@ -5,7 +5,7 @@ description: "Review a change with GARDEN's deterministic-gate-first G/A/R/D/E/N
 
 # Review with GARDEN lenses
 
-Read `${CLAUDE_PLUGIN_ROOT}/references/review-procedure.md` before reviewing. Read `${CLAUDE_PLUGIN_ROOT}/references/principles.md` for the complete GARDEN rules, and `${CLAUDE_PLUGIN_ROOT}/references/glossary.md` when a review depends on a defined term.
+Read `references/review-procedure.md` relative to the plugin root before reviewing. Read the sibling `references/principles.md` for the complete GARDEN rules, and `references/glossary.md` when a review depends on a defined term.
 
 Treat mechanizable MUST rules as candidate deterministic gates. The N-principle evidence reports roughly 25–40% compliance for instruction-file-only rules, compared with roughly 95% when the rule is enforced by a runtime hook or deterministic gate. Do not rely on a review finding to enforce a rule that the target stack can type-check, lint, test, or gate.
 
@@ -45,4 +45,4 @@ Treat mechanizable MUST rules as candidate deterministic gates. The N-principle 
 
    Output findings and evidence only. Do not use `approved`, `safe to merge`, or an equivalent self-certifying conclusion. Leave merge decisions to deterministic gates and the separate decision process.
 
-Recommend delegation to the plugin's `garden-reviewer` agent when an isolated review is preferable. Do not have the implementer act as the reviewer of its own change.
+When an isolated review is preferable, delegate it to `garden-reviewer`. Claude Code loads the plugin agent directly. Codex loads the project agent after `garden:start` installs `.codex/agents/garden-reviewer.toml`; when that file is absent, spawn a read-only subagent with the same review instructions inline. Wait for the result. Do not have the implementer act as the reviewer of its own change.

@@ -1,50 +1,37 @@
 ---
 name: start
-description: "Configure and install GARDEN tooling in the current project: set up the garden prompt-routing hook and project rules file for deterministic garden:* skill routing. Use when asked to set up garden in a project, enable garden hooks, \"настрой garden в проекте\", \"включи garden-хуки\", or via /garden:start."
+description: "Install project-scoped GARDEN rules and reviewer configuration for Codex, Claude Code, or both. Use when asked to set up GARDEN in a project, enable GARDEN rules, configure both coding harnesses, or via /garden:start."
 ---
 
 # Start GARDEN project tooling
 
-Complete the steps in order. Install only the components the user selects.
+The installed plugin already provides skills, MCP inspection tools, and lifecycle hooks. This skill adds provenance-marked project instructions and the Codex reviewer agent through the plugin's atomic installer.
 
-1. Verify whether the project is, or will become, a GARDEN project.
+1. Verify the adoption path.
 
-   Action: Check the project root for `naming-registry.txt`. If it is absent, ask whether to run `garden:bootstrap` for a new project, `garden:retrofit` for an existing codebase, or to continue installing tooling for a project that will adopt GARDEN shortly.
+   Check the project root for `naming-registry.txt`. If it is absent, ask whether to run `garden:bootstrap`, run `garden:retrofit`, or continue because adoption will follow shortly.
 
-   Acceptance signal: The user has selected an adoption path or explicitly asked to continue without the registry.
+2. Select the harnesses.
 
-2. Select the components.
+   Ask whether to install for Claude Code, Codex, or both. Use the current harness as the default. Do not infer that both are installed.
 
-   Action: Use `AskUserQuestion` with `multiSelect` enabled. Offer `prompt-routing hook` and `project rules file`; require at least one selection.
+3. Run the deterministic installer.
 
-   Acceptance signal: The selected components are explicit.
+   Invoke `uv run --no-project <plugin-root>/tools/garden_project.py install --root <project-root> --harness <claude|codex|both>`. Do not manually edit the target files.
 
-3. Install the prompt-routing hook when selected.
+   The installer creates only these managed surfaces:
 
-   Action: Create `.claude/hooks/` if needed. Copy `${CLAUDE_PLUGIN_ROOT}/assets/garden-prompt.sh` to `.claude/hooks/garden-prompt.sh` in the target project and run `chmod +x` on the copied file. Read the project `.claude/settings.json`, or create it as `{}` when it is absent. If the existing file is invalid JSON, stop and ask the user to repair it rather than replacing it. Merge a `hooks.UserPromptSubmit` command-hook entry that runs `"$CLAUDE_PROJECT_DIR/.claude/hooks/garden-prompt.sh"`. Append it to an existing `UserPromptSubmit` array; do not replace other hook entries, hooks, or top-level settings.
+   - Claude Code: `.claude/rules/garden.md`.
+   - Codex: a digest-marked block in root `AGENTS.md` and `.codex/agents/garden-reviewer.toml`.
 
-   Acceptance signal: `.claude/hooks/garden-prompt.sh` is executable and `.claude/settings.json` contains the added project-scoped `UserPromptSubmit` command hook without unrelated changes.
+   It refuses malformed or duplicate markers and refuses files it does not own. If it reports that owned content was edited, show the difference and ask before rerunning with `--force`. `--force` must never replace an unmanaged file.
 
-4. Install the project rules file when selected.
+4. Report exact paths.
 
-   Action: Create `.claude/rules/` if needed. Copy `${CLAUDE_PLUGIN_ROOT}/assets/garden-rules.md` to `.claude/rules/garden.md` in the target project.
+   List every installed surface and its harness. State that `garden:stop` removes only content carrying valid `garden:start` provenance. Codex users must start a new session to load the new project agent.
 
-   Acceptance signal: `.claude/rules/garden.md` is present.
+5. Explain hook trust.
 
-5. Report the installed components.
+   Plugin hooks remain controlled by the plugin manager. Codex users review and trust their current hash through `/hooks`; project installation does not modify hook trust or user-level configuration.
 
-   Action: List exactly the installed file paths and state that `garden:stop` undoes the installed routing tooling.
-
-   Acceptance signal: The user can identify every installed file and the uninstall skill.
-
-6. Explain the routing and fallback behavior.
-
-   Action: Explain briefly that trigger-rate measurements show weak models consult skills only about half the time regardless of description wording, so GARDEN projects use deterministic prompt routing under principle D: deterministic verification beats prose enforcement. State that both components are plain copies, so the project stays self-contained if the garden plugin is removed later.
-
-   Acceptance signal: The user understands why the hook and copied rules file exist.
-
-7. Keep settings project-scoped.
-
-   Action: Never edit `.claude/settings.local.json` or any user-level settings file. This skill only touches the target project's `.claude/settings.json`.
-
-   Acceptance signal: No local or user-level settings file is changed.
+Do not edit user-level Claude or Codex configuration. Do not copy MCP configuration into the project.

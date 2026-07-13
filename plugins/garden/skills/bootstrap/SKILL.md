@@ -5,7 +5,7 @@ description: "Bootstrap new GARDEN projects with this skill: organize code as ve
 
 # Bootstrap a GARDEN project
 
-Read `${CLAUDE_PLUGIN_ROOT}/references/principles.md` before applying the GARDEN rules. Read `${CLAUDE_PLUGIN_ROOT}/references/glossary.md` before applying terms such as vertical slice, managed duplication, or significant directory.
+Read `references/principles.md` relative to the plugin root before applying the GARDEN rules. Read the sibling `references/glossary.md` before applying terms such as vertical slice, managed duplication, or significant directory.
 
 Treat every mechanizable MUST rule as a gate requirement. The N-principle evidence reports roughly 25–40% compliance for a rule kept only in an instruction file, versus roughly 95% when the same rule is enforced by a runtime hook or deterministic gate. Keep prose for intent; encode enforceable rules in types, lint, tests, hooks, or CI.
 
@@ -31,7 +31,7 @@ Complete the steps in order. Do not begin the next step while its acceptance sig
 
 4. Scaffold one directory per slice.
 
-   Action: Create every capability directory directly at the project root and add a `README.md` whose first paragraph states the slice's purpose, contract, and related slices. Do not add a `slices/` wrapper. If the project requires another slice root, record that choice in `CONTEXT.md`. Add a `README.md` to every significant directory as defined in `${CLAUDE_PLUGIN_ROOT}/references/glossary.md`.
+   Action: Create every capability directory directly at the project root and add a `README.md` whose first paragraph states the slice's purpose, contract, and related slices. Do not add a `slices/` wrapper. If the project requires another slice root, record that choice in `CONTEXT.md`. Add a `README.md` to every significant directory as defined in the plugin's `references/glossary.md`.
 
    Acceptance signal: Every planned slice has its root-level directory and README, and each README states its purpose in the first paragraph.
 
@@ -63,6 +63,6 @@ Generate, at minimum:
 - A fail-fast CI pipeline in this order: type-check, lint, unit-tests, contract-tests, clone-detection. Keep type-check through unit-tests strictly sequential. Permit clone-detection to run in parallel with contract-tests, but only after unit-tests pass.
 - A clone-detection job with threshold 3 unless `CONTEXT.md` records an explicit override.
 
-Read `${CLAUDE_PLUGIN_ROOT}/references/principles.md` again when selecting each enforceable rule. Convert every mechanizable MUST rule into the strongest stack-supported type, lint, test, hook, or CI gate; document an invariant that cannot be made deterministic as a risk rather than leaving it as prose.
+Read the plugin's `references/principles.md` again when selecting each enforceable rule. Convert every mechanizable MUST rule into the strongest stack-supported type, lint, test, hook, or CI gate; document an invariant that cannot be made deterministic as a risk rather than leaving it as prose.
 
 Mark any agent-drafted "why" in `CONTEXT.md` or a contract as a draft until a human authors or approves it. Do not represent agent-generated intent, trade-offs, or decision records as human-approved.

@@ -1,0 +1,29 @@
+name: plugin
+
+on:
+  pull_request:
+  push:
+    branches: [master]
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - uses: astral-sh/setup-uv@11f9893b081a58869d3b5fccaea48c9e9e46f990 # v8.3.2
+      - name: Test deterministic tools
+        run: uv run --no-project -m unittest plugins/garden/tools/test_garden_tools.py -v
+      - name: Validate both plugin packages and reference copies
+        run: uv run --no-project plugins/garden/tools/validate_package.py
+      - name: Require a plugin SemVer bump
+        if: github.event_name == 'pull_request'
+        run: uv run --no-project plugins/garden/tools/plugin_version.py check --base ${{ github.event.pull_request.base.sha }}
+      - name: Lint deterministic tools
+        run: uvx ruff check plugins/garden/tools && uvx ruff format --check plugins/garden/tools
+      - name: Validate shell adapters
+        run: bash -n plugins/garden/hooks/garden-check.sh plugins/garden/assets/garden-prompt.sh
