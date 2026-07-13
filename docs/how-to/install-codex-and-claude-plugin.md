@@ -50,10 +50,12 @@ changing the plugin, bump its shared version, reinstall it, and start a new sess
 uv run --no-project plugins/garden/tools/plugin_version.py bump patch
 ```
 
-Use `minor` for backward-compatible features or `major` for breaking changes. The
-command updates the Codex and Claude manifests together, and pull-request CI rejects
-plugin changes without an increased version. Claude Code reloads an updated development
-plugin with `/reload-plugins`.
+Use `minor` for backward-compatible features or `major` for breaking changes. Before
+`1.0.0`, incompatible (breaking) plugin changes may ship as `minor` instead; `patch`
+stays for backward-compatible fixes and internal changes. The command updates the Codex
+and Claude manifests together, and pull-request CI rejects plugin changes without an
+increased version. Claude Code reloads an updated development plugin with
+`/reload-plugins`.
 
 ## Activate project instructions
 

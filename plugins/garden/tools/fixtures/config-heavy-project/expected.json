@@ -1,0 +1,9 @@
+{
+  "active": true,
+  "root": "<FIXTURE_ROOT>",
+  "findings": [],
+  "summary": {
+    "errors": 0,
+    "advisories": 0
+  }
+}
