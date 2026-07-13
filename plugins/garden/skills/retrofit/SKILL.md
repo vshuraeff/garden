@@ -7,7 +7,7 @@ description: "Retrofit an existing codebase to GARDEN through measured, strangle
 
 Read `references/principles.md` relative to the plugin root before deciding how to apply a GARDEN rule. Read the sibling `references/glossary.md` before applying terms such as managed duplication, one-context task, or vertical slice.
 
-Treat mechanizable MUST rules as gate work, not instruction-file work. The N-principle evidence reports roughly 25–40% compliance for instruction-file-only rules and roughly 95% for the same rule enforced by a runtime hook or deterministic gate. Use prose to preserve intent and gates to enforce behavior.
+Treat mechanizable MUST rules as gate work, not instruction-file work. Hooks and deterministic gates enforce a rule far more reliably than an instruction file alone. Use prose to preserve intent and gates to enforce behavior. [CLAIM-N001]
 
 Work through these steps in order. Do not advance while the current acceptance signal fails.
 

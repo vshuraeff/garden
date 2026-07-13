@@ -80,9 +80,11 @@ Managed duplication (**A**) needs a mechanical signal, not a policy statement.
 
 ## 6. Prefer runtime hooks and gates over instruction files for enforcement
 
-A rule stated only in `CONTEXT.md` is reported to be followed only around 25-40% of the
-time, versus roughly 95% when the same rule is enforced as a runtime hook or
-deterministic gate. Use instruction files to explain, use gates to enforce.
+An informal single-author practitioner report covering 166 Claude Code sessions found
+compliance with a rule stated only in an instruction file at 25-40%, versus about 95%
+when the same rule was enforced as a runtime hook or deterministic gate. It is not
+peer-reviewed research. Use instruction files to explain, use gates to enforce.
+([CLAIM-N001](../evidence/evidence-registry.md#claim-n001))
 
 - Action: for every MUST-level rule you currently rely on an instruction file to convey,
   check whether it can instead be a lint rule, a type constraint, a pre-commit hook, or a
@@ -92,14 +94,12 @@ deterministic gate. Use instruction files to explain, use gates to enforce.
 
 ## 7. Place LLM review after the gates, not instead of them
 
-LLM code review is a useful complement but a noisy one: reported false-negative rates
-around 24% and false-positive rates up to 50% mean it must never be the sole gate.
-Multi-lens review with genuinely different perspectives (correctness, security,
-contracts, performance) measurably helps — the CodeX-Verify study reported a +39.7
-percentage point improvement in defect detection from multi-agent review over
-single-pass review — but its findings are hypotheses to verify, not verdicts, and
-consensus among samples from
-the same model is not independent evidence.
+LLM code review is a useful complement but must never be the sole gate. One preprint,
+evaluating 99 samples with its author's own four-agent system, reported a 39.7
+percentage-point improvement over a single agent and a 50% false-positive rate for that
+system. Its findings are hypotheses to verify, not verdicts or general proof that
+multi-agent review works; consensus among samples from the same model is not independent
+evidence. ([CLAIM-N003](../evidence/evidence-registry.md#claim-n003))
 
 - Action: run LLM review only after type check, lint, and tests have passed; require each
   review pass to use a distinct lens and to cite file evidence for each finding; route

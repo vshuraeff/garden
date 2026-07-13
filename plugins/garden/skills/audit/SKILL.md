@@ -11,7 +11,7 @@ Evaluate every checklist item. Cite file-and-line evidence for every pass, failu
 
 Treat unresolved `[MUST]` items as blocking findings. Treat unresolved `[SHOULD]` items as non-blocking findings. Identify every item marked "mechanizable" in the checklist and prioritize an applicable lint rule, static check, or test over repeating manual review.
 
-Mechanize MUST rules wherever the target stack permits it. The N-principle evidence reports roughly 25–40% compliance when a rule exists only in an instruction file and roughly 95% when the same rule is enforced by a runtime hook or deterministic gate. Preserve prose for intent, but make enforceable rules fail deterministically.
+Mechanize MUST rules wherever the target stack permits it. Hooks and deterministic gates enforce a rule far more reliably than an instruction file alone. Preserve prose for intent, but make enforceable rules fail deterministically. [CLAIM-N001]
 
 Use this fixed report template, in this order:
 

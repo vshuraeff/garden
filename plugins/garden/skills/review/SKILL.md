@@ -7,7 +7,7 @@ description: "Review a change with GARDEN's deterministic-gate-first G/A/R/D/E/N
 
 Read `references/review-procedure.md` relative to the plugin root before reviewing. Read the sibling `references/principles.md` for the complete GARDEN rules, and `references/glossary.md` when a review depends on a defined term.
 
-Treat mechanizable MUST rules as candidate deterministic gates. The N-principle evidence reports roughly 25–40% compliance for instruction-file-only rules, compared with roughly 95% when the rule is enforced by a runtime hook or deterministic gate. Do not rely on a review finding to enforce a rule that the target stack can type-check, lint, test, or gate.
+Treat mechanizable MUST rules as candidate deterministic gates. Hooks and deterministic gates enforce a rule far more reliably than an instruction file alone. Do not rely on a review finding to enforce a rule that the target stack can type-check, lint, test, or gate. [CLAIM-N001]
 
 1. Check deterministic gates before reading the change.
 
@@ -39,7 +39,7 @@ Treat mechanizable MUST rules as candidate deterministic gates. The N-principle 
 
 8. Report findings as verifiable hypotheses.
 
-   Cite an exact file and line range for every finding, name the specific GARDEN rule, and avoid splitting one underlying issue into several findings. The reported LLM-review noise profile is roughly 24% false negatives and up to 50% false positives; present findings as falsifiable hypotheses for a human or deterministic check to confirm, not as facts or verdicts.
+   Cite an exact file and line range for every finding, name the specific GARDEN rule, and avoid splitting one underlying issue into several findings. One CodeX-Verify preprint reported a 50% false-positive rate for its author's system; present findings as falsifiable hypotheses for a human or deterministic check to confirm, not as facts or verdicts. [CLAIM-N003]
 
 9. Never self-certify.
 
