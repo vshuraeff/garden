@@ -96,6 +96,7 @@ def validate() -> None:
         PLUGIN_ROOT / "tools" / "garden_mcp.py",
         PLUGIN_ROOT / "tools" / "garden_project.py",
         PLUGIN_ROOT / "tools" / "garden_prompt_hook.py",
+        PLUGIN_ROOT / "tools" / "plugin_version.py",
         PLUGIN_ROOT / "tools" / "validate_package.py",
     )
     for executable in executables:

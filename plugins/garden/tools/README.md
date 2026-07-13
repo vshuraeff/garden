@@ -11,4 +11,15 @@ The shell-facing entry point is `../bin/garden`. Run the colocated tests with:
 uv run --no-project -m unittest plugins/garden/tools/test_garden_tools.py -v
 ```
 
+Every installable plugin change requires an explicit SemVer bump. Update both harness
+manifests together with:
+
+```sh
+uv run --no-project plugins/garden/tools/plugin_version.py bump patch
+```
+
+Replace `patch` with `minor` for backward-compatible features or `major` for breaking
+changes. Pull-request CI compares the plugin version with the base revision and rejects
+plugin changes that do not increase it.
+
 The public behavior and limits are defined in `CONTRACT.md`.

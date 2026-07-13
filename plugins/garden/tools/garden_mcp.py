@@ -54,6 +54,15 @@ TOOLS = [
 ]
 
 
+def _plugin_version() -> str:
+    manifest = Path(__file__).resolve().parent.parent / ".codex-plugin" / "plugin.json"
+    try:
+        value = json.loads(manifest.read_text(encoding="utf-8")).get("version")
+    except (OSError, json.JSONDecodeError):
+        return "unknown"
+    return value if isinstance(value, str) else "unknown"
+
+
 def result_text(value: object, *, is_error: bool = False) -> dict[str, object]:
     text = json.dumps(value, ensure_ascii=False, indent=2)
     result: dict[str, object] = {"content": [{"type": "text", "text": text}]}
@@ -173,7 +182,7 @@ class GardenServer:
             result: object = {
                 "protocolVersion": selected,
                 "capabilities": {"tools": {}},
-                "serverInfo": {"name": "garden", "version": "0.2.0"},
+                "serverInfo": {"name": "garden", "version": _plugin_version()},
             }
         elif method == "tools/list":
             result = {"tools": TOOLS}

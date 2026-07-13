@@ -44,9 +44,16 @@ claude plugin install garden@garden
 ```
 
 Codex installs a cached copy rather than loading the marketplace source in place. After
-changing the plugin, update its Codex manifest cachebuster or version, reinstall it,
-and start a new session. Claude Code reloads an updated development plugin with
-`/reload-plugins`.
+changing the plugin, bump its shared version, reinstall it, and start a new session:
+
+```sh
+uv run --no-project plugins/garden/tools/plugin_version.py bump patch
+```
+
+Use `minor` for backward-compatible features or `major` for breaking changes. The
+command updates the Codex and Claude manifests together, and pull-request CI rejects
+plugin changes without an increased version. Claude Code reloads an updated development
+plugin with `/reload-plugins`.
 
 ## Activate project instructions
 
