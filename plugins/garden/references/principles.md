@@ -1,3 +1,4 @@
+<!-- Generated from docs/reference/principles.md. Do not edit directly. Run sync_references.py --write to update. -->
 # GARDEN principles
 
 ## About this document

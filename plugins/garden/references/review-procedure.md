@@ -1,3 +1,4 @@
+<!-- Generated from docs/how-to/review-code-as-agent.md. Do not edit directly. Run sync_references.py --write to update. -->
 # How to review code as an agent
 
 This guide is written to be used directly as a review prompt for an agent conducting a

@@ -1,3 +1,4 @@
+<!-- Generated from docs/reference/glossary.md. Do not edit directly. Run sync_references.py --write to update. -->
 # GARDEN glossary
 
 Terms below are used with exactly the meaning given here throughout this
