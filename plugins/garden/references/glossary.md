@@ -17,9 +17,11 @@ synonyms break grep-first discovery. Normative in
 agents at session start. Normative in
 [N — Navigable Knowledge](./principles.md#n--navigable-knowledge).
 
-**context rot** — Degradation of agent performance as a session grows;
-primarily a state-tracking failure rather than a reasoning failure.
-Motivates [N — Navigable Knowledge](./principles.md#n--navigable-knowledge).
+**context rot** — Degradation of agent performance as a session grows.
+GARDEN treats this as a state-tracking problem more than a reasoning one; that
+is GARDEN's interpretation, not a direct study finding.
+([CLAIM-N002](../evidence/evidence-registry.md#claim-n002)) Motivates
+[N — Navigable Knowledge](./principles.md#n--navigable-knowledge).
 
 **context window** — The finite token budget an agent can attend to at
 once. Bounds the sizing rules in

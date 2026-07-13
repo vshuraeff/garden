@@ -76,9 +76,11 @@ checked.
 
 ## 8. Report findings as verifiable hypotheses, never as verdicts
 
-LLM review carries a real noise profile: reported false-negative rates around 24% and
-false-positive rates up to 50%. Treat every finding from this review as a hypothesis a
-human or a deterministic check must confirm, not as a fact.
+LLM review carries a real noise profile. One single-author preprint evaluated 99 samples
+with the author's own four-agent system and reported a 50% false-positive rate for that
+system. Treat every finding from this review as a hypothesis a human or a deterministic
+check must confirm, not as a fact or verdict.
+([CLAIM-N003](../evidence/evidence-registry.md#claim-n003))
 
 - Action: for every finding, cite the exact file and line range as evidence, state the
   specific GARDEN rule it violates, and avoid restating the same underlying issue as

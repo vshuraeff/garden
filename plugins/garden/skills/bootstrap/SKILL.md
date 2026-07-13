@@ -7,7 +7,7 @@ description: "Bootstrap new GARDEN projects with this skill: organize code as ve
 
 Read `references/principles.md` relative to the plugin root before applying the GARDEN rules. Read the sibling `references/glossary.md` before applying terms such as vertical slice, managed duplication, or significant directory.
 
-Treat every mechanizable MUST rule as a gate requirement. The N-principle evidence reports roughly 25–40% compliance for a rule kept only in an instruction file, versus roughly 95% when the same rule is enforced by a runtime hook or deterministic gate. Keep prose for intent; encode enforceable rules in types, lint, tests, hooks, or CI.
+Treat every mechanizable MUST rule as a gate requirement. Hooks and deterministic gates enforce a rule far more reliably than an instruction file alone. Keep prose for intent; encode enforceable rules in types, lint, tests, hooks, or CI. [CLAIM-N001]
 
 Complete the steps in order. Do not begin the next step while its acceptance signal fails; correct the current artifact first.
 
