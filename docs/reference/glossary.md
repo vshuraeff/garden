@@ -1,96 +1,146 @@
 # GARDEN glossary
 
-Terms below are used with exactly the meaning given here throughout this
-documentation set. Each entry links to the principle section in
-[principles.md](./principles.md) where the term is normative.
+Terms below use the meanings given here throughout the GARDEN reference set.
+Normative definitions link to [principles.md](./principles.md).
 
-**agent** — An LLM-driven program that reads, writes, and reviews code via
-tools. Normative across all six principles; see
-[principles.md](./principles.md).
+- Document owner: GARDEN plugin maintainers
+- Last reviewed: 2026-07-13
+- Review trigger: a principle title, normative level, or defined boundary term
+  changes
+- Executable checks: `plugins/garden/tools/sync_references.py` and
+  `plugins/garden/tools/validate_evidence.py`
 
-**canonical name** — The single name a concept has across the codebase;
-synonyms break grep-first discovery. Normative in
-[G — Grep-first Discoverability](./principles.md#g--grep-first-discoverability).
+**agent** — An LLM-driven program that reads, writes, or reviews code through
+tools. An agent does not provide independent verification of its own change;
+see [D — Defense-in-depth Verification](./principles.md#d--defense-in-depth-verification).
 
-**context file** — The short hand-maintained `CONTEXT.md` file loaded by
-agents at session start. Normative in
-[N — Navigable Knowledge](./principles.md#n--navigable-knowledge).
+**bounded context** — A declared domain boundary within which a concept has one
+canonical meaning and name. Different bounded contexts may use different names
+when an explicit translation map connects them. Normative in
+[G — Graph-resolvable Discoverability](./principles.md#g--graph-resolvable-discoverability).
 
-**context rot** — Degradation of agent performance as a session grows.
-GARDEN treats this as a state-tracking problem more than a reasoning one; that
-is GARDEN's interpretation, not a direct study finding.
-([CLAIM-N002](../evidence/evidence-registry.md#claim-n002)) Motivates
-[N — Navigable Knowledge](./principles.md#n--navigable-knowledge).
+**canonical name** — The stable name for a concept inside one bounded context.
+It is not required to be the only name used across every context. Normative in
+[G — Graph-resolvable Discoverability](./principles.md#g--graph-resolvable-discoverability).
 
-**context window** — The finite token budget an agent can attend to at
-once. Bounds the sizing rules in
-[A — Atomic Vertical Slices](./principles.md#a--atomic-vertical-slices).
+**capability strategy** — The project-specific mapping from a capability to the
+code, state, tests, operational artifacts, boundaries, and owner that can affect
+it. A vertical slice, a framework-standard layered layout, a pipeline stage, or
+a generated map may implement the strategy. Normative in
+[A — Adaptive Capability Locality](./principles.md#a--adaptive-capability-locality).
 
-**deterministic gate** — A check (type check, lint rule, test, or CI job)
-that passes or fails identically on every run, independent of any model.
-Normative in
-[D — Deterministic Verification](./principles.md#d--deterministic-verification).
+**change-distance** — The modules, boundary crossings, ownership handoffs, and
+requisite context involved in completing a capability change. GARDEN treats
+these as measurable project properties rather than prescribing a universal
+directory shape. Defined in
+[A — Adaptive Capability Locality](./principles.md#a--adaptive-capability-locality).
 
-**hop distance** — The number of link or directory traversals between an
-edit site and the knowledge required to edit it safely; the GARDEN target is
-at most one hop. Normative in
-[N — Navigable Knowledge](./principles.md#n--navigable-knowledge).
+**context file** — A maintained entry point that gives an agent or engineer the
+constraints and links needed to start work. GARDEN does not require one fixed
+filename or universal line limit. See
+[N — Nearby, Maintained Knowledge](./principles.md#n--nearby-maintained-knowledge).
 
-**indirection tax** — The extra search-and-read cost every layer of
-indirection (deep inheritance, dynamic dispatch, dependency-injection magic)
-imposes on an agent; it also raises hallucination risk. Motivates
-[G — Grep-first Discoverability](./principles.md#g--grep-first-discoverability)
-and the rejections listed in
-[R — Regenerable Components](./principles.md#r--regenerable-components).
+**context rot** — Observed degradation of model performance as input context
+grows. GARDEN interprets some of the practical effect as a state-tracking
+problem, but that causal interpretation is GARDEN's reading, not a study
+finding. ([CLAIM-N002](../evidence/evidence-registry.md#claim-n002)) Motivates
+[N — Nearby, Maintained Knowledge](./principles.md#n--nearby-maintained-knowledge).
 
-**magic value** — A literal whose meaning is not discoverable at its use
-site. Prohibited under
-[E — Explicit Everything](./principles.md#e--explicit-everything).
+**context window** — The finite token budget a model can attend to at once. It
+is one input to requisite-context measurement, not a fixed module-size rule.
+See [A — Adaptive Capability Locality](./principles.md#a--adaptive-capability-locality)
+and [N — Nearby, Maintained Knowledge](./principles.md#n--nearby-maintained-knowledge).
 
-**managed duplication** — Tolerating duplicate code until a clone-detection
-signal in CI justifies extracting an abstraction, instead of abstracting
-preemptively. Normative in
-[A — Atomic Vertical Slices](./principles.md#a--atomic-vertical-slices).
+**DEFAULT** — A recommendation that a project may override through
+configuration, with a documented reason. DEFAULT rules use `SHOULD` or
+`SHOULD NOT`; they do not use `MUST`.
 
-**one-context task** — A task whose requisite context fits comfortably in a
-single agent context window. The sizing target for
-[A — Atomic Vertical Slices](./principles.md#a--atomic-vertical-slices).
+**deterministic gate** — An executable check with versioned inputs and a
+reproducible pass or fail result, such as a type check, lint rule, test, or CI
+job. A pass is evidence, not proof that defects are absent. Normative in
+[D — Defense-in-depth Verification](./principles.md#d--defense-in-depth-verification).
 
-**premature abstraction** — An abstraction created before at least three
-concrete usages exist; it costs agents more than the duplication it removes.
-Prohibited under
-[A — Atomic Vertical Slices](./principles.md#a--atomic-vertical-slices).
+**EXPERIMENTAL** — A hypothesis that needs measurement before it can become a
+rule. An EXPERIMENTAL item records a method, baseline, and result; it does not
+use `MUST`.
 
-**progressive disclosure** — Layering knowledge so an agent loads a short
-summary first and follows links only when needed. Normative in
-[N — Navigable Knowledge](./principles.md#n--navigable-knowledge).
+**hop distance** — The links or navigation transitions between an edit site and
+the knowledge required to edit it safely. Lower distance can be useful, but
+GARDEN does not define one universal maximum. See
+[N — Nearby, Maintained Knowledge](./principles.md#n--nearby-maintained-knowledge).
 
-**regenerability** — The property that a component can be rewritten from
-scratch against its contract without ripple effects. Defines
-[R — Regenerable Components](./principles.md#r--regenerable-components).
+**magic value** — A literal that affects domain or operational behavior and is
+not obvious at its point of use. Ordinary local literals are not magic values
+solely because they are literals. Defined in
+[E — Explicit Boundaries and State](./principles.md#e--explicit-boundaries-and-state).
 
-**requisite context** — The minimum set of files and facts an agent must
-load to perform a task correctly. Sizing basis for
-[A — Atomic Vertical Slices](./principles.md#a--atomic-vertical-slices) and
-[N — Navigable Knowledge](./principles.md#n--navigable-knowledge).
+**managed duplication** — A project strategy that delays shared abstraction
+until repeated uses show a stable shape, while using review or clone signals to
+track the cost. It is one way to apply the Rule of Three DEFAULT in
+[A — Adaptive Capability Locality](./principles.md#a--adaptive-capability-locality).
 
-**self-certification** — An agent declaring its own output correct without
-a deterministic gate; forbidden under
-[D — Deterministic Verification](./principles.md#d--deterministic-verification).
+**nearby knowledge** — Governing knowledge stored at, or linked from, the
+boundary it documents with an owner and staleness trigger. Defined in
+[N — Nearby, Maintained Knowledge](./principles.md#n--nearby-maintained-knowledge).
 
-**significant directory** — A directory is significant if it contains a
-`CONTRACT.md`, has two or more subdirectories, or contains more than five
-source files. Normative in
-[N — Navigable Knowledge](./principles.md#n--navigable-knowledge).
+**premature abstraction** — A shared abstraction introduced before its common
+shape or boundary value is supported by concrete uses. The Rule of Three is the
+GARDEN DEFAULT for judging this condition, not a universal prohibition. See
+[A — Adaptive Capability Locality](./principles.md#a--adaptive-capability-locality).
 
-**spec drift** — Divergence between a spec or contract and the code that
-claims to implement it. Addressed in
-[R — Regenerable Components](./principles.md#r--regenerable-components).
+**progressive disclosure** — Knowledge navigation that starts from a concise
+entry point and follows links to detail only when needed. A project measures
+whether this reduces requisite context. Defined in
+[N — Nearby, Maintained Knowledge](./principles.md#n--nearby-maintained-knowledge).
 
-**temporal coupling** — A hidden requirement that operations happen in a
-particular order, not expressed in types or signatures. Prohibited under
-[E — Explicit Everything](./principles.md#e--explicit-everything).
+**replaceability evidence** — The applicable set of interface or schema,
+behavioral examples, characterization tests, property tests, compatibility
+tests, non-functional requirements, migration and rollback plan, observability
+expectations, data ownership, and concurrency or ordering semantics needed to
+replace a boundary without guessing. Normative in
+[R — Replaceable Components](./principles.md#r--replaceable-components).
 
-**vertical slice** — A module containing everything one capability needs
-(entry point, logic, data access, tests) rather than a horizontal layer.
-Defines [A — Atomic Vertical Slices](./principles.md#a--atomic-vertical-slices).
+**REQUIRED** — A rule whose violation creates a demonstrable risk to
+correctness, compatibility, or security. REQUIRED rules may use `MUST` or
+`MUST NOT` within their stated scope.
+
+**requisite context** — The minimum set of files, relationships, constraints,
+and facts needed to perform a change correctly. It is measured under
+[A — Adaptive Capability Locality](./principles.md#a--adaptive-capability-locality)
+and managed under
+[N — Nearby, Maintained Knowledge](./principles.md#n--nearby-maintained-knowledge).
+
+**residual-risk acceptance** — A manual decision to proceed with an unresolved
+risk. It is valid only when it records an owner, supporting evidence, scope, and
+expiry. Normative in
+[D — Defense-in-depth Verification](./principles.md#d--defense-in-depth-verification).
+
+**self-certification** — An agent acting as the sole authority that its own
+output is correct or ready to ship. Prohibited in
+[D — Defense-in-depth Verification](./principles.md#d--defense-in-depth-verification).
+
+**spec drift** — Divergence between a declared interface, schema, behavior, or
+compatibility expectation and the implementation that claims to satisfy it.
+Addressed in
+[R — Replaceable Components](./principles.md#r--replaceable-components).
+
+**temporal coupling** — A requirement that operations occur in a particular
+order when that state transition or ordering rule is not exposed at the
+controlling boundary. Addressed in
+[E — Explicit Boundaries and State](./principles.md#e--explicit-boundaries-and-state).
+
+**translation map** — A machine-readable or explicitly documented mapping
+between the canonical names or representations used by two bounded contexts.
+It preserves local vocabulary while making the boundary recoverable. Normative
+in [G — Graph-resolvable Discoverability](./principles.md#g--graph-resolvable-discoverability).
+
+**versioned boundary** — A published API, independently deployed component,
+persisted schema, external integration, or other boundary explicitly designated
+to carry a compatibility version. Private internal modules are not versioned
+boundaries by default. Normative in
+[R — Replaceable Components](./principles.md#r--replaceable-components).
+
+**vertical slice** — One possible capability strategy that groups a
+capability's entry point, logic, data access, and tests. GARDEN permits it but
+does not require it as the physical project layout. See
+[A — Adaptive Capability Locality](./principles.md#a--adaptive-capability-locality).
