@@ -1,4 +1,0 @@
-interface:
-  display_name: "GARDEN Reviewer"
-  short_description: "Read-only review through the six GARDEN lenses"
-  default_prompt: "Review this change as an isolated GARDEN reviewer after deterministic gates have run."

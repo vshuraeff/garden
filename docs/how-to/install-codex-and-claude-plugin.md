@@ -4,6 +4,9 @@ The repository publishes one `garden` package through two marketplace manifests.
 the command for the harness where the plugin should be available. Installing it in both
 does not duplicate the source package.
 
+Install `uv` first and keep it on `PATH`. The plugin uses one Python toolchain surface:
+`uv run --no-project` for runtime scripts and `uvx` for maintainer tools.
+
 ## Install from GitHub
 
 For Codex CLI:
@@ -13,7 +16,7 @@ codex plugin marketplace add vshuraeff/garden
 codex plugin add garden@garden
 ```
 
-Start a new session so Codex loads the installed skills, subagent, hooks, and MCP tools.
+Start a new session so Codex loads the installed skills, hooks, and MCP tools.
 Run `/hooks`, inspect the source and command definitions, then trust the current hashes
 if they match this repository. Plugin hooks are skipped until trusted.
 
@@ -51,7 +54,8 @@ The installed hooks and MCP tools need no project copies. Invoke `garden:start` 
 when the repository should also carry GARDEN instructions:
 
 - Claude Code receives `.claude/rules/garden.md`.
-- Codex receives a marked block in the project-root `AGENTS.md`.
+- Codex receives a marked block in project-root `AGENTS.md` and the
+  `.codex/agents/garden-reviewer.toml` project agent.
 
 Invoke `garden:stop` to remove those copies. It does not uninstall the plugin and does
 not remove `naming-registry.txt`, `CONTEXT.md`, contracts, or retrofit records.
@@ -63,4 +67,5 @@ hooks. Ask Codex to list available GARDEN skills and tools in a new session; the
 server should expose `garden_inspect_project` and `garden_check_file`.
 
 In Claude Code, use `/plugin` for package state, `/mcp` for the `garden` server, and
-`/agents` for `garden-reviewer`.
+`/agents` for `garden-reviewer`. In Codex, run `garden:start` once for the repository,
+start a new session, then use `/agent` to inspect reviewer threads.

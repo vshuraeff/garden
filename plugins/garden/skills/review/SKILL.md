@@ -45,4 +45,4 @@ Treat mechanizable MUST rules as candidate deterministic gates. The N-principle 
 
    Output findings and evidence only. Do not use `approved`, `safe to merge`, or an equivalent self-certifying conclusion. Leave merge decisions to deterministic gates and the separate decision process.
 
-When an isolated review is preferable, delegate the review to the plugin's `garden-reviewer` subagent. In Codex, explicitly spawn that plugin agent and wait for its result; in Claude Code, invoke the namespaced plugin agent. Do not have the implementer act as the reviewer of its own change.
+When an isolated review is preferable, delegate it to `garden-reviewer`. Claude Code loads the plugin agent directly. Codex loads the project agent after `garden:start` installs `.codex/agents/garden-reviewer.toml`; when that file is absent, spawn a read-only subagent with the same review instructions inline. Wait for the result. Do not have the implementer act as the reviewer of its own change.

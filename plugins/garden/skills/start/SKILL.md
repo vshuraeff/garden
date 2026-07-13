@@ -1,37 +1,37 @@
 ---
 name: start
-description: "Install project-scoped GARDEN instructions for Codex, Claude Code, or both. Use when asked to set up GARDEN in a project, enable GARDEN rules, configure both coding harnesses, or via /garden:start."
+description: "Install project-scoped GARDEN rules and reviewer configuration for Codex, Claude Code, or both. Use when asked to set up GARDEN in a project, enable GARDEN rules, configure both coding harnesses, or via /garden:start."
 ---
 
 # Start GARDEN project tooling
 
-The installed plugin already provides skills, the `garden-reviewer` subagent, MCP inspection tools, and `PostToolUse` plus `UserPromptSubmit` hooks. This skill adds project-scoped instruction copies so the rules remain visible even when a session does not trigger a skill.
+The installed plugin already provides skills, MCP inspection tools, and lifecycle hooks. This skill adds provenance-marked project instructions and the Codex reviewer agent through the plugin's atomic installer.
 
 1. Verify the adoption path.
 
-   Check the project root for `naming-registry.txt`. If it is absent, ask whether to run `garden:bootstrap` for a new project, `garden:retrofit` for an existing codebase, or continue with rules installation for a project that will adopt GARDEN shortly.
+   Check the project root for `naming-registry.txt`. If it is absent, ask whether to run `garden:bootstrap`, run `garden:retrofit`, or continue because adoption will follow shortly.
 
-2. Select the target harnesses.
+2. Select the harnesses.
 
-   Ask whether to install instructions for Claude Code, Codex, or both. Use the current harness as the default. Do not assume that both are installed merely because this plugin supports both.
+   Ask whether to install for Claude Code, Codex, or both. Use the current harness as the default. Do not infer that both are installed.
 
-3. Install Claude Code rules when selected.
+3. Run the deterministic installer.
 
-   Create `.claude/rules/` if needed and copy the plugin's `assets/garden-rules.md` to `.claude/rules/garden.md`. If the destination exists and differs, show the difference and ask before replacing it.
+   Invoke `uv run --no-project <plugin-root>/tools/garden_project.py install --root <project-root> --harness <claude|codex|both>`. Do not manually edit the target files.
 
-4. Install Codex instructions when selected.
+   The installer creates only these managed surfaces:
 
-   Read the plugin's `assets/garden-rules.md`. Add its content to the project-root `AGENTS.md` between these exact markers:
+   - Claude Code: `.claude/rules/garden.md`.
+   - Codex: a digest-marked block in root `AGENTS.md` and `.codex/agents/garden-reviewer.toml`.
 
-   ```text
-   <!-- garden:start -->
-   <!-- garden:stop -->
-   ```
+   It refuses malformed or duplicate markers and refuses files it does not own. If it reports that owned content was edited, show the difference and ask before rerunning with `--force`. `--force` must never replace an unmanaged file.
 
-   Preserve every line outside the managed block. If `AGENTS.md` does not exist, create it with only the managed block. If a managed block already exists, replace only that block after showing any difference. Do not create `.codex/rules/*.rules`: Codex rules files control sandbox command approvals, while GARDEN rules are project instructions.
+4. Report exact paths.
 
-5. Report the installed surfaces.
+   List every installed surface and its harness. State that `garden:stop` removes only content carrying valid `garden:start` provenance. Codex users must start a new session to load the new project agent.
 
-   List each changed path and the selected harness. State that `garden:stop` removes only the project instruction copies. Explain that plugin hooks remain controlled by the plugin manager; Codex users review and trust their current hash through `/hooks`.
+5. Explain hook trust.
 
-Do not edit user-level Claude or Codex configuration. Do not copy the plugin's MCP configuration or subagent files into the project; installed plugins provide those components directly.
+   Plugin hooks remain controlled by the plugin manager. Codex users review and trust their current hash through `/hooks`; project installation does not modify hook trust or user-level configuration.
+
+Do not edit user-level Claude or Codex configuration. Do not copy MCP configuration into the project.

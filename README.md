@@ -76,10 +76,10 @@ as a standalone, agent-facing statement of the GARDEN principles.
 
 This repository serves as both a Claude Code and Codex plugin marketplace. Both
 harnesses install the same `plugins/garden` package and load the same skills,
-references, subagent prompt, and hook implementation.
+references, review policy, and hook implementation.
 
-The GARDEN plugin provides bootstrap, retrofit, review, and audit skills; the isolated
-`garden-reviewer` agent; deterministic lifecycle hooks; and local inspection tools
+The GARDEN plugin provides bootstrap, retrofit, review, and audit skills; an isolated
+reviewer for both harnesses; deterministic lifecycle hooks; and local inspection tools
 through MCP and the `garden` CLI.
 
 Claude Code:

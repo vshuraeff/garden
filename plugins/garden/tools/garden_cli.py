@@ -1,0 +1,58 @@
+#!/usr/bin/env -S uv run --no-project
+"""Command-line access to the same deterministic checks as the GARDEN hooks."""
+
+from __future__ import annotations
+
+import argparse
+import json
+from pathlib import Path
+
+from garden_core import inspect_file, inspect_project
+from garden_project import install, remove
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(prog="garden")
+    subparsers = parser.add_subparsers(dest="command", required=True)
+
+    inspect_parser = subparsers.add_parser("inspect", help="inspect one project")
+    inspect_parser.add_argument("root", nargs="?", default=".")
+
+    file_parser = subparsers.add_parser("check-file", help="check one changed file")
+    file_parser.add_argument("path")
+
+    for command in ("install-project", "remove-project"):
+        project_parser = subparsers.add_parser(command)
+        project_parser.add_argument("root")
+        project_parser.add_argument(
+            "--harness", choices=("claude", "codex", "both"), required=True
+        )
+        project_parser.add_argument("--force", action="store_true")
+
+    args = parser.parse_args()
+    if args.command == "inspect":
+        value = inspect_project(Path(args.root))
+        has_errors = bool(value.get("summary", {}).get("errors", 0))
+    elif args.command == "check-file":
+        findings = [finding.__dict__ for finding in inspect_file(Path(args.path))]
+        value = {
+            "path": str(Path(args.path).resolve()),
+            "findings": findings,
+        }
+        has_errors = any(finding["severity"] == "error" for finding in findings)
+    else:
+        action = install if args.command == "install-project" else remove
+        action(Path(args.root).resolve(), args.harness, force=args.force)
+        value = {
+            "action": args.command,
+            "root": str(Path(args.root).resolve()),
+            "harness": args.harness,
+        }
+        has_errors = False
+
+    print(json.dumps(value, ensure_ascii=False, indent=2))
+    return 1 if has_errors else 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
