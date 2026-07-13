@@ -1,0 +1,22 @@
+{
+  "active": true,
+  "root": "<FIXTURE_ROOT>",
+  "findings": [
+    {
+      "severity": "advisory",
+      "rule": "A-colocated-tests",
+      "path": "libcore/core.py",
+      "message": "capability has no colocated tests"
+    },
+    {
+      "severity": "advisory",
+      "rule": "R-component-contract",
+      "path": "tests/test_core.py",
+      "message": "capability has no CONTRACT.md"
+    }
+  ],
+  "summary": {
+    "errors": 0,
+    "advisories": 2
+  }
+}
