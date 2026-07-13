@@ -5,7 +5,7 @@ description: "Retrofit an existing codebase to GARDEN through measured, strangle
 
 # Retrofit a legacy codebase
 
-Read `${CLAUDE_PLUGIN_ROOT}/references/principles.md` before deciding how to apply a GARDEN rule. Read `${CLAUDE_PLUGIN_ROOT}/references/glossary.md` before applying terms such as managed duplication, one-context task, or vertical slice.
+Read `references/principles.md` relative to the plugin root before deciding how to apply a GARDEN rule. Read the sibling `references/glossary.md` before applying terms such as managed duplication, one-context task, or vertical slice.
 
 Treat mechanizable MUST rules as gate work, not instruction-file work. The N-principle evidence reports roughly 25–40% compliance for instruction-file-only rules and roughly 95% for the same rule enforced by a runtime hook or deterministic gate. Use prose to preserve intent and gates to enforce behavior.
 
@@ -47,4 +47,4 @@ Work through these steps in order. Do not advance while the current acceptance s
 
    Acceptance signal: `retrofit-log.md` contains one reasoned line for every evaluated area, so no decision must be rediscovered or re-litigated later.
 
-Read `${CLAUDE_PLUGIN_ROOT}/references/principles.md` whenever a retrofit exposes a stated invariant. Add the strongest feasible deterministic check for each mechanizable MUST rule; record a non-mechanizable invariant as a risk rather than relying on an agent's assessment.
+Read the plugin's `references/principles.md` whenever a retrofit exposes a stated invariant. Add the strongest feasible deterministic check for each mechanizable MUST rule; record a non-mechanizable invariant as a risk rather than relying on an agent's assessment.

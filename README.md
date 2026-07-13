@@ -72,18 +72,32 @@ you need instead of searching a single sprawling document.
 does not depend on any other file in this repository. You can copy it into any project
 as a standalone, agent-facing statement of the GARDEN principles.
 
-## Claude Code plugin
+## Claude Code and Codex plugin
 
-This repository also serves as a Claude Code plugin marketplace.
+This repository serves as both a Claude Code and Codex plugin marketplace. Both
+harnesses install the same `plugins/garden` package and load the same skills,
+references, subagent prompt, and hook implementation.
 
 The GARDEN plugin provides bootstrap, retrofit, review, and audit skills; the isolated
-`garden-reviewer` agent; and deterministic PostToolUse hooks for mechanizable rules.
+`garden-reviewer` agent; deterministic lifecycle hooks; and local inspection tools
+through MCP and the `garden` CLI.
+
+Claude Code:
 
 ```sh
 claude plugin marketplace add vshuraeff/garden
 claude plugin install garden@garden
 ```
 
-See [`plugins/garden/README.md`](plugins/garden/README.md) for details.
+Codex CLI:
+
+```sh
+codex plugin marketplace add vshuraeff/garden
+codex plugin add garden@garden
+```
+
+See [`plugins/garden/README.md`](plugins/garden/README.md) for component details and
+[`docs/how-to/install-codex-and-claude-plugin.md`](docs/how-to/install-codex-and-claude-plugin.md)
+for installation and local-development commands.
 
 This project is available under the [MIT License](LICENSE).

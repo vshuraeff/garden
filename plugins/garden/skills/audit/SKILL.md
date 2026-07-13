@@ -5,7 +5,7 @@ description: "Audit a codebase against the GARDEN compliance checklist with cite
 
 # Audit GARDEN compliance
 
-Read `${CLAUDE_PLUGIN_ROOT}/references/checklist.md` before evaluating any item. Read `${CLAUDE_PLUGIN_ROOT}/references/principles.md` for the complete rule text and `${CLAUDE_PLUGIN_ROOT}/references/glossary.md` before applying defined terms such as significant directory.
+Read `references/checklist.md` relative to the plugin root before evaluating any item. Read the sibling `references/principles.md` for the complete rule text and `references/glossary.md` before applying defined terms such as significant directory.
 
 Evaluate every checklist item. Cite file-and-line evidence for every pass, failure, and not-applicable result. Do not mark an item as passing without evidence; treat an unverifiable item as a finding.
 

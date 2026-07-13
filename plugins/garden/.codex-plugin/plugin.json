@@ -1,0 +1,40 @@
+{
+  "name": "garden",
+  "version": "0.2.0",
+  "description": "Apply and check the GARDEN agent-first software design principles in Codex and Claude Code.",
+  "author": {
+    "name": "vshuraeff",
+    "url": "https://github.com/vshuraeff"
+  },
+  "homepage": "https://github.com/vshuraeff/garden",
+  "repository": "https://github.com/vshuraeff/garden",
+  "license": "MIT",
+  "keywords": [
+    "garden",
+    "agent-first",
+    "architecture",
+    "code-review",
+    "verification"
+  ],
+  "skills": "./skills/",
+  "mcpServers": "./.mcp.json",
+  "interface": {
+    "displayName": "GARDEN",
+    "shortDescription": "Agent-first architecture, review, and deterministic checks",
+    "longDescription": "Bootstrap or retrofit projects around the GARDEN principles, review changes through six evidence-based lenses, and run deterministic structure checks through hooks and local tools.",
+    "developerName": "vshuraeff",
+    "category": "Developer Tools",
+    "capabilities": [
+      "Interactive",
+      "Read",
+      "Write"
+    ],
+    "websiteURL": "https://github.com/vshuraeff/garden",
+    "defaultPrompt": [
+      "Audit this repository against the GARDEN checklist.",
+      "Review this change through the GARDEN lenses.",
+      "Bootstrap this project with GARDEN structure and gates."
+    ],
+    "brandColor": "#3F6B44"
+  }
+}

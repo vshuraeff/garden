@@ -7,6 +7,16 @@
           { "type": "command", "command": "\"${CLAUDE_PLUGIN_ROOT}/hooks/garden-check.sh\"" }
         ]
       }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"${CLAUDE_PLUGIN_ROOT}/assets/garden-prompt.sh\""
+          }
+        ]
+      }
     ]
   }
 }
