@@ -1,121 +1,100 @@
 <!-- Generated from docs/reference/checklist.md. Do not edit directly. Run sync_references.py --write to update. -->
 # GARDEN compliance checklist
 
+- Document owner: GARDEN plugin maintainers
+- Last reviewed: 2026-07-13
+- Review trigger: a principle rule, normative level, or planned configuration
+  key changes
+- Executable checks: `plugins/garden/tools/sync_references.py`,
+  `plugins/garden/tools/validate_evidence.py`, and
+  `plugins/garden/tools/validate_package.py`
+
 ## How to use this checklist
 
-This checklist restates the rules from [principles.md](./principles.md) as
-discrete, checkable items. Each item is tagged `[MUST]` or `[SHOULD]` and
-carries the rule it maps to.
+This checklist restates [principles.md](./principles.md) as discrete evidence
+requests. Each item identifies its stable rule ID, normative level, scope,
+mechanization status, planned `.garden.toml` configuration key, satisfaction
+evidence, and accepted exception format. The configuration keys are design
+placeholders; `.garden.toml` and its enforcement do not exist yet.
 
 For an agent reviewer: evaluate each item against the code under review, and
-cite file-and-line evidence for every answer, whether the item passes or
-fails. Do not mark an item as passing without evidence; an unverifiable item
-is a finding, not a pass. Report findings as hypotheses per
+cite file-and-line evidence for every answer, whether the item passes or fails.
+Do not mark an item as passing without evidence; an unverifiable item is a
+finding, not a pass. Report findings as hypotheses per
 [review-code-as-agent.md](../how-to/review-code-as-agent.md), not verdicts.
 
-For a CI script: items marked "mechanizable" below can be implemented as a
-lint rule, static check, or test and run without a model in the loop; treat
-those as the priority automation targets, since a rule enforced as a
-deterministic gate is followed far more reliably than one stated only in an
-instructions file. Items not marked mechanizable still belong in
-human or agent review, but should be revisited periodically for whether a
-mechanizable check can be added.
+For a CI script: mechanizable items are the priority automation targets. A
+check enforced by CI is reproducible evidence; it is not proof that defects are
+absent. Items marked manual-with-owner remain review obligations and should be
+revisited when a reliable check becomes possible.
 
-## G — Grep-first Discoverability
+## G — Graph-resolvable Discoverability
 
-- [ ] `[MUST]` Every domain concept has exactly one canonical name, used in
-      code, tests, docs, and error messages. (mechanizable: naming-registry
-      lint)
-- [ ] `[MUST]` Call sites are resolvable by static text search; no
-      string-built identifiers, reflection-based dispatch, or
-      convention-magic routing for domain logic. (mechanizable: lint rule
-      banning dynamic identifier construction)
-- [ ] `[MUST]` File and directory names match the concept names inside them.
-- [ ] `[SHOULD]` Directory layout is flat and predictable rather than deeply
-      nested.
-- [ ] `[SHOULD]` Errors and log messages use grep-stable, unique phrases.
+- [ ] `G-DISC-001` [REQUIRED] Production relationships affecting domain behavior, data flow, authorization, or side effects are recoverable through a stated mechanism; dynamic dispatch has a machine-readable manifest, schema, registry, or generated map. Scope: production domain relationships and runtime dispatch. Mechanization: planned — adapter-specific static check. Configuration key: planned — not yet implemented: `g.discoverability.relationship_graph`. Evidence: direct references or the authoritative registry, schema, route map, plugin map, or generated graph plus its regeneration path. Exception: not allowed for an in-scope production relationship; record a not-applicable scope determination with owner and cited boundary evidence.
+- [ ] `G-DISC-002` [REQUIRED] Each domain concept has a canonical name within its bounded context, and boundaries with different names provide an explicit translation map. Scope: domain concepts crossing a bounded-context boundary. Mechanization: manual-with-owner. Configuration key: planned — not yet implemented: `g.discoverability.translation_maps`. Evidence: bounded-context definition, canonical names, and a committed translation map or schema mapping. Exception: not allowed at an in-scope boundary; identical names on both sides are evidence that no translation entry is needed.
+- [ ] `G-DISC-003` [REQUIRED] Cross-boundary errors expose stable machine-readable codes and structured fields without treating human text as a compatibility key. Scope: public, process, service, and operational error boundaries. Mechanization: planned — schema or structured-log check. Configuration key: planned — not yet implemented: `g.discoverability.error_identity`. Evidence: error schema and tests showing stable codes and fields. Exception: not allowed for an in-scope error; local errors that do not cross a boundary require a cited not-applicable determination.
+- [ ] `G-DISC-004` [DEFAULT] Files, symbols, routes, tests, and docs use names connected to the bounded context's canonical concept or registry entry. Scope: project-owned source and knowledge artifacts. Mechanization: planned — naming and registry consistency check. Configuration key: planned — not yet implemented: `g.discoverability.concept_aligned_names`. Evidence: representative path-to-concept traces and naming-registry or context references. Exception: configuration override with owner, reason, affected paths, and review trigger.
+- [ ] `G-DISC-005` [DEFAULT] The project uses the lowest-cost graph mechanism the stack can inspect reliably. Scope: relationship mechanisms selected by the project. Mechanization: manual-with-owner. Configuration key: planned — not yet implemented: `g.discoverability.graph_mechanism`. Evidence: recorded mechanism choice and a successful traversal from entry point to target and tests. Exception: configuration override with owner, reason, alternative mechanism, and review trigger.
+- [ ] `G-DISC-006` [EXPERIMENTAL] The project measures resolution effort before adopting a discovery threshold. Scope: sampled entry-point-to-handler or schema traversals. Mechanization: manual-with-owner. Configuration key: planned — not yet implemented: `g.discoverability.resolution_experiment`. Evidence: measurement method, sample, baseline, and result. Exception: record "not measured" with owner, reason, and next review date; absence of a measurement is not a rule violation.
 
-## A — Atomic Vertical Slices
+## A — Adaptive Capability Locality
 
-- [ ] `[MUST]` Code is organized by capability (vertical slice), not by
-      technical layer.
-- [ ] `[MUST]` Each slice fits a one-context task: entry point, logic, data
-      access, and tests together; functions are under approximately 50
-      lines. (mechanizable: function-length lint)
-- [ ] `[MUST]` Tests are colocated with the slice they verify. (mechanizable:
-      colocation check)
-- [ ] `[MUST NOT]` No abstraction is extracted before at least three
-      concrete usages exist. (partially mechanizable: clone-detection
-      signal in CI)
-- [ ] `[SHOULD]` Slices communicate only through explicit interfaces; no
-      slice reaches into another slice's internals.
+- [ ] `A-LOC-001` [REQUIRED] Each production capability has a stated location and ownership strategy covering code, state, tests, and operational artifacts. Scope: production capabilities. Mechanization: manual-with-owner. Configuration key: planned — not yet implemented: `a.locality.capability_strategy`. Evidence: capability map or equivalent repository documentation naming locations and owner. Exception: not allowed for an in-scope capability; record a not-applicable determination only for generated or vendored behavior with its source and owner.
+- [ ] `A-LOC-002` [REQUIRED] Changes crossing capability, trust, persistence, or deployment boundaries identify affected contracts and run relevant compatibility or integration checks. Scope: boundary-crossing changes. Mechanization: planned — changed-path and boundary-map check. Configuration key: planned — not yet implemented: `a.locality.boundary_verification`. Evidence: changed-boundary list and linked gate results. Exception: only bounded residual-risk acceptance under `D-VER-004`, naming owner, evidence, scope, and expiry.
+- [ ] `A-LOC-003` [DEFAULT] Typical capability changes minimize unrelated modules, boundary crossings, requisite context, and ownership handoffs while preserving stack conventions. Scope: completed capability changes sampled by the project. Mechanization: planned — change-locality metrics. Configuration key: planned — not yet implemented: `a.locality.change_distance`. Evidence: change-path sample or review showing why touched modules and boundaries are necessary. Exception: configuration override with owner, reason, affected capability class, and review trigger.
+- [ ] `A-LOC-004` [DEFAULT] Tests are colocated with the capability or reachable through a stable production-to-test map. Scope: project-owned executable behavior. Mechanization: planned — colocation or mapping check. Configuration key: planned — not yet implemented: `a.locality.test_mapping`. Evidence: colocated tests or a committed mapping from production paths to test paths. Exception: configuration override with owner, reason, alternate discovery mechanism, and review trigger.
+- [ ] `A-LOC-005` [DEFAULT] Shared abstractions wait for three concrete uses unless a known boundary, security control, or platform constraint justifies earlier extraction. Scope: new shared abstractions. Mechanization: manual-with-owner. Configuration key: planned — not yet implemented: `a.locality.rule_of_three`. Evidence: three use sites or an exception record citing the boundary or constraint. Exception: configuration override with owner, reason, supporting use or risk evidence, and review trigger.
+- [ ] `A-LOC-006` [EXPERIMENTAL] The project measures modules touched, boundary crossings, ownership handoffs, and requisite context before setting locality thresholds. Scope: a representative sample of completed capability changes. Mechanization: manual-with-owner. Configuration key: planned — not yet implemented: `a.locality.profile_experiment`. Evidence: sampling method, baseline, results, and an analysis of metric gaming. Exception: record "not measured" with owner, reason, and next review date; no universal threshold applies.
 
-## R — Regenerable Components
+## R — Replaceable Components
 
-- [ ] `[MUST]` Every component has a contract (interface, behavioral spec,
-      examples) precise enough to rewrite the component from scratch.
-- [ ] `[MUST]` Contracts and specs are versioned next to the code they
-      govern.
-- [ ] `[MUST]` Dependencies at slice boundaries point at contracts (ports),
-      not concrete implementations. (mechanizable: import-boundary lint)
-- [ ] `[SHOULD]` Extension happens by adding adapters or implementations at
-      explicit ports, not by editing unrelated components.
-- [ ] `[SHOULD]` When code and contract disagree, the contract is corrected
-      first and the code regenerated, not silently patched into divergence.
+- [ ] `R-REPL-001` [REQUIRED] A replaceable boundary records every applicable evidence category: interface or schema, examples, characterization tests, property tests, compatibility tests, non-functional requirements, migration and rollback, observability, data ownership, and concurrency or ordering semantics. Scope: component boundaries whose replacement can affect correctness, compatibility, or security. Mechanization: manual-with-owner. Configuration key: planned — not yet implemented: `r.replaceability.evidence_set`. Evidence: linked artifacts for each applicable category and reasoned not-applicable entries for omissions. Exception: a category may be not applicable only with boundary owner, reason, and supporting evidence; the evidence set itself cannot be waived.
+- [ ] `R-REPL-002` [REQUIRED] Published, independently deployed, persisted, external, or explicitly versioned boundaries declare compatibility and use SemVer where SemVer fits; private internal modules have no artificial version line. Scope: designated versioned boundaries and private modules evaluated for false versioning. Mechanization: planned — artifact and boundary classification check. Configuration key: planned — not yet implemented: `r.replaceability.versioned_boundaries`. Evidence: boundary classification, compatibility policy, and version metadata where applicable; Git history for private modules. Exception: another versioning scheme requires owner, artifact-specific reason, compatibility policy, and migration plan; private internal modules are out of SemVer scope by definition.
+- [ ] `R-REPL-003` [REQUIRED] Legacy behavior is characterized before a behavior-preserving rewrite or replacement starts. Scope: legacy rewrites and replacements. Mechanization: manual-with-owner. Configuration key: planned — not yet implemented: `r.replaceability.legacy_characterization`. Evidence: characterization or compatibility tests that fail against an intentionally incompatible implementation and pass against current behavior. Exception: only bounded residual-risk acceptance under `D-VER-004`; the missing characterization work remains open until expiry.
+- [ ] `R-REPL-004` [REQUIRED] A bug fix begins with a failing executable test or reproducer that passes after the fix. Scope: changes classified as bug fixes. Mechanization: manual-with-owner, followed by an automated test gate. Configuration key: planned — not yet implemented: `r.replaceability.bug_reproducer`. Evidence: linked pre-fix failure and post-fix pass for the same test or reproducer. Exception: only bounded residual-risk acceptance under `D-VER-004`, with reason the failure cannot be reproduced and an expiry.
+- [ ] `R-REPL-005` [REQUIRED] Observable undocumented behavior is not removed or rewritten without compatibility evidence for affected consumers. Scope: observable legacy or de facto API behavior. Mechanization: manual-with-owner. Configuration key: planned — not yet implemented: `r.replaceability.undocumented_behavior`. Evidence: consumer inventory, compatibility tests, migration evidence, or proof that the behavior is unreachable. Exception: bounded residual-risk acceptance under `D-VER-004` with consumer impact, owner, evidence, and expiry.
+- [ ] `R-REPL-006` [REQUIRED] A greenfield public boundary defines observable interface, behavior, errors, and compatibility expectations before implementation. Scope: greenfield public APIs and external integration boundaries. Mechanization: manual-with-owner. Configuration key: planned — not yet implemented: `r.replaceability.contract_first_boundaries`. Evidence: pre-implementation schema or contract review linked to implementation and tests. Exception: not allowed for an in-scope greenfield public boundary; legacy boundaries follow `R-REPL-003` instead.
+- [ ] `R-REPL-007` [DEFAULT] Extensions and replacements use declared interfaces, schemas, adapters, or ports when they reduce consumer coupling. Scope: extension and replacement design. Mechanization: manual-with-owner. Configuration key: planned — not yet implemented: `r.replaceability.boundary_strategy`. Evidence: dependency trace showing consumers use the declared boundary, or a design note showing why a direct private implementation is simpler. Exception: configuration override with owner, reason, coupling evidence, and review trigger.
+- [ ] `R-REPL-008` [EXPERIMENTAL] A non-production replacement drill measures whether a second implementation or schema version passes the evidence set. Scope: boundaries selected for a safe drill. Mechanization: manual-with-owner. Configuration key: planned — not yet implemented: `r.replaceability.drill`. Evidence: drill plan, alternate implementation or version, gate results, and observed replacement effort. Exception: record "not run" with owner, reason, and next review date; no universal replacement-time threshold applies.
 
-## D — Deterministic Verification
+## D — Defense-in-depth Verification
 
-- [ ] `[MUST]` Every stated invariant exists as a type, lint rule, test, or
-      CI gate; if it cannot be checked deterministically, it is documented
-      as a risk, not stated as a rule.
-- [ ] `[MUST NOT]` No merge or ship decision rests on an agent's own
-      assessment of its output; a deterministic gate decides.
-      (mechanizable: CI gate required for merge)
-- [ ] `[MUST]` Lint configuration enforces import boundaries, naming rules,
-      and layering as executable architecture, not convention.
-- [ ] `[SHOULD]` LLM review runs as multiple passes with genuinely different
-      lenses, and its findings are triaged as hypotheses to verify, not
-      verdicts.
-- [ ] `[SHOULD]` Violations surface at the earliest gate: type check before
-      test, test before review.
+- [ ] `D-VER-001` [REQUIRED] The change identifies the relevance and result of static validation, unit or property tests, integration or contract tests, security or fuzz testing, runtime assertions and telemetry, canary or staged rollout, independent review, and residual-risk acceptance. Scope: every change, with level relevance determined by its risks. Mechanization: manual-with-owner, with selected executable levels automated where available. Configuration key: planned — not yet implemented: `d.verification.levels`. Evidence: verification record with result or reason not applicable for each level. Exception: a level may be not applicable only with cited change-scope evidence; a missing applicable level is residual risk.
+- [ ] `D-VER-002` [REQUIRED] Applicable type, lint, test, and CI checks run reproducibly from versioned configuration, and LLM review does not replace them. Scope: changes with an applicable executable check. Mechanization: automated — project gate entry points. Configuration key: planned — not yet implemented: `d.verification.reproducible_gates`. Evidence: commands, versioned configuration, and first-attempt outputs. Exception: only bounded residual-risk acceptance under `D-VER-004`; an LLM result is not accepted substitute evidence.
+- [ ] `D-VER-003` [REQUIRED] Flaky checks remain visible and are not hidden behind automatic retries or reported as clean passes. Scope: executable verification gates. Mechanization: planned — first-attempt status and retry-policy check. Configuration key: planned — not yet implemented: `d.verification.flake_policy`. Evidence: first-attempt result, flake issue, owner, and disposition. Exception: no retry-to-green exception; removal or quarantine requires owner, risk evidence, scope, and expiry under `D-VER-004`.
+- [ ] `D-VER-004` [REQUIRED] Human residual-risk acceptance records owner, supporting evidence, scope, and expiry. Scope: every human decision to proceed with unresolved risk. Mechanization: manual-with-owner. Configuration key: planned — not yet implemented: `d.verification.risk_acceptance`. Evidence: dated acceptance record containing all four fields. Exception: not allowed; an incomplete or expired acceptance is unresolved risk.
+- [ ] `D-VER-005` [REQUIRED] An implementing agent is not the sole authority that its own change is correct or ready to ship. Scope: agent-authored or agent-modified changes. Mechanization: manual-with-owner. Configuration key: planned — not yet implemented: `d.verification.release_authority`. Evidence: executable gate results and authorization from a human or independent decision process. Exception: not allowed for an in-scope change.
+- [ ] `D-VER-006` [DEFAULT] Violations surface at the earliest useful verification level without weakening higher-level checks. Scope: project gate ordering and local feedback. Mechanization: planned — gate-order policy check. Configuration key: planned — not yet implemented: `d.verification.gate_order`. Evidence: gate configuration and representative failure flow. Exception: configuration override with owner, reason, dependency constraints, and review trigger.
+- [ ] `D-VER-007` [DEFAULT] Independent review separates relevant lenses and reports LLM findings as hypotheses. Scope: changes selected for independent review. Mechanization: manual-with-owner. Configuration key: planned — not yet implemented: `d.verification.review_lenses`. Evidence: review output with distinct lenses, exact citations, and confirmation status. Exception: configuration override with owner, reason, omitted lenses, and review trigger.
+- [ ] `D-VER-008` [EXPERIMENTAL] The project measures detection, escaped defects, duration, and flake rate per gate before changing the verification mix. Scope: project verification telemetry. Mechanization: manual-with-owner. Configuration key: planned — not yet implemented: `d.verification.gate_value_experiment`. Evidence: measurement definition, sample window, results, and decision record. Exception: record "not measured" with owner, reason, and next review date; repeated model agreement is not replacement evidence.
 
-## E — Explicit Everything
+## E — Explicit Boundaries and State
 
-- [ ] `[MUST]` Dependencies are passed explicitly (parameters, constructor
-      arguments), never via hidden globals or ambient state. (mechanizable:
-      lint rule banning ambient/global access in domain code)
-- [ ] `[MUST]` Every interface is fully typed; data crossing a boundary has
-      a named, versioned shape. (mechanizable: type check)
-- [ ] `[MUST NOT]` No required ordering between operations exists as
-      unenforced temporal coupling.
-- [ ] `[MUST NOT]` No magic values; every literal with meaning has a named,
-      documented constant. (mechanizable: magic-value lint)
-- [ ] `[MUST]` Errors are self-describing: what failed, why, and what the
-      caller can do, in grep-stable wording.
-- [ ] `[SHOULD]` Code favors boring, explicit constructs over clever,
-      compact ones.
+- [ ] `E-EXPL-001` [REQUIRED] Public APIs, trust boundaries, and persistence formats state shapes, validation, compatibility expectations, and ownership. Scope: public, trust, and persistence boundaries. Mechanization: planned — schema, ownership, and compatibility check. Configuration key: planned — not yet implemented: `e.explicitness.boundary_contracts`. Evidence: schemas or interfaces, validation tests, compatibility policy, and named owner. Exception: not allowed for an in-scope boundary; generated schemas are accepted when their source and check are linked.
+- [ ] `E-EXPL-002` [REQUIRED] Side effects, external dependencies, and state transitions are explicit at their controlling boundary; hidden ambient state does not determine cross-boundary domain behavior. Scope: domain side effects, external dependencies, and state transitions. Mechanization: manual-with-owner. Configuration key: planned — not yet implemented: `e.explicitness.behavioral_state`. Evidence: dependency and state-transition definitions plus tests or traces showing the controlling inputs. Exception: generated wiring is accepted when its graph is evidence; static local dependencies outside the boundary require a cited not-applicable determination.
+- [ ] `E-EXPL-003` [REQUIRED] Retry, timeout, authorization, and cross-boundary error policies expose their values, decisions, codes, structured fields, and owners. Scope: operational and authorization boundaries. Mechanization: planned — policy and error-schema check. Configuration key: planned — not yet implemented: `e.explicitness.operational_policy`. Evidence: policy configuration or typed interface, authorization decision record, structured error schema, and boundary tests. Exception: not allowed for in-scope behavior; a framework default is accepted only when the effective value and owner are recoverable.
+- [ ] `E-EXPL-004` [DEFAULT] Local code uses proportionate explicitness and avoids unnecessary type, constant, dependency-injection, generated-wiring, or framework-default ceremony. Scope: implementation inside an already explicit boundary. Mechanization: manual-with-owner. Configuration key: planned — not yet implemented: `e.explicitness.local_ceremony`. Evidence: review of the local behavior and boundary showing no correctness, compatibility, security, or operational fact is hidden. Exception: configuration override with owner, language or framework reason, and review trigger.
+- [ ] `E-EXPL-005` [DEFAULT] A literal affecting domain or operational behavior that is not obvious at use is named or explained; ordinary local literals are not treated as magic values. Scope: domain and operational literals. Mechanization: planned — configurable literal check with review confirmation. Configuration key: planned — not yet implemented: `e.explicitness.magic_values`. Evidence: named policy value, local explanation, or review showing the literal is obvious at use. Exception: configuration override with owner, reason, affected path or value class, and review trigger.
+- [ ] `E-EXPL-006` [EXPERIMENTAL] The project samples incidents and failed changes for hidden state, defaults, retries, or authorization assumptions before adding checks. Scope: project incident and change history. Mechanization: manual-with-owner. Configuration key: planned — not yet implemented: `e.explicitness.audit_experiment`. Evidence: sampling method, classified cases, result, and automation decision. Exception: record "not sampled" with owner, reason, and next review date.
 
-## N — Navigable Knowledge
+## N — Nearby, Maintained Knowledge
 
-- [ ] `[MUST]` The repository root has a short hand-written `CONTEXT.md` at
-      most 200 lines; no autogenerated bulk dump. (mechanizable: line-count
-      check)
-- [ ] `[MUST]` Every significant directory has a README stating purpose,
-      contracts, and links, so knowledge for an edit is at most one hop
-      from the edit site. (see "significant directory" in
-      [glossary.md](./glossary.md))
-- [ ] `[MUST]` The "why" (intent, trade-offs, decision records) is
-      human-authored; agent drafts are marked as such until human-approved.
-- [ ] `[SHOULD]` Documentation follows progressive disclosure: a summary
-      layer links down only where needed.
-- [ ] `[SHOULD]` Docs that only restate what the code already shows have
-      been deleted.
+- [ ] `N-KNOW-001` [REQUIRED] Knowledge needed for correctness, compatibility, security, or operational safety is repository-addressable, linked from its boundary, and names an owner and staleness trigger. Scope: governing project knowledge. Mechanization: manual-with-owner. Configuration key: planned — not yet implemented: `n.knowledge.governed_links`. Evidence: boundary link, maintained knowledge artifact, named owner, and review trigger. Exception: an external system is accepted only with stable link, owner, access expectations, and staleness trigger; chat-only knowledge is not accepted.
+- [ ] `N-KNOW-002` [REQUIRED] Intent, trade-offs, business rationale, risk acceptance, and ownership decisions are human-authored. Scope: decision and governance documentation. Mechanization: manual-with-owner. Configuration key: planned — not yet implemented: `n.knowledge.human_decisions`. Evidence: human-owned decision record and review history. Exception: an agent may draft, but a human owner must adopt the decision before it is authoritative.
+- [ ] `N-KNOW-003` [REQUIRED] Generated documentation contains derived facts only and identifies its source and regeneration path. Scope: generated API, dependency, schema, CLI, and configuration reference. Mechanization: automated where a sync or generation check exists. Configuration key: planned — not yet implemented: `n.knowledge.generated_facts`. Evidence: source artifact, generation command, clean regeneration or sync check, and no generated ownership or rationale claims. Exception: not allowed for generated intent, trade-offs, business rationale, risk acceptance, or ownership decisions.
+- [ ] `N-KNOW-004` [DEFAULT] Nearby navigation or decision docs are added based on public-boundary, separate-owner, non-obvious-decision, independent-edit, operational-obligation, or navigation-entry signals rather than file counts. Scope: project directories and boundary entry points. Mechanization: manual-with-owner. Configuration key: planned — not yet implemented: `n.knowledge.navigation_signals`. Evidence: signal assessment and link to the nearby navigation artifact where one is warranted. Exception: configuration override with owner, reason, alternate navigation path, and review trigger.
+- [ ] `N-KNOW-005` [DEFAULT] Documentation uses progressive disclosure so a typical change loads only requisite context. Scope: project instruction and navigation documents. Mechanization: planned — link, size, and context-budget checks configured by project. Configuration key: planned — not yet implemented: `n.knowledge.context_budget`. Evidence: concise entry point, linked detail, and a representative task-context trace. Exception: configuration override with owner, reason, affected document class, and review trigger; no universal line or file-count limit applies.
+- [ ] `N-KNOW-006` [DEFAULT] Normative documents carry owner, last-reviewed date, review trigger, and links to executable checks. Scope: normative project documentation. Mechanization: planned — not yet implemented by the later metadata check. Configuration key: planned — not yet implemented: `n.knowledge.normative_metadata`. Evidence: all four fields in each in-scope document. Exception: configuration override with owner, document class, reason, and review trigger.
+- [ ] `N-KNOW-007` [DEFAULT] Documentation records decisions, constraints, navigation, and operations instead of duplicating code or generated facts. Scope: human-authored project documentation. Mechanization: manual-with-owner. Configuration key: planned — not yet implemented: `n.knowledge.no_restatement`. Evidence: review identifies the non-derived knowledge each document owns and removes or generates duplicate reference facts. Exception: configuration override with owner, audience need, duplication source, and synchronization plan.
+- [ ] `N-KNOW-008` [EXPERIMENTAL] The project measures stale links, expired reviews, ownerless normative docs, navigation failures, and requisite context before setting proximity or size thresholds. Scope: project knowledge-maintenance data. Mechanization: manual-with-owner. Configuration key: planned — not yet implemented: `n.knowledge.maintenance_experiment`. Evidence: measurement definition, baseline, results, and proposed action. Exception: record "not measured" with owner, reason, and next review date; no fixed directory-size threshold applies.
 
 ## Reading the result
 
-An agent or CI job applying this checklist should report, per item: pass,
-fail, or not applicable, each with cited evidence. A checklist run with
-unresolved `[MUST]` items is a blocking finding; unresolved `[SHOULD]` items
-are recorded but do not block on their own. See
-[set-up-verification-gates.md](../how-to/set-up-verification-gates.md) for
-wiring these items into CI.
+Report each item as pass, fail, or not applicable with cited evidence. An
+unresolved REQUIRED item is blocking unless a rule explicitly permits a valid,
+unexpired residual-risk acceptance. A DEFAULT item may be overridden only by
+the documented configuration exception described by that item. An EXPERIMENTAL
+item records measurement status and does not block merely because the project
+has not run the experiment. See
+[set-up-verification-gates.md](../how-to/set-up-verification-gates.md) for wiring
+mechanizable items into CI.

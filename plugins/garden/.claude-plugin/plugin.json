@@ -1,7 +1,7 @@
 {
   "name": "garden",
   "displayName": "GARDEN",
-  "version": "0.2.4",
+  "version": "0.3.0",
   "description": "Apply and check the GARDEN agent-first design principles in Claude Code and Codex, with shared skills, subagents, hooks, and local tools",
   "homepage": "https://github.com/vshuraeff/garden",
   "repository": "https://github.com/vshuraeff/garden",
