@@ -5,6 +5,11 @@ GARDEN principles from the first commit. It assumes you already understand what 
 is; for the rationale behind each step, see
 [reference/principles.md](../reference/principles.md).
 
+Run `garden init ROOT` to create a conservative `.garden.toml` from detected stack
+markers and existing source directories; it does not move directories or create any
+other project files. Review the generated values against the
+[configuration reference](../reference/configuration.md) before continuing.
+
 ## 1. Choose a slice map before writing code
 
 List the capabilities your system must support (for example: `create-order`,
