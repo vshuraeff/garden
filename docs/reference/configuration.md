@@ -15,7 +15,9 @@ Every key is optional; omitted keys take the defaults listed below.
 Relative paths and globs are evaluated from the directory containing `.garden.toml`.
 GARDEN normalizes `\` separators to `/` and rejects absolute paths, drive-letter
 paths, UNC paths, and `..` segments. Existing symlinks must also resolve inside the
-project root.
+project root. This normalization is a security boundary, not a cross-platform
+compatibility layer; see
+[platform-support.md](platform-support.md) for the resulting Windows constraint.
 
 ## Root keys
 
@@ -81,6 +83,12 @@ or colocated-test findings. A `children` capability checks for `CONTRACT.md` in 
 resolved directory under the matched capability root. An `explicit` capability uses
 the mapped name as its grouping identity and checks `CONTRACT.md` in the matched map
 prefix, such as `src/client/CONTRACT.md` for `"src/client" = "client"`.
+
+## Capability identity
+
+For `strategy = "children"`, capability identity includes the configured root and
+the resolved child path segments. For example, `src/orders` and `lib/orders` are
+distinct capabilities rather than sharing the bare identity `orders`.
 
 ## Tests
 

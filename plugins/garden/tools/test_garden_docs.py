@@ -52,6 +52,38 @@ class GardenDocumentationTests(unittest.TestCase):
         self.assertEqual(1, len(findings))
         self.assertIn("broken link 'missing.md'", findings[0].reason)
 
+    def test_link_inside_code_fence_is_not_checked(self) -> None:
+        path = self.write(
+            "docs/guide.md",
+            "# Guide\n\n```markdown\n[inside](inside.md)\n```\n\n"
+            "[outside](outside.md)\n",
+        )
+
+        findings = link_findings(path, self.root)
+
+        self.assertEqual(1, len(findings))
+        self.assertIn("broken link 'outside.md'", findings[0].reason)
+
+    def test_external_https_link_is_not_checked_for_existence(self) -> None:
+        path = self.write(
+            "docs/guide.md",
+            "# Guide\n\n[external](https://example.invalid/nonexistent)\n",
+        )
+
+        findings = link_findings(path, self.root)
+
+        self.assertEqual([], findings)
+
+    def test_non_deterministic_headings_disable_anchor_checking(self) -> None:
+        self.write("docs/target.md", "# Target\n\n## Foo Bar\n\n## foo-bar\n")
+        path = self.write(
+            "docs/guide.md", "# Guide\n\n[target](target.md#missing-anchor)\n"
+        )
+
+        findings = link_findings(path, self.root)
+
+        self.assertEqual([], findings)
+
     def test_duplicate_and_cross_referenced_rule_ids_are_detected(self) -> None:
         self.write(
             "docs/reference/principles.md",

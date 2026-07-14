@@ -276,7 +276,8 @@ def _resolve_children(
     for root in config.capabilities.roots.value:
         remainder = _under(relative_path, root)
         if remainder is not None and len(remainder) > depth:
-            return CapabilityResolution("capability", "/".join(remainder[:depth]))
+            identity_parts = (*_relative_parts(root), *remainder[:depth])
+            return CapabilityResolution("capability", "/".join(identity_parts))
     return CapabilityResolution("none")
 
 

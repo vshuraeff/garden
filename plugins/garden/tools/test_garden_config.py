@@ -187,6 +187,28 @@ test_roots = { "tests/orders" = "src/orders" }
             ).source_prefix,
         )
 
+    def test_children_capability_identity_includes_configured_root(self) -> None:
+        validation = validate_config(
+            tomllib.loads(
+                """
+[capabilities]
+strategy = "children"
+roots = ["src", "lib"]
+depth = 1
+"""
+            )
+        )
+        effective = resolve_effective(validation.config)
+
+        self.assertEqual(
+            "src/orders",
+            resolve_capability("src/orders/handler.py", effective).capability,
+        )
+        self.assertEqual(
+            "lib/orders",
+            resolve_capability("lib/orders/handler.py", effective).capability,
+        )
+
     def test_existing_symlink_escape_is_rejected(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             workspace = Path(directory)
