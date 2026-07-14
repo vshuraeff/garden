@@ -1,3 +1,10 @@
+---
+owner: vshuraeff
+last_reviewed: 2026-07-14
+review_on:
+  - rule-change
+---
+
 # GARDEN glossary
 
 Terms below use the meanings given here throughout the GARDEN reference set.

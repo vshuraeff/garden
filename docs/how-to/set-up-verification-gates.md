@@ -1,3 +1,11 @@
+---
+owner: vshuraeff
+last_reviewed: 2026-07-14
+review_on:
+  - rule-change
+  - evidence-change
+---
+
 # How to set up verification gates
 
 This guide covers building the deterministic verification pipeline (**D**) that lets a

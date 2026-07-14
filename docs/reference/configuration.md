@@ -1,3 +1,11 @@
+---
+owner: vshuraeff
+last_reviewed: 2026-07-14
+review_on:
+  - config-schema-change
+  - major-release
+---
+
 # Project configuration reference
 
 GARDEN reads `.garden.toml` from the project root. The file uses schema v1 and is

@@ -1,3 +1,10 @@
+---
+owner: vshuraeff
+last_reviewed: 2026-07-14
+review_on:
+  - rule-change
+---
+
 # GARDEN compliance checklist
 
 - Document owner: GARDEN plugin maintainers

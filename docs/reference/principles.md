@@ -1,3 +1,11 @@
+---
+owner: vshuraeff
+last_reviewed: 2026-07-14
+review_on:
+  - rule-change
+  - evidence-change
+---
+
 # GARDEN principles
 
 GARDEN defines six language-agnostic design principles for software written,

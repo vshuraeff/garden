@@ -1,4 +1,12 @@
+---
+owner: vshuraeff
+last_reviewed: 2026-07-14
+review_on:
+  - rule-change
+  - evidence-change
+---
 <!-- Generated from docs/reference/principles.md. Do not edit directly. Run sync_references.py --write to update. -->
+
 # GARDEN principles
 
 GARDEN defines six language-agnostic design principles for software written,
