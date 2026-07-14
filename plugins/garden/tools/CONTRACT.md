@@ -10,10 +10,11 @@ content, and the Codex reviewer agent.
 
 ## Activation and confinement
 
-A project is active when its canonical root contains `naming-registry.txt`. Hook paths
-must resolve inside the active root selected from the hook event `cwd`. MCP paths must
-resolve inside a `file://` root returned by the client through `roots/list`. Symlink
-escapes and unregistered roots are rejected or ignored.
+A project is active when its canonical root contains `.garden.toml`, or when it contains
+`naming-registry.txt` as the legacy fallback. Hook paths must resolve inside the active
+root selected from the hook event `cwd`. MCP paths must resolve inside a `file://` root
+returned by the client through `roots/list`. Symlink escapes and unregistered roots are
+rejected or ignored.
 
 ## Checks
 

@@ -8,33 +8,75 @@ review_on:
 
 # How to apply GARDEN to a new project
 
-This guide walks through setting up a greenfield project so that it follows the six
-GARDEN principles from the first commit. It assumes you already understand what GARDEN
-is; for the rationale behind each step, see
-[reference/principles.md](../reference/principles.md).
+Set up a greenfield project so its first commit carries the selected GARDEN capability,
+boundary, naming, knowledge, and verification model. For the rationale behind each
+step, see [reference/principles.md](../reference/principles.md).
 
 Run `garden init ROOT` to create a conservative `.garden.toml` from detected stack
 markers and existing source directories; it does not move directories or create any
 other project files. Review the generated values against the
 [configuration reference](../reference/configuration.md) before continuing.
 
-## 1. Choose a slice map before writing code
+## Choose a project structure
 
-List the capabilities your system must support (for example: `create-order`,
-`cancel-order`, `list-orders`). Each capability becomes one atomic vertical slice
-(**A**): it owns its entry point, logic, data access, and tests.
+Select the structure that fits the project's delivery, public boundaries, ownership,
+and normal toolchain layout.
 
-- Action: write the capability list as a flat directory plan, one directory per
-  capability, before any implementation.
-- Acceptance signal: every planned directory maps to exactly one capability, and no
-  capability spans more than one directory.
+### Service with capability slices
+
+Choose capability slices when a service's endpoints, jobs, state, tests, and operations
+can be owned and changed by capability. The
+[service example](../reference/configuration.md#service-example) shows a `children`
+strategy. A framework-standard layered layout is an acceptable exception when it keeps
+change-distance low and an explicit map still makes each capability's full change
+surface discoverable.
+
+### Library
+
+Choose the library structure when public packages, client surfaces, or type modules are
+the stable units of ownership and compatibility. The
+[library example](../reference/configuration.md#library-example) uses an `explicit` map.
+Tests may remain in a separate tree when `tests.test_roots` provides a stable mapping
+back to the library capability.
+
+### Monorepo
+
+Choose the monorepo structure when packages or deployable units have separate owners,
+builds, or release boundaries. The
+[monorepo example](../reference/configuration.md#monorepo-example) resolves children
+under `packages`. Shared tooling may remain outside capability ownership when it is
+declared under `capabilities.shared_roots` and its consumers remain recoverable.
+
+### Config or infrastructure repository
+
+Choose the config or infrastructure structure when roles, environments, resource
+groups, or generated plans are the natural change units. The
+[infrastructure example](../reference/configuration.md#infrastructure-example) uses no
+capability grouping. Colocated tests per slice are not required when the repository's
+test roots, validation commands, and affected-resource mapping are explicit.
+
+## 1. Choose a capability map before writing code
+
+Decide which structure above fits before drawing a directory plan. If capability slices
+fit, list the capabilities the system must support, such as `create-order`,
+`cancel-order`, and `list-orders`, and map each slice to its entry point, logic, state,
+tests, operations, and owner. For a library, monorepo, or infrastructure repository,
+configure the corresponding explicit, child, shared-root, or no-capability strategy
+instead of forcing a flat root layout.
+
+- Action: configure `capabilities.strategy` and its roots or map in `.garden.toml`, then
+  record the capability locations and owners the strategy resolves.
+- Acceptance signal: a maintainer can trace each production capability to its code,
+  state, tests, operational artifacts, boundaries, and owner without assuming a
+  universal directory shape.
 
 ## 2. Set a naming registry
 
-Pick one canonical name per domain concept (**G**) and write it down — one
-`concept: canonical-name` entry per line is enough. This is the single source of truth
-for what things are
-called in code, tests, docs, and error messages.
+Set `.garden.toml`'s `naming.registry` key to the registry used by the project. The
+default target is root `naming-registry.txt`; another confined root-relative path may be
+declared. When naming is required, keep one `concept: canonical-name` entry per line and
+one canonical name per concept within each bounded context. Use a translation map when
+contexts retain different vocabulary.
 
 ```text
 # naming-registry.txt
@@ -43,92 +85,83 @@ concept: order-status
 concept: shipment
 ```
 
-- Action: create the registry file at the project root before writing the first slice.
-- Acceptance signal: every identifier, file name, and directory name introduced later can
-  be traced back to an entry in the registry; no synonyms exist for the same concept.
+- Action: review the `[naming]` table created by `garden init`, set the registry path,
+  and add entries before using those concepts in the selected capability structure.
+- Acceptance signal: every introduced domain concept has one canonical name in its
+  bounded context, and the configured registry validates without duplicate concepts or
+  canonical names.
 
 ## 3. Write the root context file
 
-Create a short, hand-written `CONTEXT.md` file that an agent loads at the start of every
-session. Keep it at most 200 lines — see the context-file evidence in
-[explanation/why-agent-first-principles.md](../explanation/why-agent-first-principles.md).
-A project may keep `AGENTS.md` or `CLAUDE.md` as a symlink or copy of `CONTEXT.md` for
-tool compatibility.
+Create a short, hand-written context file selected by
+`project.context_files`. The default generated config accepts `CONTEXT.md` or
+`AGENTS.md`; `documentation.max_context_lines` defaults to 200 and may be configured.
+Link to the naming registry, capability strategy, public contracts, and deterministic
+gates instead of copying their content.
 
-- Action: write `CONTEXT.md` by hand, listing the naming registry location, the
-  slice directory layout, and links to where deterministic gates and contracts live.
-- Acceptance signal: the file has at most 200 lines, contains no autogenerated bulk dump,
-  and a new contributor (human or agent) can find any other project document within one
-  hop from it.
+- Action: write one configured root context file by hand and keep it within the
+  effective line budget.
+- Acceptance signal: the effective context-file conditions pass, the file contains no
+  autogenerated bulk dump, and a new contributor can reach the project's governing
+  documents from it.
 
-## 4. Scaffold one directory per slice, each with a README
+## 4. Add navigation where judgment signals require it
 
-For every capability in the slice map, create its directory with a `README.md` stating
-its purpose, its contract, and links to related slices (**N**).
+Add nearby navigation or decision documentation when a directory is a public boundary,
+has a separate owner, contains non-obvious decisions, is edited independently of its
+siblings, carries operational obligations, or serves as a navigation entry point
+(`N-KNOW-004`). A directory does not need a README merely because of its file or child
+count.
 
-```text
-create-order/
-  README.md
-  entry.*
-  logic.*
-  data.*
-  tests/
-```
+- Action: assess the six navigation signals for capability roots and public boundaries,
+  then add a concise `README.md` or another maintained entry point where a signal makes
+  navigation necessary.
+- Acceptance signal: every warranted navigation document states its owned decisions,
+  constraints, or links, and directories without a signal are not given placeholder
+  documentation.
 
-A monorepo or crowded project root may designate a different slice root; record that
-choice in `CONTEXT.md`.
+## 5. Define contracts before public-boundary code
 
-- Action: scaffold all planned slice directories up front, each with a README stub, even
-  before logic is implemented.
-- Acceptance signal: `README.md` exists in every slice directory and states the slice's
-  purpose in the first paragraph.
+Identify public APIs, trust boundaries, persisted formats, external integrations,
+independently deployed components, and boundaries the project explicitly versions.
+Before implementing one, record its observable interface, behavior, errors,
+compatibility expectations, and applicable replacement evidence in `CONTRACT.md` or an
+accepted contract artifact. Add SemVer only when it fits a designated versioned
+boundary; private internal modules use Git history and do not receive an artificial
+`Version:` line.
 
-## 5. Define contracts before code
-
-For each slice, write its contract (interface, behavioral spec, examples) before writing
-the implementation (**R**). The contract is what makes the slice regenerable. Each
-`CONTRACT.md` starts with a `Version: MAJOR.MINOR.PATCH` line.
-
-```text
-Version: 1.0.0
-
-# create-order contract (pseudocode)
-input:  { customer_id: string, items: list<item> }
-output: { order_id: string, status: "pending" }
-errors: invalid_items, unknown_customer
-```
-
-- Action: write and version `CONTRACT.md` alongside the slice's future code, before
-  writing the entry point or logic.
-- Acceptance signal: a reviewer unfamiliar with the implementation can predict the
-  slice's observable behavior from the contract alone.
+- Action: declare public paths under `boundaries.public`, configure accepted contract
+  names, and write the required evidence before implementing those boundaries.
+- Acceptance signal: each public boundary has the applicable contract and compatibility
+  evidence, while private modules carry no unneeded versioning obligation.
 
 ## 6. Wire deterministic gates from day one
 
 Set up type checking, lint rules, and a test runner as CI gates before the codebase
-grows past the first slice (**D**). See
+grows past its first capability (**D**). See
 [set-up-verification-gates.md](set-up-verification-gates.md) for the full pipeline.
 
 - Action: add a CI job that runs type checks, lint, and tests on every change, ordered
-  fail-fast (type check before test, test before review).
-- Acceptance signal: a change that violates a stated invariant fails CI without requiring
-  a human or an agent to notice it manually.
+  fail-fast from the earliest applicable gate.
+- Acceptance signal: a change that violates a stated mechanizable invariant fails CI
+  without requiring a human or an agent to notice it manually.
 
 ## 7. Set a clone-detection budget
 
-Decide the duplication threshold your project tolerates before extracting a shared
-abstraction (managed duplication, per **A**'s rule of three). The default threshold is
-three concrete usages; a project may override it, but the override MUST be recorded in
-`CONTEXT.md`.
+Configure clone detection before extracting shared abstractions. The rule of three is a
+DEFAULT: wait for three concrete uses unless a known boundary, security control, or
+platform constraint justifies an earlier abstraction.
 
-- Action: add a clone-detection job to CI and set the default threshold to flag blocks
-  duplicated three or more times rather than banning duplication outright.
-- Acceptance signal: the clone-detection job runs in CI and produces a report; no
-  abstraction is extracted in response to fewer than three concrete usages.
+- Action: add a clone-detection job to CI. If the project overrides `A-LOC-005`, record a
+  structured configuration exception with its owner, reason, scope, and review marker.
+- Acceptance signal: the clone-detection job produces a visible report, and an early
+  abstraction has either three concrete uses or a valid documented exception.
 
 ## Next steps
 
+- Migrating a project that uses legacy registry-only activation: see
+  [migrate-from-garden-v0.md](migrate-from-garden-v0.md).
 - Bringing GARDEN to an existing codebase instead: see
   [retrofit-legacy-codebase.md](retrofit-legacy-codebase.md).
 - Full rule set for each principle: [reference/principles.md](../reference/principles.md).
-- Machine-checkable compliance items: [reference/checklist.md](../reference/checklist.md).
+- Machine-checkable checklist items: [reference/checklist.md](../reference/checklist.md).

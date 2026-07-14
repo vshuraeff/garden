@@ -23,7 +23,7 @@ Remove only surfaces carrying valid provenance from `garden:start`.
 
 4. Preserve GARDEN project artifacts.
 
-   Never modify `naming-registry.txt`, `CONTEXT.md`, any `CONTRACT.md`, slice directories, or `retrofit-log.md`. Do not edit plugin-manager state, MCP configuration, hook trust, or user-level configuration.
+   Never modify `.garden.toml`, its declared capability maps or future marker files, `naming-registry.txt`, `CONTEXT.md`, any `CONTRACT.md`, slice directories, or `retrofit-log.md`. Do not edit plugin-manager state, MCP configuration, hook trust, or user-level configuration.
 
 5. Report every removal.
 

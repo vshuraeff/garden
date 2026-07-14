@@ -22,6 +22,7 @@ NORMATIVE_DOCUMENTS = (
     Path("docs/explanation/why-agent-first-principles.md"),
     Path("docs/how-to/apply-to-new-project.md"),
     Path("docs/how-to/install-codex-and-claude-plugin.md"),
+    Path("docs/how-to/migrate-from-garden-v0.md"),
     Path("docs/how-to/retrofit-legacy-codebase.md"),
     Path("docs/how-to/review-code-as-agent.md"),
     Path("docs/how-to/set-up-verification-gates.md"),

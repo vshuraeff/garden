@@ -74,7 +74,7 @@ stage clone-detection  # minutes, can run in parallel with contract-tests
 
 Ordering by cost, not by importance, is what makes the pipeline fail fast: a
 type error is nearly always cheaper to detect and more common than a contract
-violation, so it belongs first even though both are MUST-level gates.
+violation, so it belongs first even though both enforce REQUIRED rules.
 
 ## 5. Add a clone-detection job
 
@@ -94,9 +94,9 @@ when the same rule was enforced as a runtime hook or deterministic gate. It is n
 peer-reviewed research. Use instruction files to explain, use gates to enforce.
 ([CLAIM-N001](../evidence/evidence-registry.md#claim-n001))
 
-- Action: for every MUST-level rule you currently rely on an instruction file to convey,
-  check whether it can instead be a lint rule, a type constraint, a pre-commit hook, or a
-  CI gate; move it if it can.
+- Action: for every mechanizable REQUIRED rule you currently rely on an instruction file
+  to convey, check whether it can instead be a lint rule, a type constraint, a
+  pre-commit hook, or a CI gate; move it if it can.
 - Acceptance signal: the rule now fails a build or a hook instead of depending on an
   agent reading and following a sentence in a context file.
 

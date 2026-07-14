@@ -32,7 +32,8 @@ def main() -> int:
             return 0
 
         message = (
-            "garden: naming-registry.txt marks this as a GARDEN project; use "
+            "garden: .garden.toml or a legacy naming-registry.txt marks this as a "
+            "GARDEN project; use "
             + " or ".join(skills)
             + ". Deterministic gates decide merges; never self-certify."
         )

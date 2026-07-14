@@ -11,12 +11,12 @@ verifiable, and extensible across years of agent-driven changes.
 
 | Letter | Name | One-liner |
 |---|---|---|
-| G | Grep-first Discoverability | Structure and naming minimize the number of search steps an agent needs to find the right code. One canonical name per concept; call sites traceable statically; no magic or dynamic dispatch that hides relationships. |
-| A | Atomic Vertical Slices | Small, self-contained vertical modules; one task fits in one context window. Tests colocated with code. Managed duplication instead of premature abstraction. |
-| R | Regenerable Components | Any component can be rewritten from scratch against its contract without ripple effects. The spec/contract is the durable artifact; code is expendable. Extension happens through explicit ports, not rewrites. |
-| D | Deterministic Verification | An agent never self-certifies. Every invariant is encoded in executable form: types, lint rules, tests, CI gates. LLM review is a complement with diverse lenses, never a substitute for deterministic gates. |
-| E | Explicit Everything | No implicit invariants: explicit dependencies, typed interfaces, self-describing errors, no temporal coupling, no magic values. Boring explicit code beats clever compact code. |
-| N | Navigable Knowledge | Layered documentation with progressive disclosure: short hand-written context files, READMEs in significant directories, human-authored intent ("why"), specs versioned next to code. Knowledge needed for an edit lives at most one hop from the edit site. |
+| G | Graph-resolvable Discoverability | Production relationships are recoverable through a stated mechanism, and canonical names are scoped to bounded contexts with explicit translation maps at their boundaries. |
+| A | Adaptive Capability Locality | Each project states a capability strategy that fits its stack; locality is judged by change-distance, boundary crossings, ownership, and requisite context rather than a prescribed tree. |
+| R | Replaceable Components | Boundaries record the behavior and compatibility evidence needed for safe replacement, while versioning applies only where the boundary requires it. |
+| D | Defense-in-depth Verification | Changes carry independent, reproducible evidence selected for their risks; executable gates and an authorized decision process prevent agent self-certification. |
+| E | Explicit Boundaries and State | Inputs, outputs, side effects, state transitions, and operational policies are explicit at the boundaries where omission would change behavior or risk. |
+| N | Nearby, Maintained Knowledge | Governed knowledge stays near its boundary, and navigation docs follow public-boundary, ownership, decision, independent-edit, operational, and entry-point signals rather than directory-size thresholds. |
 
 ## Who this is for
 
@@ -44,6 +44,7 @@ you need instead of searching a single sprawling document.
 ### How-to guides
 
 - [Apply GARDEN to a new project](docs/how-to/apply-to-new-project.md)
+- [Migrate from GARDEN v0](docs/how-to/migrate-from-garden-v0.md)
 - [Retrofit a legacy codebase](docs/how-to/retrofit-legacy-codebase.md)
 - [Set up verification gates](docs/how-to/set-up-verification-gates.md)
 - [Review code as an agent](docs/how-to/review-code-as-agent.md)

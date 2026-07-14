@@ -16,7 +16,8 @@ shared.
   Claude Code loads it from the plugin; `garden:start` installs the schema-valid Codex
   project agent at `.codex/agents/garden-reviewer.toml`.
 - `hooks/hooks.json` routes GARDEN prompts and checks changed files when a project-root
-  `naming-registry.txt` activates the methodology.
+  `.garden.toml` activates the methodology, with `naming-registry.txt` retained as a
+  legacy fallback.
 - `garden_inspect_project` and `garden_check_file` expose the deterministic checks as
   read-only MCP tools. `bin/garden` exposes the same checks to a shell.
 

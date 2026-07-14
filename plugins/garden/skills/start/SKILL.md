@@ -9,7 +9,7 @@ The installed plugin already provides skills, MCP inspection tools, and lifecycl
 
 1. Verify the adoption path.
 
-   Check the project root for `naming-registry.txt`. If it is absent, ask whether to run `garden:bootstrap`, run `garden:retrofit`, or continue because adoption will follow shortly.
+   Check the project root for `.garden.toml` first. If it exists, continue with the configured project. If `.garden.toml` is absent but root `naming-registry.txt` exists, treat the project as legacy and offer to run `garden migrate-config <project-root>` through `uv run --no-project <plugin-root>/tools/garden_cli.py migrate-config <project-root>` before proceeding. If neither marker exists, ask whether to run `garden:bootstrap`, run `garden:retrofit`, or continue because adoption will follow shortly.
 
 2. Select the harnesses.
 
