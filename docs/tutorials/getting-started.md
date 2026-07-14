@@ -207,9 +207,9 @@ Follow what that agent needs to read, in hop order:
 Observe: the agent never had to open a directory outside `link-shortener/`, never had to
 guess a name (the registry already defines `link`, `short_code`, `resolve`), and the
 lint boundary rule from step 6 did not need to change, because expiry is internal to
-each slice's own contract and implementation. This is a one-context task: its requisite
-context — `CONTEXT.md`, two contracts, two tests, two implementations — fits comfortably
-in a single agent context window.
+each slice's own contract and implementation. All requisite context for the change —
+`CONTEXT.md`, two contracts, two tests, and two implementations — fits in a single agent
+context window.
 
 ## Where to go next
 

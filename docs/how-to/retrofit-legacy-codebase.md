@@ -3,117 +3,124 @@ owner: vshuraeff
 last_reviewed: 2026-07-14
 review_on:
   - rule-change
+  - config-schema-change
 ---
 
 # How to retrofit GARDEN onto a legacy codebase
 
-This guide covers incremental adoption of GARDEN in an existing codebase that was not
-built with agent-first principles. Do not attempt a rewrite; retrofit through
-measurement, strangler-style extraction, and ratcheted enforcement. For the principles
-being applied, see [reference/principles.md](../reference/principles.md).
+Adopt GARDEN in an existing codebase through measurement, strangler-style extraction,
+and ratcheted enforcement rather than a rewrite. For the principles being applied, see
+[reference/principles.md](../reference/principles.md).
 
 ## 1. Measure before changing anything
 
-Establish a baseline so you can tell whether the retrofit is working.
+Record these six baseline fields with a date and measurement method:
 
-- Action: measure the search-miss rate (how often an agent fails to find an existing
-  utility and reimplements it), the duplication level (copy-pasted and cloned code as a
-  share of changed lines), and current gate coverage (share of stated invariants that
-  are checked by a type, lint rule, test, or CI job rather than by prose).
-- Acceptance signal: you have three baseline numbers recorded and dated, so later passes
-  can show delta.
+- median files opened per task;
+- duplicate findings from clone detection;
+- changed-module count;
+- escaped regressions;
+- CI rule coverage, defined as the share of stated invariants enforced by a
+  deterministic gate;
+- unknown or incomplete audit count, covering items an audit could not evaluate.
 
-Gather the search-miss rate by sampling recent agent sessions or pull requests and
-checking whether a new function duplicates an existing one that a grep for its purpose
-would have surfaced. Gather duplication from a clone-detection tool run once over the
-current tree. Gather gate coverage by listing the invariants stated in existing docs or
-comments and checking, one by one, whether a type, lint rule, or test currently fails if
-the invariant is violated.
+A project may add search-miss rate as an EXPERIMENTAL diagnostic. Do not substitute it
+for one of the six baseline fields or assign a universal threshold before collecting a
+project-specific baseline.
 
-## 2. Extract slices strangler-style
+- Action: sample a stated task window for files opened and modules changed, run clone
+  detection, count regressions that escaped the selected gates, map documented
+  invariants to CI checks, and count audit items lacking enough evidence for a result.
+- Acceptance signal: all six dated baseline fields are recorded with methods that a
+  later retrofit pass can repeat; any search-miss measurement is labeled EXPERIMENTAL.
 
-Do not restructure the whole codebase at once. Pick one capability at a time and extract
-it into an atomic vertical slice (**A**) alongside the legacy code, routing new work to
-the slice while the old implementation keeps serving until it is fully replaced.
+## 2. Extract capabilities strangler-style
 
-- Action: choose the highest-traffic or highest-change-frequency capability first,
-  extract it into its own directory with entry point, logic, data access, and colocated
-  tests, and redirect callers to the new slice.
-- Acceptance signal: the extracted capability's tests are colocated with its slice, and
-  no caller reaches the old implementation for that capability anymore.
+Do not restructure the whole codebase at once. Read the effective `.garden.toml`, pick
+one capability, and move it toward the project's declared `children`, `explicit`,
+`markers`, or `none` strategy while the legacy path remains available behind one
+cutover point. Treat `markers` resolution as EXPERIMENTAL and unknown until the project
+defines a marker format. A vertical slice is one valid target when the project selects
+it, not a required root-level layout.
 
-During extraction, keep both implementations reachable behind a single call site (a
-router or a feature flag) so the cutover is reversible; remove the legacy implementation
-only after the new slice has run in production long enough to catch behavioral gaps the
-extracted contract did not anticipate.
+- Action: choose the highest-traffic or highest-change-frequency capability, extract it
+  into its configured location with a stable mapping to its tests and operational
+  artifacts, and redirect callers through one router or feature flag.
+- Acceptance signal: the extracted capability resolves through the configured strategy,
+  its tests are colocated or mapped through `tests.test_roots`, and no caller reaches the
+  old implementation directly before removal.
+
+Keep both implementations reachable behind the single cutover point until the new
+capability has demonstrated the expected behavior through the agreed cutover period.
+Remove the legacy implementation only after characterization and compatibility evidence
+cover the behavior being replaced.
 
 ## 3. Run naming consolidation passes
 
-Legacy codebases typically accumulate synonym sprawl (**G**). Consolidate incrementally
-rather than renaming everything at once.
+Legacy codebases accumulate overlapping vocabulary (**G**). Consolidate within each
+bounded context rather than forcing one repository-wide synonym.
 
-- Action: for each concept touched by a slice extraction, pick the one canonical name,
-  record it in a naming registry, and rename references within the touched files as you
-  go; do not do a codebase-wide rename in one pass.
-- Acceptance signal: every concept touched during the retrofit has exactly one name in
-  the naming registry, and no new synonym is introduced by the extraction.
+- Action: for each touched concept, choose the canonical name for its bounded context,
+  write it to `.garden.toml`'s configured `naming.registry` path when naming is required,
+  and rename references within touched files only. Use root `naming-registry.txt` only as
+  the legacy fallback and add a translation map where two contexts retain different
+  names.
+- Acceptance signal: every touched concept has one canonical name in its context, the
+  configured registry validates, and the extraction introduces no undocumented synonym.
 
-For example, if a legacy codebase calls the same concept `order`, `purchase`, and
-`txn` across different modules, the first slice that touches any of them picks one name
-(`order`), records it, and renames only the references inside that slice's new
-directory. The other two spellings stay until a later slice extraction reaches them —
-do not chase every occurrence across the whole codebase in one pass.
+Do not chase every legacy occurrence across the codebase in one pass. Leave untouched
+spellings until a later extraction reaches their bounded context, and record the
+translation needed at any boundary crossed in the meantime.
 
-## 4. Add contracts to seams before touching internals
+## 4. Add contracts to public seams before touching internals
 
-Before modifying a legacy component's internals, write down its contract (**R**) as
-observed from its current callers. This turns an implicit dependency into an explicit
-one and gives you a regression net.
+Before modifying a public legacy seam, capture its current observable behavior and
+compatibility evidence (**R**). Characterization tests come before the behavior-
+preserving rewrite.
 
-- Action: for each seam you are about to extract or modify, write the contract (inputs,
-  outputs, errors) from the component's current observable behavior before changing any
-  internal code.
-- Acceptance signal: a contract file exists and is versioned next to the seam before the
-  first internal change lands.
+- Action: classify the seam as public or private. For a public, persisted,
+  independently deployed, external, or explicitly versioned boundary, record its
+  inputs, outputs, errors, behavior, compatibility policy, and applicable replacement
+  evidence in an accepted contract artifact. Keep private modules unversioned.
+- Acceptance signal: characterization or compatibility tests capture current observable
+  behavior before the first internal change, and only designated versioned boundaries
+  carry a SemVer obligation.
 
 ## 5. Ratchet lint rules instead of enforcing them everywhere at once
 
 Applying strict deterministic gates (**D**) to an entire legacy codebase at once usually
-fails outright. Ratchet instead: new and touched code is held to the full standard, old
-untouched code is grandfathered.
+fails outright. Ratchet instead: new and touched code is held to the configured rule,
+while untouched legacy violations remain visible as warnings.
 
-- Action: configure lint rules to fail on new or modified files and to warn (not fail) on
-  untouched legacy files; tighten the boundary over time as more files are touched.
-- Acceptance signal: CI fails when a newly written or modified file violates a rule, and
-  does not fail on an untouched legacy file that predates the rule.
+- Action: configure lint rules to fail on new or modified files and to warn on untouched
+  legacy files; tighten the boundary over time as more files are touched.
+- Acceptance signal: CI fails when a newly written or modified file violates a rule and
+  does not report an untouched legacy violation as a clean pass.
 
 ```text
 # ratchet config (pseudocode)
 rule "no-implicit-any": error on files changed after 2026-01-01, warn otherwise
-rule "one-canonical-name": error on files inside an already-extracted slice, warn elsewhere
+rule "one-canonical-name": error in migrated bounded contexts, warn elsewhere
 ```
 
-Track the warn count over time; a shrinking warn count is the retrofit's real progress
-metric, independent of the baseline in step 1.
+Track the warning count over time as a progress signal alongside the baseline in step 1.
 
 See [set-up-verification-gates.md](set-up-verification-gates.md) for the full gate
 pipeline this step plugs into.
 
 ## 6. Know when not to retrofit
 
-Retrofitting has a cost. Skip it, or defer it, when:
+Skip or defer an area when:
 
-- the component is scheduled for deprecation or replacement within the current planning
-  horizon — contract-first extraction work would be thrown away;
-- the component has no active development and no agent is expected to edit it soon —
-  requisite context is not currently being spent on it, so the retrofit yields little;
-- the measured baseline (step 1) shows low search-miss rate and low duplication for that
-  area already — the retrofit budget is better spent elsewhere.
+- it is scheduled for deprecation or replacement within the current planning horizon;
+- it has no active development and no likely agent edits;
+- its project-specific baseline already shows low change-distance, few duplicate
+  findings and escaped regressions, adequate CI rule coverage, and no material unknown
+  audit items.
 
-- Action: before retrofitting a given area, check it against the three conditions above.
-- Acceptance signal: `retrofit-log.md` at the project root records one line per decision
-  stating why an area was retrofitted or skipped, so the decision is not re-litigated
-  later.
+- Action: compare each candidate area with its measured baseline and planned lifetime.
+- Acceptance signal: root `retrofit-log.md` records one line per retrofit, skip, or defer
+  decision with the area and reason, so the decision does not need to be rediscovered.
 
 ## Next steps
 
