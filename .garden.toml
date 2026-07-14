@@ -1,0 +1,83 @@
+schema_version = 1
+
+[project]
+type = "library"
+
+[scan]
+include = ["**/*.py", "**/*.sh", "**/*.md", "**/*.toml", "**/*.json", "**/*.yml", "**/*.yaml"]
+exclude = ["plugins/garden/tools/fixtures/**"]
+
+[capabilities]
+strategy = "explicit"
+shared_roots = ["plugins/garden/tools/fixtures"]
+
+[capabilities.map]
+"plugins/garden/tools" = "deterministic-tools"
+"docs" = "documentation"
+"plugins/garden/skills" = "skills"
+"plugins/garden/agents" = "policy-agents"
+"plugins/garden/hooks" = "adapters"
+"plugins/garden/assets" = "adapters"
+
+[tests]
+patterns = ["plugins/garden/tools/test_*.py"]
+association = "same-capability"
+
+[documentation]
+root_context_required = true
+
+[[exceptions]]
+rule_id = "R-component-contract"
+paths = ["docs/**"]
+reason = "narrative documentation is not a code capability; docs correctness is enforced by validate_docs.py and validate_evidence.py in CI, not a per-capability CONTRACT.md"
+owner = "garden-maintainers"
+review_after = "2027-01-01"
+
+[[exceptions]]
+rule_id = "A-colocated-tests"
+paths = ["docs/**"]
+reason = "documentation has no colocated-test convention; content is checked by validate_docs.py/validate_evidence.py, not test files"
+owner = "garden-maintainers"
+review_after = "2027-01-01"
+
+[[exceptions]]
+rule_id = "R-component-contract"
+paths = ["plugins/garden/skills/**"]
+reason = "skills are prompt/markdown definitions validated by test_garden_skills_migration.py at the repo level; they do not follow the CONTRACT.md convention"
+owner = "garden-maintainers"
+review_after = "2027-01-01"
+
+[[exceptions]]
+rule_id = "A-colocated-tests"
+paths = ["plugins/garden/skills/**"]
+reason = "same as above: skills are covered by repo-level migration tests, not colocated test files"
+owner = "garden-maintainers"
+review_after = "2027-01-01"
+
+[[exceptions]]
+rule_id = "R-component-contract"
+paths = ["plugins/garden/agents/**"]
+reason = "reviewer subagent definitions are validated by validate_docs.py and validate_package.py; the Codex TOML install path is exercised by test_garden_tools.py, not a CONTRACT.md convention"
+owner = "garden-maintainers"
+review_after = "2027-01-01"
+
+[[exceptions]]
+rule_id = "A-colocated-tests"
+paths = ["plugins/garden/agents/**"]
+reason = "agent definitions are checked by validate_docs.py/validate_package.py and the Codex TOML install path by test_garden_tools.py, not colocated tests under agents/"
+owner = "garden-maintainers"
+review_after = "2027-01-01"
+
+[[exceptions]]
+rule_id = "R-component-contract"
+paths = ["plugins/garden/hooks/**", "plugins/garden/assets/**"]
+reason = "adapters are thin shell scripts verified by bash -n and garden_hook.py/garden_prompt_hook.py unit tests in CI; no CONTRACT.md convention applies to shell adapters"
+owner = "garden-maintainers"
+review_after = "2027-01-01"
+
+[[exceptions]]
+rule_id = "A-colocated-tests"
+paths = ["plugins/garden/hooks/**", "plugins/garden/assets/**"]
+reason = "same as above: adapter correctness is exercised by plugins/garden/tools/test_garden_tools.py, not colocated test files under hooks/assets"
+owner = "garden-maintainers"
+review_after = "2027-01-01"
