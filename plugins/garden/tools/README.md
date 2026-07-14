@@ -8,7 +8,7 @@ project instruction installation and removal.
 The shell-facing entry point is `../bin/garden`. Run the colocated tests with:
 
 ```sh
-uv run --no-project -m unittest plugins/garden/tools/test_garden_tools.py -v
+uv run --no-project -m unittest discover -s plugins/garden/tools -p "test_*.py" -v
 ```
 
 Every installable plugin change requires an explicit SemVer bump. Update both harness

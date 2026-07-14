@@ -64,7 +64,7 @@ def main() -> int:
         if project_root is None:
             return 0
 
-        test_cache: dict[Path, bool | None] = {}
+        test_cache: dict[Path | str, bool | None] = {}
         findings = [
             finding
             for path in affected_paths(event)
