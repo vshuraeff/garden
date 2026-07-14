@@ -16,10 +16,8 @@ jobs:
         with:
           fetch-depth: 0
       - uses: astral-sh/setup-uv@11f9893b081a58869d3b5fccaea48c9e9e46f990 # v8.3.2
-      - name: Test deterministic tools
-        run: uv run --no-project -m unittest plugins/garden/tools/test_garden_tools.py -v
-      - name: Test fixture compatibility
-        run: uv run --no-project -m unittest plugins/garden/tools/test_garden_fixtures.py -v
+      - name: Test deterministic tools and fixtures
+        run: uv run --no-project -m unittest discover -s plugins/garden/tools -p "test_*.py" -v
       - name: Validate both plugin packages and reference copies
         run: uv run --no-project plugins/garden/tools/validate_package.py
       - name: Validate evidence registry and citations

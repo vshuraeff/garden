@@ -5,7 +5,23 @@ from __future__ import annotations
 import re
 from pathlib import Path
 
-from garden_paths import MAX_ROOT_SEARCH_DEPTH, find_project_root, is_within
+from garden_config import (
+    CONFIG_NAME,
+    CapabilityResolution,
+    ConfigResult,
+    EffectiveConfig,
+    load_config,
+    resolve_capability,
+    resolve_effective,
+    resolve_test_association,
+)
+from garden_paths import (
+    MAX_ROOT_SEARCH_DEPTH,
+    ProjectActivation,
+    find_project_activation,
+    find_project_root,
+    is_within,
+)
 from garden_report import Finding
 from garden_rules import (
     CONTEXT_LINE_BUDGET,
@@ -25,6 +41,7 @@ from garden_scanner import (
 
 
 __all__ = [
+    "CONFIG_NAME",
     "CONTEXT_LINE_BUDGET",
     "IGNORED_PARTS",
     "MAX_CHECKED_FILE_BYTES",
@@ -34,12 +51,21 @@ __all__ = [
     "MAX_SCAN_SECONDS",
     "NON_SOURCE_NAMES",
     "NON_SOURCE_SUFFIXES",
+    "CapabilityResolution",
+    "ConfigResult",
+    "EffectiveConfig",
     "Finding",
+    "ProjectActivation",
     "ScanLimitExceeded",
+    "find_project_activation",
     "find_project_root",
     "inspect_file",
     "inspect_project",
     "is_within",
+    "load_config",
+    "resolve_capability",
+    "resolve_effective",
+    "resolve_test_association",
     "route_prompt",
 ]
 

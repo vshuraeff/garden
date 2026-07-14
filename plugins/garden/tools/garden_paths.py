@@ -2,14 +2,21 @@
 
 from __future__ import annotations
 
+from dataclasses import dataclass
 from pathlib import Path
 
 
 MAX_ROOT_SEARCH_DEPTH = 31
 
 
-def find_project_root(start: Path) -> Path | None:
-    """Find the nearest ancestor activated by a naming registry."""
+@dataclass(frozen=True)
+class ProjectActivation:
+    root: Path
+    kind: str
+
+
+def find_project_activation(start: Path) -> ProjectActivation | None:
+    """Find the nearest config or legacy activation marker."""
 
     import garden_core
 
@@ -18,12 +25,21 @@ def find_project_root(start: Path) -> Path | None:
         current = current.parent
 
     for _ in range(garden_core.MAX_ROOT_SEARCH_DEPTH):
+        if (current / ".garden.toml").is_file():
+            return ProjectActivation(current, "config")
         if (current / "naming-registry.txt").is_file():
-            return current
+            return ProjectActivation(current, "legacy")
         if current.parent == current:
             return None
         current = current.parent
     return None
+
+
+def find_project_root(start: Path) -> Path | None:
+    """Find the nearest ancestor activated by config or a naming registry."""
+
+    activation = find_project_activation(start)
+    return activation.root if activation else None
 
 
 def is_within(path: Path, root: Path) -> bool:
