@@ -1,3 +1,10 @@
+---
+owner: vshuraeff
+last_reviewed: 2026-07-14
+review_on:
+  - major-release
+---
+
 # Install the GARDEN plugin in Codex or Claude Code
 
 The repository publishes one `garden` package through two marketplace manifests. Use

@@ -1,4 +1,11 @@
+---
+owner: vshuraeff
+last_reviewed: 2026-07-14
+review_on:
+  - rule-change
+---
 <!-- Generated from docs/reference/checklist.md. Do not edit directly. Run sync_references.py --write to update. -->
+
 # GARDEN compliance checklist
 
 - Document owner: GARDEN plugin maintainers

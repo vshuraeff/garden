@@ -1,3 +1,11 @@
+---
+owner: vshuraeff
+last_reviewed: 2026-07-14
+review_on:
+  - rule-change
+  - evidence-change
+---
+
 # How to review code as an agent
 
 This guide is written to be used directly as a review prompt for an agent conducting a

@@ -1,3 +1,11 @@
+---
+owner: vshuraeff
+last_reviewed: 2026-07-14
+review_on:
+  - rule-change
+  - config-schema-change
+---
+
 # How to apply GARDEN to a new project
 
 This guide walks through setting up a greenfield project so that it follows the six

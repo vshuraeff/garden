@@ -1,3 +1,11 @@
+---
+owner: vshuraeff
+last_reviewed: 2026-07-14
+review_on:
+  - rule-change
+  - evidence-change
+---
+
 # The garden model
 
 ## A codebase as something tended, not built once

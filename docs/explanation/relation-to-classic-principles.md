@@ -1,3 +1,11 @@
+---
+owner: vshuraeff
+last_reviewed: 2026-07-14
+review_on:
+  - rule-change
+  - evidence-change
+---
+
 # Relation to classic principles
 
 GARDEN did not invent six principles from nothing. Each one inherits from an established

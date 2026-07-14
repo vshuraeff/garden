@@ -1,4 +1,11 @@
+---
+owner: vshuraeff
+last_reviewed: 2026-07-14
+review_on:
+  - rule-change
+---
 <!-- Generated from docs/reference/glossary.md. Do not edit directly. Run sync_references.py --write to update. -->
+
 # GARDEN glossary
 
 Terms below use the meanings given here throughout the GARDEN reference set.

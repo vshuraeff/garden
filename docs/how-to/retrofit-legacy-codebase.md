@@ -1,3 +1,10 @@
+---
+owner: vshuraeff
+last_reviewed: 2026-07-14
+review_on:
+  - rule-change
+---
+
 # How to retrofit GARDEN onto a legacy codebase
 
 This guide covers incremental adoption of GARDEN in an existing codebase that was not

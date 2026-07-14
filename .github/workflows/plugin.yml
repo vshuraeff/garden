@@ -22,6 +22,8 @@ jobs:
         run: uv run --no-project plugins/garden/tools/validate_package.py
       - name: Validate evidence registry and citations
         run: uv run --no-project plugins/garden/tools/validate_evidence.py
+      - name: Validate documentation checks
+        run: uv run --no-project plugins/garden/tools/validate_docs.py
       - name: Require a plugin SemVer bump
         if: github.event_name == 'pull_request'
         run: uv run --no-project plugins/garden/tools/plugin_version.py check --base ${{ github.event.pull_request.base.sha }}
