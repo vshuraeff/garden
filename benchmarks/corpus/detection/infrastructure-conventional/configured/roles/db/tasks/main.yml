@@ -1,0 +1,2 @@
+- name: configure database
+  debug: {msg: database}

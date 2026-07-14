@@ -1,0 +1,27 @@
+schema_version = 1
+
+[project]
+type = "library"
+
+[scan]
+include = ["**/*.py", "**/*.toml"]
+exclude = ["**/contest.py", "dist/**"]
+
+[capabilities]
+strategy = "explicit"
+shared_roots = ["package/shared"]
+
+[capabilities.map]
+"package/codec" = "codec"
+"package/client" = "client"
+
+[tests]
+patterns = ["package/**/tests/test_*.py", "tests/**/test_*.py"]
+association = "test-roots"
+
+[tests.test_roots]
+"package/codec/tests" = "package/codec"
+"tests/client" = "package/client"
+
+[documentation]
+root_context_required = false

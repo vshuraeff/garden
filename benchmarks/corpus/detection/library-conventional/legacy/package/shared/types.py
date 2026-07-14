@@ -1,0 +1,1 @@
+IDENTIFIER_KIND = "string"

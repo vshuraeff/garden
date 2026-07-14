@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "rules": {
+    "A-colocated-tests": "A",
+    "D-project-scan-limit": "D",
+    "N-CONFIG-INVALID": "N",
+    "N-CONTEXT-MISSING": "N",
+    "N-LEGACY-NAMING-REGISTRY": "N",
+    "N-NAMING-DUPLICATE-CANONICAL": "N",
+    "N-NAMING-DUPLICATE-CONCEPT": "N",
+    "N-NAMING-EMPTY-REGISTRY": "N",
+    "N-NAMING-INVALID-ENTRY": "N",
+    "N-NAMING-MISSING": "N",
+    "N-context-budget": "N",
+    "N-context-scan-limit": "N",
+    "R-component-contract": "R",
+    "R-contract-scan-limit": "R",
+    "R-contract-version": "R"
+  }
+}

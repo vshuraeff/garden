@@ -1,0 +1,28 @@
+schema_version = 1
+
+[project]
+type = "library"
+
+[scan]
+include = ["**/*.py", "**/*.json"]
+exclude = ["**/contest.py", "vendor/**"]
+
+[capabilities]
+strategy = "explicit"
+shared_roots = ["src/sdk/common"]
+
+[capabilities.map]
+"src/sdk/orders" = "orders"
+"config" = "orders"
+"src/sdk/billing" = "billing"
+
+[tests]
+patterns = ["src/**/tests/test_*.py", "mapped_tests/**/test_*.py"]
+association = "test-roots"
+
+[tests.test_roots]
+"src/sdk/orders/tests" = "src/sdk/orders"
+"mapped_tests/billing" = "src/sdk/billing"
+
+[documentation]
+root_context_required = false

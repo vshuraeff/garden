@@ -31,6 +31,9 @@ jobs:
         run: uv run --no-project plugins/garden/tools/validate_evidence.py
       - name: Validate documentation checks
         run: uv run --no-project plugins/garden/tools/validate_docs.py
+      - name: Validate committed benchmark v1 results
+        if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.14'
+        run: uv run --no-project benchmarks/validate_results.py
       - name: Validate this repository's own GARDEN activation
         run: uv run --no-project plugins/garden/tools/garden_cli.py config validate .
       - name: Run the blocking GARDEN self-audit

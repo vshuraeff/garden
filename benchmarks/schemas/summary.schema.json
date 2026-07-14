@@ -1,0 +1,81 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://garden.local/benchmarks/schemas/summary.schema.json",
+  "title": "Benchmark summary",
+  "$defs": {
+    "scalarMap": {
+      "type": "object",
+      "additionalProperties": {
+        "type": ["number", "integer", "boolean", "string"]
+      }
+    },
+    "suiteSummary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["counts", "thresholds", "metrics", "passed"],
+      "properties": {
+        "counts": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["total", "passed", "failed", "incomplete"],
+          "properties": {
+            "total": { "type": "integer", "minimum": 0 },
+            "passed": { "type": "integer", "minimum": 0 },
+            "failed": { "type": "integer", "minimum": 0 },
+            "incomplete": { "type": "integer", "minimum": 0 }
+          }
+        },
+        "thresholds": { "$ref": "#/$defs/scalarMap" },
+        "metrics": { "$ref": "#/$defs/scalarMap" },
+        "passed": { "type": "boolean" }
+      }
+    }
+  },
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "benchmark_version",
+    "generated_at",
+    "toolchain",
+    "suites",
+    "passed"
+  ],
+  "properties": {
+    "schema_version": { "const": "1" },
+    "benchmark_version": { "const": "1" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "toolchain": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "repository_commit",
+        "garden_commit",
+        "plugin_version",
+        "seed",
+        "platform",
+        "python_version"
+      ],
+      "properties": {
+        "repository_commit": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
+        "garden_commit": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
+        "plugin_version": { "type": "string", "minLength": 1 },
+        "seed": { "type": "integer", "minimum": 0 },
+        "platform": { "type": "string", "minLength": 1 },
+        "python_version": { "type": "string", "minLength": 1 }
+      }
+    },
+    "suites": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["detection", "evidence", "mutations", "migration"],
+      "properties": {
+        "detection": { "$ref": "#/$defs/suiteSummary" },
+        "evidence": { "$ref": "#/$defs/suiteSummary" },
+        "mutations": { "$ref": "#/$defs/suiteSummary" },
+        "migration": { "$ref": "#/$defs/suiteSummary" }
+      }
+    },
+    "passed": { "type": "boolean" }
+  }
+}

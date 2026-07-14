@@ -1,0 +1,14 @@
+[
+  {"path":"roles/web/tasks/main.yml","production_source":true,"test":false,"capability":"web","classification_reason":"web role tasks","expected_findings":[]},
+  {"path":"roles/web/handlers/main.yml","production_source":true,"test":false,"capability":"web","classification_reason":"web role handlers","expected_findings":[]},
+  {"path":"roles/db/tasks/main.yml","production_source":true,"test":false,"capability":"database","classification_reason":"database role tasks","expected_findings":[]},
+  {"path":"roles/db/defaults/main.yml","production_source":true,"test":false,"capability":"database","classification_reason":"database role defaults","expected_findings":[]},
+  {"path":"inventory/shared/group_vars.yml","production_source":true,"test":false,"capability":"shared","classification_reason":"shared inventory variables","expected_findings":[]},
+  {"path":"roles/web/defaults/policy.json","production_source":true,"test":false,"capability":"web","classification_reason":"behavioral web policy","expected_findings":[]},
+  {"path":"roles/web/tests/test_role.py","production_source":false,"test":true,"capability":"web","classification_reason":"colocated infrastructure test","expected_findings":[]},
+  {"path":"tests/db/test_defaults.py","production_source":false,"test":true,"capability":"database","classification_reason":"mapped database role test","expected_findings":[]},
+  {"path":"roles/web/tasks/contest.py","production_source":false,"test":false,"capability":"","classification_reason":"contest helper is a deceptive non-test decoy","expected_findings":[]},
+  {"path":"docs/specification.md","production_source":false,"test":false,"capability":"","classification_reason":"prose specification","expected_findings":[]},
+  {"path":"vendor/generated_role.yml","production_source":false,"test":false,"capability":"","classification_reason":"vendored generated role artifact","expected_findings":[]},
+  {"path":"docs/inventory.md","production_source":false,"test":false,"capability":"","classification_reason":"ordinary inventory documentation","expected_findings":[]}
+]

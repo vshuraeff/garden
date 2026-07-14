@@ -1,0 +1,682 @@
+[
+  {
+    "mutation_id": "cfg-01-unknown-key",
+    "category": "config-schema-or-path-confinement",
+    "target_path": ".garden.toml",
+    "owning_gate": "garden-config-validate",
+    "expected_rule_id_or_signature": "unknown key",
+    "classification": "must_block",
+    "description": "add an unknown configuration key",
+    "gap_probe_kind": null
+  },
+  {
+    "mutation_id": "cfg-02-schema-version",
+    "category": "config-schema-or-path-confinement",
+    "target_path": ".garden.toml",
+    "owning_gate": "garden-config-validate",
+    "expected_rule_id_or_signature": "expected 1",
+    "classification": "must_block",
+    "description": "replace schema version one with version two",
+    "gap_probe_kind": null
+  },
+  {
+    "mutation_id": "cfg-03-absolute-path",
+    "category": "config-schema-or-path-confinement",
+    "target_path": ".garden.toml",
+    "owning_gate": "garden-config-validate",
+    "expected_rule_id_or_signature": "absolute and UNC paths are not allowed",
+    "classification": "must_block",
+    "description": "configure an absolute scan root",
+    "gap_probe_kind": null
+  },
+  {
+    "mutation_id": "cfg-04-parent-path",
+    "category": "config-schema-or-path-confinement",
+    "target_path": ".garden.toml",
+    "owning_gate": "garden-config-validate",
+    "expected_rule_id_or_signature": "parent path segments are not allowed",
+    "classification": "must_block",
+    "description": "configure a parent-traversing scan root",
+    "gap_probe_kind": null
+  },
+  {
+    "mutation_id": "cfg-05-drive-path",
+    "category": "config-schema-or-path-confinement",
+    "target_path": ".garden.toml",
+    "owning_gate": "garden-config-validate",
+    "expected_rule_id_or_signature": "drive-letter paths are not allowed",
+    "classification": "must_block",
+    "description": "configure a drive-letter scan root",
+    "gap_probe_kind": null
+  },
+  {
+    "mutation_id": "cfg-06-strategy-enum",
+    "category": "config-schema-or-path-confinement",
+    "target_path": ".garden.toml",
+    "owning_gate": "garden-config-validate",
+    "expected_rule_id_or_signature": "expected one of none, explicit, children, markers",
+    "classification": "must_block",
+    "description": "configure an unknown capability strategy",
+    "gap_probe_kind": null
+  },
+  {
+    "mutation_id": "cfg-07-adjacent-glob",
+    "category": "config-schema-or-path-confinement",
+    "target_path": ".garden.toml",
+    "owning_gate": "garden-config-validate",
+    "expected_rule_id_or_signature": "repeated adjacent ** segments are not allowed",
+    "classification": "must_block",
+    "description": "configure adjacent recursive glob segments",
+    "gap_probe_kind": null
+  },
+  {
+    "mutation_id": "cfg-08-roots-type",
+    "category": "config-schema-or-path-confinement",
+    "target_path": ".garden.toml",
+    "owning_gate": "garden-config-validate",
+    "expected_rule_id_or_signature": "expected array of strings",
+    "classification": "must_block",
+    "description": "configure scan roots as a scalar",
+    "gap_probe_kind": null
+  },
+  {
+    "mutation_id": "scan-01-inactive",
+    "category": "activation-file-limits-incomplete-scan",
+    "target_path": "naming-registry.txt",
+    "owning_gate": "garden-inspect-strict",
+    "expected_rule_id_or_signature": "\"active\": false",
+    "classification": "must_block",
+    "description": "remove the only legacy activation marker",
+    "gap_probe_kind": null
+  },
+  {
+    "mutation_id": "scan-02-context-budget",
+    "category": "activation-file-limits-incomplete-scan",
+    "target_path": "CONTEXT.md",
+    "owning_gate": "garden-inspect-strict",
+    "expected_rule_id_or_signature": "N-context-budget",
+    "classification": "must_block",
+    "description": "exceed the configured context line budget",
+    "gap_probe_kind": null
+  },
+  {
+    "mutation_id": "scan-03-context-file-limit",
+    "category": "activation-file-limits-incomplete-scan",
+    "target_path": "CONTEXT.md",
+    "owning_gate": "garden-inspect-strict",
+    "expected_rule_id_or_signature": "N-context-scan-limit",
+    "classification": "must_block",
+    "description": "exceed the checked context file byte limit",
+    "gap_probe_kind": null
+  },
+  {
+    "mutation_id": "scan-04-contract-file-limit",
+    "category": "activation-file-limits-incomplete-scan",
+    "target_path": "src/CONTRACT.md",
+    "owning_gate": "garden-inspect-strict",
+    "expected_rule_id_or_signature": "R-contract-scan-limit",
+    "classification": "must_block",
+    "description": "exceed the checked contract file byte limit",
+    "gap_probe_kind": null
+  },
+  {
+    "mutation_id": "scan-05-project-entry-limit",
+    "category": "activation-file-limits-incomplete-scan",
+    "target_path": "bulk",
+    "owning_gate": "garden-inspect-strict",
+    "expected_rule_id_or_signature": "D-project-scan-limit",
+    "classification": "must_block",
+    "description": "exceed the bounded project entry count",
+    "gap_probe_kind": null
+  },
+  {
+    "mutation_id": "scan-06-required-context",
+    "category": "activation-file-limits-incomplete-scan",
+    "target_path": "CONTEXT.md",
+    "owning_gate": "garden-inspect-strict",
+    "expected_rule_id_or_signature": "N-CONTEXT-MISSING",
+    "classification": "must_block",
+    "description": "delete the required root context file",
+    "gap_probe_kind": null
+  },
+  {
+    "mutation_id": "inv-01-naming-missing",
+    "category": "enforced-context-naming-contract",
+    "target_path": "naming-registry.txt",
+    "owning_gate": "garden-inspect-strict",
+    "expected_rule_id_or_signature": "N-NAMING-MISSING",
+    "classification": "must_block",
+    "description": "delete the required naming registry",
+    "gap_probe_kind": null
+  },
+  {
+    "mutation_id": "inv-02-naming-empty",
+    "category": "enforced-context-naming-contract",
+    "target_path": "naming-registry.txt",
+    "owning_gate": "garden-inspect-strict",
+    "expected_rule_id_or_signature": "N-NAMING-EMPTY-REGISTRY",
+    "classification": "must_block",
+    "description": "empty the required naming registry",
+    "gap_probe_kind": null
+  },
+  {
+    "mutation_id": "inv-03-naming-entry",
+    "category": "enforced-context-naming-contract",
+    "target_path": "naming-registry.txt",
+    "owning_gate": "garden-inspect-strict",
+    "expected_rule_id_or_signature": "N-NAMING-INVALID-ENTRY",
+    "classification": "must_block",
+    "description": "write a malformed naming entry",
+    "gap_probe_kind": null
+  },
+  {
+    "mutation_id": "inv-04-duplicate-concept",
+    "category": "enforced-context-naming-contract",
+    "target_path": "naming-registry.txt",
+    "owning_gate": "garden-inspect-strict",
+    "expected_rule_id_or_signature": "N-NAMING-DUPLICATE-CONCEPT",
+    "classification": "must_block",
+    "description": "duplicate a naming-registry concept",
+    "gap_probe_kind": null
+  },
+  {
+    "mutation_id": "inv-05-duplicate-canonical",
+    "category": "enforced-context-naming-contract",
+    "target_path": "naming-registry.txt",
+    "owning_gate": "garden-inspect-strict",
+    "expected_rule_id_or_signature": "N-NAMING-DUPLICATE-CANONICAL",
+    "classification": "must_block",
+    "description": "reuse a canonical name for two concepts",
+    "gap_probe_kind": null
+  },
+  {
+    "mutation_id": "inv-06-context-missing",
+    "category": "enforced-context-naming-contract",
+    "target_path": "CONTEXT.md",
+    "owning_gate": "garden-inspect-strict",
+    "expected_rule_id_or_signature": "N-CONTEXT-MISSING",
+    "classification": "must_block",
+    "description": "remove governed root context",
+    "gap_probe_kind": null
+  },
+  {
+    "mutation_id": "inv-07-context-budget",
+    "category": "enforced-context-naming-contract",
+    "target_path": "CONTEXT.md",
+    "owning_gate": "garden-inspect-strict",
+    "expected_rule_id_or_signature": "N-context-budget",
+    "classification": "must_block",
+    "description": "exceed governed context length",
+    "gap_probe_kind": null
+  },
+  {
+    "mutation_id": "inv-08-contract-version",
+    "category": "enforced-context-naming-contract",
+    "target_path": "src/CONTRACT.md",
+    "owning_gate": "garden-inspect-strict",
+    "expected_rule_id_or_signature": "R-contract-version",
+    "classification": "must_block",
+    "description": "remove the required contract version header",
+    "gap_probe_kind": null
+  },
+  {
+    "mutation_id": "ev-01-missing-section",
+    "category": "evidence-registry-citations",
+    "target_path": "docs/evidence/evidence-registry.md",
+    "owning_gate": "validate-evidence",
+    "expected_rule_id_or_signature": "misses required section Statement",
+    "classification": "must_block",
+    "description": "remove a required evidence section",
+    "gap_probe_kind": null
+  },
+  {
+    "mutation_id": "ev-02-invalid-verdict",
+    "category": "evidence-registry-citations",
+    "target_path": "docs/evidence/evidence-registry.md",
+    "owning_gate": "validate-evidence",
+    "expected_rule_id_or_signature": "has invalid verdict",
+    "classification": "must_block",
+    "description": "replace the verdict with an unsupported value",
+    "gap_probe_kind": null
+  },
+  {
+    "mutation_id": "ev-03-duplicate-claim",
+    "category": "evidence-registry-citations",
+    "target_path": "docs/evidence/evidence-registry.md",
+    "owning_gate": "validate-evidence",
+    "expected_rule_id_or_signature": "duplicate registry entry CLAIM-N001",
+    "classification": "must_block",
+    "description": "append a duplicate claim identifier",
+    "gap_probe_kind": null
+  },
+  {
+    "mutation_id": "ev-04-unknown-reference",
+    "category": "evidence-registry-citations",
+    "target_path": "docs/explanation/case.md",
+    "owning_gate": "validate-evidence",
+    "expected_rule_id_or_signature": "unknown evidence claim CLAIM-N999",
+    "classification": "must_block",
+    "description": "replace a known claim citation with an unknown identifier",
+    "gap_probe_kind": null
+  },
+  {
+    "mutation_id": "ev-05-missing-used-by",
+    "category": "evidence-registry-citations",
+    "target_path": "docs/evidence/evidence-registry.md",
+    "owning_gate": "validate-evidence",
+    "expected_rule_id_or_signature": "is not listed in the registry Used by section",
+    "classification": "must_block",
+    "description": "remove the backlink for a real citing document",
+    "gap_probe_kind": null
+  },
+  {
+    "mutation_id": "ev-06-dangling-used-by",
+    "category": "evidence-registry-citations",
+    "target_path": "docs/explanation/case.md",
+    "owning_gate": "validate-evidence",
+    "expected_rule_id_or_signature": "Used by path does not cite the claim",
+    "classification": "must_block",
+    "description": "remove the claim token from a listed document",
+    "gap_probe_kind": null
+  },
+  {
+    "mutation_id": "ev-07-bare-percentage",
+    "category": "evidence-registry-citations",
+    "target_path": "docs/explanation/case.md",
+    "owning_gate": "validate-evidence",
+    "expected_rule_id_or_signature": "bare percentage without a CLAIM-N reference in the paragraph",
+    "classification": "must_block",
+    "description": "append an unattributed percentage paragraph",
+    "gap_probe_kind": null
+  },
+  {
+    "mutation_id": "ev-08-broken-link",
+    "category": "evidence-registry-citations",
+    "target_path": "docs/explanation/case.md",
+    "owning_gate": "validate-evidence",
+    "expected_rule_id_or_signature": "broken relative Markdown link",
+    "classification": "must_block",
+    "description": "append a missing local evidence link",
+    "gap_probe_kind": null
+  },
+  {
+    "mutation_id": "doc-01-broken-link",
+    "category": "doc-metadata-links-rule-sync",
+    "target_path": "docs/how-to/apply-to-new-project.md",
+    "owning_gate": "validate-docs",
+    "expected_rule_id_or_signature": "target file does not exist",
+    "classification": "must_block",
+    "description": "append a missing documentation link",
+    "gap_probe_kind": null
+  },
+  {
+    "mutation_id": "doc-02-escaping-link",
+    "category": "doc-metadata-links-rule-sync",
+    "target_path": "docs/how-to/migrate-from-garden-v0.md",
+    "owning_gate": "validate-docs",
+    "expected_rule_id_or_signature": "target escapes repository",
+    "classification": "must_block",
+    "description": "append a repository-escaping documentation link",
+    "gap_probe_kind": null
+  },
+  {
+    "mutation_id": "doc-03-duplicate-rule",
+    "category": "doc-metadata-links-rule-sync",
+    "target_path": "docs/reference/principles.md",
+    "owning_gate": "validate-docs",
+    "expected_rule_id_or_signature": "duplicate defined rule ID G-DISC-001",
+    "classification": "must_block",
+    "description": "append a duplicate normative rule definition",
+    "gap_probe_kind": null
+  },
+  {
+    "mutation_id": "doc-04-undefined-checklist-rule",
+    "category": "doc-metadata-links-rule-sync",
+    "target_path": "docs/reference/checklist.md",
+    "owning_gate": "validate-docs",
+    "expected_rule_id_or_signature": "checklist references undefined rule ID G-FAKE-999",
+    "classification": "must_block",
+    "description": "add an undefined rule identifier to the checklist",
+    "gap_probe_kind": null
+  },
+  {
+    "mutation_id": "doc-05-unreferenced-rule",
+    "category": "doc-metadata-links-rule-sync",
+    "target_path": "docs/reference/principles.md",
+    "owning_gate": "validate-docs",
+    "expected_rule_id_or_signature": "defined rule ID G-NEW-999 is not referenced in checklist",
+    "classification": "must_block",
+    "description": "define a rule absent from the checklist",
+    "gap_probe_kind": null
+  },
+  {
+    "mutation_id": "doc-06-front-matter",
+    "category": "doc-metadata-links-rule-sync",
+    "target_path": "docs/how-to/apply-to-new-project.md",
+    "owning_gate": "validate-docs",
+    "expected_rule_id_or_signature": "owner must be a non-empty string",
+    "classification": "must_block",
+    "description": "remove the normative document owner",
+    "gap_probe_kind": null
+  },
+  {
+    "mutation_id": "pkg-01-manifest-name",
+    "category": "manifests-package-reference-drift",
+    "target_path": "plugins/garden/.codex-plugin/plugin.json",
+    "owning_gate": "validate-package",
+    "expected_rule_id_or_signature": "manifest names differ",
+    "classification": "must_block",
+    "description": "change the Codex manifest name",
+    "gap_probe_kind": null
+  },
+  {
+    "mutation_id": "pkg-02-manifest-version",
+    "category": "manifests-package-reference-drift",
+    "target_path": "plugins/garden/.codex-plugin/plugin.json",
+    "owning_gate": "validate-package",
+    "expected_rule_id_or_signature": "manifest versions differ",
+    "classification": "must_block",
+    "description": "desynchronize plugin manifest versions",
+    "gap_probe_kind": null
+  },
+  {
+    "mutation_id": "pkg-03-required-field",
+    "category": "manifests-package-reference-drift",
+    "target_path": "plugins/garden/.codex-plugin/plugin.json",
+    "owning_gate": "validate-package",
+    "expected_rule_id_or_signature": "Codex manifest misses description",
+    "classification": "must_block",
+    "description": "empty a required Codex manifest field",
+    "gap_probe_kind": null
+  },
+  {
+    "mutation_id": "pkg-04-skills-path",
+    "category": "manifests-package-reference-drift",
+    "target_path": "plugins/garden/.codex-plugin/plugin.json",
+    "owning_gate": "validate-package",
+    "expected_rule_id_or_signature": "unexpected Codex skills path",
+    "classification": "must_block",
+    "description": "change the packaged skills path",
+    "gap_probe_kind": null
+  },
+  {
+    "mutation_id": "pkg-05-mcp-server",
+    "category": "manifests-package-reference-drift",
+    "target_path": "plugins/garden/.mcp.json",
+    "owning_gate": "validate-package",
+    "expected_rule_id_or_signature": "garden MCP server is missing",
+    "classification": "must_block",
+    "description": "remove the garden MCP server entry",
+    "gap_probe_kind": null
+  },
+  {
+    "mutation_id": "pkg-06-reference-drift",
+    "category": "manifests-package-reference-drift",
+    "target_path": "plugins/garden/references/glossary.md",
+    "owning_gate": "sync-references-check",
+    "expected_rule_id_or_signature": "plugins/garden/references/glossary.md",
+    "classification": "must_block",
+    "description": "append drift to a packaged reference copy",
+    "gap_probe_kind": null
+  },
+  {
+    "mutation_id": "sec-01-parent-traversal",
+    "category": "security-property-regressions",
+    "target_path": ".garden.toml",
+    "owning_gate": "garden-config-validate",
+    "expected_rule_id_or_signature": "parent path segments are not allowed",
+    "classification": "must_block",
+    "description": "attempt configured parent traversal",
+    "gap_probe_kind": null
+  },
+  {
+    "mutation_id": "sec-02-absolute-path",
+    "category": "security-property-regressions",
+    "target_path": ".garden.toml",
+    "owning_gate": "garden-config-validate",
+    "expected_rule_id_or_signature": "absolute and UNC paths are not allowed",
+    "classification": "must_block",
+    "description": "attempt configured absolute-path escape",
+    "gap_probe_kind": null
+  },
+  {
+    "mutation_id": "sec-03-symlink-confinement",
+    "category": "security-property-regressions",
+    "target_path": "escape",
+    "owning_gate": "garden-config-validate",
+    "expected_rule_id_or_signature": "path resolves outside the project root",
+    "classification": "must_block",
+    "description": "replace a configured in-root path with an escaping symlink",
+    "gap_probe_kind": null
+  },
+  {
+    "mutation_id": "sec-04-version-bypass",
+    "category": "security-property-regressions",
+    "target_path": "plugins/garden/README.md",
+    "owning_gate": "plugin-version-check",
+    "expected_rule_id_or_signature": "plugin changed but version",
+    "classification": "must_block",
+    "description": "change plugin content without a version bump",
+    "gap_probe_kind": null
+  },
+  {
+    "mutation_id": "sec-05-invalid-manifest-json",
+    "category": "security-property-regressions",
+    "target_path": "plugins/garden/.codex-plugin/plugin.json",
+    "owning_gate": "validate-package",
+    "expected_rule_id_or_signature": "package validation failed",
+    "classification": "must_block",
+    "description": "replace a package manifest with invalid JSON",
+    "gap_probe_kind": null
+  },
+  {
+    "mutation_id": "sec-06-hook-surface",
+    "category": "security-property-regressions",
+    "target_path": "plugins/garden/hooks/hooks.json",
+    "owning_gate": "validate-package",
+    "expected_rule_id_or_signature": "PostToolUse hook is missing",
+    "classification": "must_block",
+    "description": "remove the checked post-write hook surface",
+    "gap_probe_kind": null
+  },
+  {
+    "mutation_id": "gap-01-missing-contract",
+    "category": "gap-probe",
+    "target_path": "src/orders/CONTRACT.md",
+    "owning_gate": "garden-inspect-strict",
+    "expected_rule_id_or_signature": "R-component-contract",
+    "classification": "gap_probe",
+    "gap_probe_kind": "detect_only",
+    "description": "missing capability contract is advisory rather than blocking"
+  },
+  {
+    "mutation_id": "gap-02-missing-mapped-test",
+    "category": "gap-probe",
+    "target_path": "src/orders/test_handler.py",
+    "owning_gate": "garden-inspect-strict",
+    "expected_rule_id_or_signature": "A-colocated-tests",
+    "classification": "gap_probe",
+    "gap_probe_kind": "detect_only",
+    "description": "missing mapped test is advisory rather than blocking"
+  },
+  {
+    "mutation_id": "gap-03-scan-roots",
+    "category": "gap-probe",
+    "target_path": "outside/tool.py",
+    "owning_gate": "garden-inspect-strict",
+    "expected_rule_id_or_signature": "none",
+    "classification": "gap_probe",
+    "gap_probe_kind": "known_unenforced",
+    "description": "scan.roots does not restrict the project walk"
+  },
+  {
+    "mutation_id": "gap-04-contracts-required-for",
+    "category": "gap-probe",
+    "target_path": ".garden.toml",
+    "owning_gate": "garden-inspect-strict",
+    "expected_rule_id_or_signature": "none",
+    "classification": "gap_probe",
+    "gap_probe_kind": "known_unenforced",
+    "description": "contracts.required_for has no dedicated enforcement"
+  },
+  {
+    "mutation_id": "gap-05-boundaries-public",
+    "category": "gap-probe",
+    "target_path": ".garden.toml",
+    "owning_gate": "garden-inspect-strict",
+    "expected_rule_id_or_signature": "none",
+    "classification": "gap_probe",
+    "gap_probe_kind": "known_unenforced",
+    "description": "boundaries.public has no dedicated enforcement"
+  },
+  {
+    "mutation_id": "gap-06-structured-exception",
+    "category": "gap-probe",
+    "target_path": "src/orders/handler.py",
+    "owning_gate": "garden-inspect-strict",
+    "expected_rule_id_or_signature": "R-component-contract",
+    "classification": "gap_probe",
+    "gap_probe_kind": "known_unenforced",
+    "description": "structured exceptions do not suppress runtime findings"
+  },
+  {
+    "mutation_id": "gap-07-markers-resolution",
+    "category": "gap-probe",
+    "target_path": ".garden.toml",
+    "owning_gate": "garden-inspect-strict",
+    "expected_rule_id_or_signature": "none",
+    "classification": "gap_probe",
+    "gap_probe_kind": "known_unenforced",
+    "description": "markers capability resolution remains experimental and unreported"
+  },
+  {
+    "mutation_id": "gap-08-explicit-state-policy",
+    "category": "gap-probe",
+    "target_path": ".garden.toml",
+    "owning_gate": "garden-inspect-strict",
+    "expected_rule_id_or_signature": "none",
+    "classification": "gap_probe",
+    "gap_probe_kind": "known_unenforced",
+    "description": "explicit boundary and state policy has no runtime gate"
+  },
+  {
+    "mutation_id": "clean-01-project-type",
+    "category": "clean-control",
+    "target_path": ".garden.toml",
+    "owning_gate": "garden-config-validate",
+    "expected_rule_id_or_signature": "valid:",
+    "classification": "clean_control",
+    "description": "change to another valid project type",
+    "gap_probe_kind": null
+  },
+  {
+    "mutation_id": "clean-02-scan-include",
+    "category": "clean-control",
+    "target_path": ".garden.toml",
+    "owning_gate": "garden-config-validate",
+    "expected_rule_id_or_signature": "valid:",
+    "classification": "clean_control",
+    "description": "add a valid YAML scan glob",
+    "gap_probe_kind": null
+  },
+  {
+    "mutation_id": "clean-03-capability-map",
+    "category": "clean-control",
+    "target_path": ".garden.toml",
+    "owning_gate": "garden-config-validate",
+    "expected_rule_id_or_signature": "valid:",
+    "classification": "clean_control",
+    "description": "add a valid capability mapping",
+    "gap_probe_kind": null
+  },
+  {
+    "mutation_id": "clean-04-boundary-config",
+    "category": "clean-control",
+    "target_path": ".garden.toml",
+    "owning_gate": "garden-config-validate",
+    "expected_rule_id_or_signature": "valid:",
+    "classification": "clean_control",
+    "description": "add a valid public boundary declaration",
+    "gap_probe_kind": null
+  },
+  {
+    "mutation_id": "clean-05-context-edit",
+    "category": "clean-control",
+    "target_path": "CONTEXT.md",
+    "owning_gate": "garden-inspect-strict",
+    "expected_rule_id_or_signature": "\"errors\": 0",
+    "classification": "clean_control",
+    "description": "edit context while remaining below its budget",
+    "gap_probe_kind": null
+  },
+  {
+    "mutation_id": "clean-06-contract-patch",
+    "category": "clean-control",
+    "target_path": "src/orders/CONTRACT.md",
+    "owning_gate": "garden-inspect-strict",
+    "expected_rule_id_or_signature": "\"errors\": 0",
+    "classification": "clean_control",
+    "description": "change a valid contract patch version",
+    "gap_probe_kind": null
+  },
+  {
+    "mutation_id": "clean-07-evidence-verdict",
+    "category": "clean-control",
+    "target_path": "docs/evidence/evidence-registry.md",
+    "owning_gate": "validate-evidence",
+    "expected_rule_id_or_signature": "none",
+    "classification": "clean_control",
+    "description": "change between accepted evidence verdicts",
+    "gap_probe_kind": null
+  },
+  {
+    "mutation_id": "clean-08-evidence-prose",
+    "category": "clean-control",
+    "target_path": "docs/evidence/evidence-registry.md",
+    "owning_gate": "validate-evidence",
+    "expected_rule_id_or_signature": "none",
+    "classification": "clean_control",
+    "description": "edit evidence prose without changing its structure",
+    "gap_probe_kind": null
+  },
+  {
+    "mutation_id": "clean-09-doc-external-link",
+    "category": "clean-control",
+    "target_path": "README.md",
+    "owning_gate": "validate-docs",
+    "expected_rule_id_or_signature": "documentation validation passed",
+    "classification": "clean_control",
+    "description": "append an allowed external documentation link",
+    "gap_probe_kind": null
+  },
+  {
+    "mutation_id": "clean-10-package-doc",
+    "category": "clean-control",
+    "target_path": "README.md",
+    "owning_gate": "validate-package",
+    "expected_rule_id_or_signature": "package validation passed",
+    "classification": "clean_control",
+    "description": "change a file outside the package validation contract",
+    "gap_probe_kind": null
+  },
+  {
+    "mutation_id": "clean-11-reference-unrelated",
+    "category": "clean-control",
+    "target_path": "README.md",
+    "owning_gate": "sync-references-check",
+    "expected_rule_id_or_signature": "reference copies are in sync",
+    "classification": "clean_control",
+    "description": "change a file outside synchronized reference pairs",
+    "gap_probe_kind": null
+  },
+  {
+    "mutation_id": "clean-12-version-unrelated",
+    "category": "clean-control",
+    "target_path": "README.md",
+    "owning_gate": "plugin-version-check",
+    "expected_rule_id_or_signature": "plugin version check passed",
+    "classification": "clean_control",
+    "description": "change a non-plugin file without requiring a plugin bump",
+    "gap_probe_kind": null
+  }
+]

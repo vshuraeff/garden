@@ -1,0 +1,1 @@
+export const invoiceState = "issued";

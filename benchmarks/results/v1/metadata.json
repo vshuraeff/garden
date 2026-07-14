@@ -1,0 +1,49 @@
+{
+  "benchmark_version": "1",
+  "garden_commit": "a5d39c12cfd62af43643ab89838aeb252cd75031",
+  "generated_at": "2026-07-14T09:53:23.234210Z",
+  "platform": "macos",
+  "plugin_version": "0.7.1",
+  "producers": {
+    "detection": {
+      "path": "benchmarks/run_detection.py",
+      "sha256": "4205aa1238035e43fba4a768762f156f300c46cdb5c3b62e7b0f1386d5d85bb4"
+    },
+    "evidence": {
+      "path": "benchmarks/run_evidence.py",
+      "sha256": "c52abe0baddd3a7839258e41671960f4caa9e66ca3b5d3f440da84cc8d254e33"
+    },
+    "migration": {
+      "path": "benchmarks/run_migration.py",
+      "sha256": "102d5ddb0f7e240c03844e3590a8edc6ff5298a736afa37079cb6468070a1c65"
+    },
+    "mutations": {
+      "path": "benchmarks/run_mutations.py",
+      "sha256": "f74b2f6ca0d3e66cd327a645ae44b73c165b9bad44a5e08b60f61edf9e08e8d5"
+    },
+    "orchestration": {
+      "path": "benchmarks/run.py",
+      "sha256": "1fc6e6164d3df33939bc11f9abfd47e2a455ff014cdc6186380bc939bf657fcb"
+    },
+    "summary": {
+      "path": "benchmarks/summarize.py",
+      "sha256": "c4d9f5f5e83e0c9a2edad8e28cc59b6bad32dda0f61f2ee1f5adfc10cb42dda6"
+    }
+  },
+  "python_version": "3.14.0",
+  "repository_commit": "e8d5bc838ae40ba5c76fbe79c895c55da748e896",
+  "schema_version": "1",
+  "seed": 20260714,
+  "suite_execution_order": [
+    "mutations",
+    "evidence",
+    "migration",
+    "detection"
+  ],
+  "support_files": {
+    "benchmarks/lib/garden_adapter.py": "52a4d4865b09547a97ee59772fb4e48607d4f5ef3f167e9d52c04c0bd2c10982",
+    "benchmarks/lib/metrics.py": "7e049a8d7b1e625860cedaf6b9778faf55630363dc0428d11f882cda4b3b2cd8",
+    "benchmarks/lib/mutation_ops.py": "baef30da2c84c20dfcbe637e2d9e804de17ca09b6692790212054457cb286fe5",
+    "benchmarks/lib/provenance.py": "fa452bb690618e720e255ddd1487353b8de3610015688b96fd012330c5b36584"
+  }
+}

@@ -1,0 +1,28 @@
+schema_version = 1
+
+[project]
+type = "monorepo"
+
+[scan]
+include = ["**/*.py", "**/*.ts", "**/*.tsx", "**/*.json"]
+exclude = ["**/contest.py", "vendor/**"]
+
+[capabilities]
+strategy = "explicit"
+shared_roots = ["packages/shared"]
+
+[capabilities.map]
+"packages/orders_py" = "orders"
+"config" = "orders"
+"packages/billing_web" = "billing"
+
+[tests]
+patterns = ["packages/**/tests/test_*.py", "integration/**/*.test.ts"]
+association = "test-roots"
+
+[tests.test_roots]
+"packages/orders_py/tests" = "packages/orders_py"
+"integration/billing" = "packages/billing_web"
+
+[documentation]
+root_context_required = false

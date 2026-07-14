@@ -1,0 +1,14 @@
+[
+  {"path":"packages/orders_py/src/handler.py","production_source":true,"test":false,"capability":"orders","classification_reason":"Python orders handler","expected_findings":[]},
+  {"path":"packages/orders_py/src/schema.py","production_source":true,"test":false,"capability":"orders","classification_reason":"Python orders schema","expected_findings":[]},
+  {"path":"packages/billing_web/src/page.tsx","production_source":true,"test":false,"capability":"billing","classification_reason":"TypeScript billing page","expected_findings":[]},
+  {"path":"packages/billing_web/src/actions.ts","production_source":true,"test":false,"capability":"billing","classification_reason":"TypeScript billing actions","expected_findings":[]},
+  {"path":"packages/shared/config.py","production_source":true,"test":false,"capability":"shared","classification_reason":"shared cross-language configuration","expected_findings":[]},
+  {"path":"config/routing.json","production_source":true,"test":false,"capability":"orders","classification_reason":"behavioral mixed-package routing","expected_findings":[]},
+  {"path":"packages/orders_py/tests/test_handler.py","production_source":false,"test":true,"capability":"orders","classification_reason":"colocated Python package test","expected_findings":[]},
+  {"path":"integration/billing/page.test.ts","production_source":false,"test":true,"capability":"billing","classification_reason":"mapped TypeScript integration test","expected_findings":[]},
+  {"path":"packages/orders_py/src/contest.py","production_source":false,"test":false,"capability":"","classification_reason":"contest helper is a deceptive non-test decoy","expected_findings":[]},
+  {"path":"docs/specification.md","production_source":false,"test":false,"capability":"","classification_reason":"prose specification","expected_findings":[]},
+  {"path":"vendor/generated_bridge.ts","production_source":false,"test":false,"capability":"","classification_reason":"vendored generated bridge","expected_findings":[]},
+  {"path":"docs/workspaces.md","production_source":false,"test":false,"capability":"","classification_reason":"ordinary workspace documentation","expected_findings":[]}
+]

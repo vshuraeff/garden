@@ -1,0 +1,1 @@
+variable "size" { default = "small" }

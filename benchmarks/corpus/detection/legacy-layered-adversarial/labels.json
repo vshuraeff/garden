@@ -1,0 +1,14 @@
+[
+  {"path":"modules/sales/inbound.py","production_source":true,"test":false,"capability":"orders","classification_reason":"nonstandard orders inbound adapter","expected_findings":[]},
+  {"path":"core/order_engine.py","production_source":true,"test":false,"capability":"orders","classification_reason":"nonstandard orders engine","expected_findings":[]},
+  {"path":"data/order_store.py","production_source":true,"test":false,"capability":"orders","classification_reason":"nonstandard orders persistence","expected_findings":[]},
+  {"path":"modules/invoices/inbound.py","production_source":true,"test":false,"capability":"billing","classification_reason":"nonstandard billing inbound adapter","expected_findings":[]},
+  {"path":"common/clock.py","production_source":true,"test":false,"capability":"shared","classification_reason":"shared time support","expected_findings":[]},
+  {"path":"settings/order_flow.toml","production_source":true,"test":false,"capability":"orders","classification_reason":"behavioral order flow configuration","expected_findings":[]},
+  {"path":"modules/sales/tests/test_inbound.py","production_source":false,"test":true,"capability":"orders","classification_reason":"colocated nonstandard orders test","expected_findings":[]},
+  {"path":"verification/invoices/test_inbound.py","production_source":false,"test":true,"capability":"billing","classification_reason":"mapped nonstandard billing test","expected_findings":[]},
+  {"path":"modules/sales/contest.py","production_source":false,"test":false,"capability":"","classification_reason":"contest module is a deceptive non-test decoy","expected_findings":[]},
+  {"path":"docs/specification.md","production_source":false,"test":false,"capability":"","classification_reason":"prose specification","expected_findings":[]},
+  {"path":"vendor/generated_store.py","production_source":false,"test":false,"capability":"","classification_reason":"vendored generated persistence artifact","expected_findings":[]},
+  {"path":"docs/maintenance.md","production_source":false,"test":false,"capability":"","classification_reason":"ordinary maintenance documentation","expected_findings":[]}
+]

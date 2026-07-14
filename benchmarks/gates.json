@@ -1,0 +1,175 @@
+{
+  "schema_version": 1,
+  "gates": [
+    {
+      "name": "garden-config-validate",
+      "suite": "detection-and-mutations",
+      "invocation": [
+        "uv",
+        "run",
+        "--no-project",
+        "plugins/garden/tools/garden_cli.py",
+        "config",
+        "validate",
+        "<root>"
+      ],
+      "output": "plain-text stdout on success and path-prefixed validation messages on stderr on failure",
+      "success": "exit 0 and stdout beginning with 'valid:'",
+      "rule_ids": [],
+      "signature_families": [
+        "valid:",
+        "unknown key",
+        "expected 1",
+        "expected array of strings",
+        "expected one of none, explicit, children, markers",
+        "absolute and UNC paths are not allowed",
+        "drive-letter paths are not allowed",
+        "parent path segments are not allowed",
+        "path resolves outside the project root",
+        "repeated adjacent ** segments are not allowed"
+      ]
+    },
+    {
+      "name": "garden-inspect-strict",
+      "suite": "detection-and-mutations",
+      "invocation": [
+        "uv",
+        "run",
+        "--no-project",
+        "plugins/garden/tools/garden_cli.py",
+        "inspect",
+        "--strict",
+        "<root>"
+      ],
+      "output": "JSON object with active, root, findings, and summary fields",
+      "success": "exit 0, active true, and zero error-severity findings",
+      "rule_ids": [
+        "A-colocated-tests",
+        "D-project-scan-limit",
+        "N-CONFIG-INVALID",
+        "N-CONTEXT-MISSING",
+        "N-LEGACY-NAMING-REGISTRY",
+        "N-NAMING-DUPLICATE-CANONICAL",
+        "N-NAMING-DUPLICATE-CONCEPT",
+        "N-NAMING-EMPTY-REGISTRY",
+        "N-NAMING-INVALID-ENTRY",
+        "N-NAMING-MISSING",
+        "N-context-budget",
+        "N-context-scan-limit",
+        "R-component-contract",
+        "R-contract-scan-limit",
+        "R-contract-version"
+      ],
+      "signature_families": [
+        "Finding(severity, rule, path, message)",
+        "summary.errors",
+        "summary.advisories"
+      ]
+    },
+    {
+      "name": "validate-docs",
+      "suite": "mutations",
+      "invocation": [
+        "uv",
+        "run",
+        "--no-project",
+        "plugins/garden/tools/validate_docs.py"
+      ],
+      "output": "path:line: reason findings on stderr",
+      "success": "exit 0 and 'documentation validation passed' on stdout",
+      "rule_ids": [],
+      "signature_families": [
+        "target file does not exist",
+        "target escapes repository",
+        "duplicate defined rule ID",
+        "checklist references undefined rule ID",
+        "defined rule ID is not referenced in checklist",
+        "owner must be a non-empty string"
+      ]
+    },
+    {
+      "name": "validate-evidence",
+      "suite": "evidence-and-mutations",
+      "invocation": [
+        "uv",
+        "run",
+        "--no-project",
+        "plugins/garden/tools/validate_evidence.py"
+      ],
+      "output": "path:line: reason findings and orphan-claim warnings on stderr",
+      "success": "exit 0 with no findings",
+      "rule_ids": [],
+      "signature_families": [
+        "misses required section",
+        "misses Verdict line",
+        "has invalid verdict",
+        "duplicate registry entry CLAIM-N",
+        "unknown evidence claim CLAIM-N",
+        "is not listed in the registry Used by section",
+        "Used by path does not cite the claim",
+        "bare percentage without a CLAIM-N reference in the paragraph",
+        "broken relative Markdown link",
+        "relative Markdown link escapes the repository"
+      ]
+    },
+    {
+      "name": "validate-package",
+      "suite": "mutations",
+      "invocation": [
+        "uv",
+        "run",
+        "--no-project",
+        "plugins/garden/tools/validate_package.py"
+      ],
+      "output": "plain-text pass or package validation failure reason",
+      "success": "exit 0 and 'package validation passed' on stdout",
+      "rule_ids": [],
+      "signature_families": [
+        "manifest names differ",
+        "manifest versions differ",
+        "manifest misses required field",
+        "unexpected Codex skills path",
+        "garden MCP server is missing",
+        "PostToolUse hook is missing"
+      ]
+    },
+    {
+      "name": "plugin-version-check",
+      "suite": "mutations",
+      "invocation": [
+        "uv",
+        "run",
+        "--no-project",
+        "plugins/garden/tools/plugin_version.py",
+        "check",
+        "--base",
+        "<target-branch>"
+      ],
+      "output": "base and current SemVer values on success or a validation exception on failure",
+      "success": "exit 0 and 'plugin version check passed:' on stdout",
+      "rule_ids": [],
+      "signature_families": [
+        "plugin version check passed:",
+        "plugin changed but version"
+      ]
+    },
+    {
+      "name": "sync-references-check",
+      "suite": "mutations",
+      "invocation": [
+        "uv",
+        "run",
+        "--no-project",
+        "plugins/garden/tools/sync_references.py",
+        "--check"
+      ],
+      "output": "drifted copy paths on stderr",
+      "success": "exit 0 and 'reference copies are in sync' on stdout",
+      "rule_ids": [],
+      "signature_families": [
+        "reference copies are in sync",
+        "plugins/garden/references/glossary.md"
+      ]
+    }
+  ]
+}

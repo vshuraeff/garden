@@ -1,0 +1,28 @@
+schema_version = 1
+
+[project]
+type = "infra"
+
+[scan]
+include = ["**/*.tf", "**/*.json", "**/*.yaml", "**/*.yml", "**/*.py"]
+exclude = ["**/contest.py", "vendor/**"]
+
+[capabilities]
+strategy = "explicit"
+shared_roots = ["modules/shared"]
+
+[capabilities.map]
+"modules/network" = "network"
+"environments/prod/network.yaml" = "network"
+"modules/compute" = "compute"
+
+[tests]
+patterns = ["modules/**/molecule/**/verify.yml", "tests/**/test_*.py"]
+association = "test-roots"
+
+[tests.test_roots]
+"modules/network/molecule/default" = "modules/network"
+"tests/compute" = "modules/compute"
+
+[documentation]
+root_context_required = false

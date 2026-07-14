@@ -1,0 +1,129 @@
+{
+  "schema_version": 1,
+  "bases": {
+    "config": {
+      "files": {
+        ".garden.toml": "schema_version = 1\n\n[project]\ntype = \"service\"\n\n[scan]\nroots = [\"src\"]\ninclude = [\"**/*.py\"]\n\n[capabilities]\nstrategy = \"explicit\"\n\n[capabilities.map]\n\"src/orders\" = \"orders\"\n\n[documentation]\nroot_context_required = false\n"
+      }
+    },
+    "config-symlink": {
+      "files": {
+        ".garden.toml": "schema_version = 1\n\n[scan]\nroots = [\"escape\"]\n\n[documentation]\nroot_context_required = false\n",
+        "escape/placeholder.py": "VALUE = true\n"
+      }
+    },
+    "inspect": {
+      "files": {
+        ".garden.toml": "schema_version = 1\n\n[project]\ntype = \"service\"\ncontext_files = { any_of = [\"CONTEXT.md\"] }\n\n[scan]\nroots = [\"src\"]\ninclude = [\"**/*.py\"]\nexclude = []\n\n[capabilities]\nstrategy = \"explicit\"\n\n[capabilities.map]\n\"src/orders\" = \"orders\"\n\n[tests]\npatterns = [\"src/**/test_*.py\"]\nassociation = \"same-capability\"\n\n[naming]\nregistry = \"naming-registry.txt\"\nrequired = true\n\n[documentation]\nroot_context_required = true\nmax_context_lines = 200\n",
+        "CONTEXT.md": "# Context\n\nSynthetic fixture context.\n",
+        "naming-registry.txt": "orders: orders\n",
+        "src/orders/handler.py": "STATE = \"ready\"\n",
+        "src/orders/test_handler.py": "def test_handler() -> None:\n    pass\n",
+        "src/orders/CONTRACT.md": "Version: 1.0.0\n",
+        "src/CONTRACT.md": "Version: 1.0.0\n"
+      }
+    },
+    "inspect-exception": {
+      "files": {
+        ".garden.toml": "schema_version = 1\n\n[project]\ncontext_files = { any_of = [\"CONTEXT.md\"] }\n\n[scan]\ninclude = [\"**/*.py\"]\n\n[capabilities]\nstrategy = \"explicit\"\n\n[capabilities.map]\n\"src/orders\" = \"orders\"\n\n[tests]\npatterns = [\"src/**/test_*.py\"]\nassociation = \"same-capability\"\n\n[documentation]\nroot_context_required = true\n\n[[exceptions]]\nrule_id = \"R-component-contract\"\npaths = [\"src/orders/**\"]\nreason = \"synthetic exception probe\"\nowner = \"benchmark\"\nreview_after = \"2027-01-01\"\n",
+        "CONTEXT.md": "# Context\n",
+        "src/orders/handler.py": "STATE = \"ready\"\n",
+        "src/orders/test_handler.py": "def test_handler() -> None:\n    pass\n"
+      }
+    },
+    "legacy": {
+      "files": {
+        "naming-registry.txt": "orders: orders\n",
+        "src/handler.py": "STATE = \"ready\"\n",
+        "src/test_handler.py": "def test_handler() -> None:\n    pass\n",
+        "src/CONTRACT.md": "Version: 1.0.0\n"
+      }
+    },
+    "evidence": {
+      "files": {
+        "docs/evidence/evidence-registry.md": "# Evidence registry\n\n## CLAIM-N001\n\nVerdict: confirmed\n\n### Statement\nSynthetic statement.\n### Source\nSynthetic source.\n### Population\nSynthetic population.\n### Measured result\nSynthetic result.\n### Limitations\nSynthetic limitation.\n### Used by\n- `docs/explanation/case.md`\n",
+        "docs/explanation/case.md": "# Citation\n\nThis document cites CLAIM-N001.\n"
+      }
+    },
+    "repository": {"source": "repository"},
+    "repository-git": {"source": "repository-git"}
+  },
+  "mutations": {
+    "cfg-01-unknown-key": {"base":"config","operation":{"kind":"append","path":".garden.toml","content":"\nunknown = true\n"}},
+    "cfg-02-schema-version": {"base":"config","operation":{"kind":"replace","path":".garden.toml","old":"schema_version = 1","new":"schema_version = 2"}},
+    "cfg-03-absolute-path": {"base":"config","operation":{"kind":"replace","path":".garden.toml","old":"roots = [\"src\"]","new":"roots = [\"/tmp/escape\"]"}},
+    "cfg-04-parent-path": {"base":"config","operation":{"kind":"replace","path":".garden.toml","old":"roots = [\"src\"]","new":"roots = [\"../escape\"]"}},
+    "cfg-05-drive-path": {"base":"config","operation":{"kind":"replace","path":".garden.toml","old":"roots = [\"src\"]","new":"roots = [\"C:/escape\"]"}},
+    "cfg-06-strategy-enum": {"base":"config","operation":{"kind":"replace","path":".garden.toml","old":"strategy = \"explicit\"","new":"strategy = \"invalid\""}},
+    "cfg-07-adjacent-glob": {"base":"config","operation":{"kind":"replace","path":".garden.toml","old":"include = [\"**/*.py\"]","new":"include = [\"**/**/*.py\"]"}},
+    "cfg-08-roots-type": {"base":"config","operation":{"kind":"replace","path":".garden.toml","old":"roots = [\"src\"]","new":"roots = \"src\""}},
+
+    "scan-01-inactive": {"base":"legacy","operation":{"kind":"delete","path":"naming-registry.txt"}},
+    "scan-02-context-budget": {"base":"inspect","operation":{"kind":"repeat","path":"CONTEXT.md","content":"line\n","count":201}},
+    "scan-03-context-file-limit": {"base":"inspect","operation":{"kind":"repeat","path":"CONTEXT.md","content":"x","count":1048577}},
+    "scan-04-contract-file-limit": {"base":"inspect","operation":{"kind":"repeat","path":"src/CONTRACT.md","content":"x","count":1048577}},
+    "scan-05-project-entry-limit": {"base":"inspect","operation":{"kind":"generate-files","path":"bulk","count":10001,"prefix":"entry","content":""}},
+    "scan-06-required-context": {"base":"inspect","operation":{"kind":"delete","path":"CONTEXT.md"}},
+
+    "inv-01-naming-missing": {"base":"inspect","operation":{"kind":"delete","path":"naming-registry.txt"}},
+    "inv-02-naming-empty": {"base":"inspect","operation":{"kind":"write","path":"naming-registry.txt","content":""}},
+    "inv-03-naming-entry": {"base":"inspect","operation":{"kind":"write","path":"naming-registry.txt","content":"malformed entry\n"}},
+    "inv-04-duplicate-concept": {"base":"inspect","operation":{"kind":"write","path":"naming-registry.txt","content":"orders: orders\norders: purchases\n"}},
+    "inv-05-duplicate-canonical": {"base":"inspect","operation":{"kind":"write","path":"naming-registry.txt","content":"orders: shared\nbilling: shared\n"}},
+    "inv-06-context-missing": {"base":"inspect","operation":{"kind":"delete","path":"CONTEXT.md"}},
+    "inv-07-context-budget": {"base":"inspect","operation":{"kind":"repeat","path":"CONTEXT.md","content":"line\n","count":201}},
+    "inv-08-contract-version": {"base":"inspect","operation":{"kind":"write","path":"src/CONTRACT.md","content":"Contract without a version.\n"}},
+
+    "ev-01-missing-section": {"base":"evidence","operation":{"kind":"replace","path":"docs/evidence/evidence-registry.md","old":"### Statement","new":"### Omitted statement"}},
+    "ev-02-invalid-verdict": {"base":"evidence","operation":{"kind":"replace","path":"docs/evidence/evidence-registry.md","old":"Verdict: confirmed","new":"Verdict: unsupported"}},
+    "ev-03-duplicate-claim": {"base":"evidence","operation":{"kind":"append","path":"docs/evidence/evidence-registry.md","content":"\n## CLAIM-N001\n"}},
+    "ev-04-unknown-reference": {"base":"evidence","operation":{"kind":"replace","path":"docs/explanation/case.md","old":"CLAIM-N001","new":"CLAIM-N999"}},
+    "ev-05-missing-used-by": {"base":"evidence","operation":{"kind":"replace","path":"docs/evidence/evidence-registry.md","old":"- `docs/explanation/case.md`","new":""}},
+    "ev-06-dangling-used-by": {"base":"evidence","operation":{"kind":"replace","path":"docs/explanation/case.md","old":"CLAIM-N001","new":"the synthetic claim"}},
+    "ev-07-bare-percentage": {"base":"evidence","operation":{"kind":"append","path":"docs/explanation/case.md","content":"\nAn uncited result reports 40% improvement.\n"}},
+    "ev-08-broken-link": {"base":"evidence","operation":{"kind":"append","path":"docs/explanation/case.md","content":"\nSee [missing evidence](missing.md).\n"}},
+
+    "doc-01-broken-link": {"base":"repository","operation":{"kind":"append","path":"docs/how-to/apply-to-new-project.md","content":"\n[Missing benchmark target](missing-benchmark-target.md)\n"}},
+    "doc-02-escaping-link": {"base":"repository","operation":{"kind":"append","path":"docs/how-to/migrate-from-garden-v0.md","content":"\n[Escaping benchmark target](../../../outside.md)\n"}},
+    "doc-03-duplicate-rule": {"base":"repository","operation":{"kind":"append","path":"docs/reference/principles.md","content":"\n- **G-DISC-001 [REQUIRED] Duplicate probe.** Synthetic duplicate.\n"}},
+    "doc-04-undefined-checklist-rule": {"base":"repository","operation":{"kind":"append","path":"docs/reference/checklist.md","content":"\n- [ ] `G-FAKE-999` [REQUIRED] Synthetic undefined rule.\n"}},
+    "doc-05-unreferenced-rule": {"base":"repository","operation":{"kind":"append","path":"docs/reference/principles.md","content":"\n- **G-NEW-999 [REQUIRED] Synthetic probe.** Not listed in the checklist.\n"}},
+    "doc-06-front-matter": {"base":"repository","operation":{"kind":"replace","path":"docs/how-to/apply-to-new-project.md","old":"owner: vshuraeff","new":"owner: "}},
+
+    "pkg-01-manifest-name": {"base":"repository","operation":{"kind":"replace","path":"plugins/garden/.codex-plugin/plugin.json","old":"\"name\": \"garden\"","new":"\"name\": \"garden-mutated\""}},
+    "pkg-02-manifest-version": {"base":"repository","operation":{"kind":"replace","path":"plugins/garden/.codex-plugin/plugin.json","old":"\"version\": \"0.7.1\"","new":"\"version\": \"0.7.2\""}},
+    "pkg-03-required-field": {"base":"repository","operation":{"kind":"replace","path":"plugins/garden/.codex-plugin/plugin.json","old":"\"description\": \"Apply and check the GARDEN agent-first software design principles in Codex and Claude Code.\"","new":"\"description\": \"\""}},
+    "pkg-04-skills-path": {"base":"repository","operation":{"kind":"replace","path":"plugins/garden/.codex-plugin/plugin.json","old":"\"skills\": \"./skills/\"","new":"\"skills\": \"./other-skills/\""}},
+    "pkg-05-mcp-server": {"base":"repository","operation":{"kind":"write","path":"plugins/garden/.mcp.json","content":"{\n  \"mcpServers\": {}\n}\n"}},
+    "pkg-06-reference-drift": {"base":"repository","operation":{"kind":"append","path":"plugins/garden/references/glossary.md","content":"\nReference drift probe.\n"}},
+
+    "sec-01-parent-traversal": {"base":"config","operation":{"kind":"replace","path":".garden.toml","old":"roots = [\"src\"]","new":"roots = [\"../../secret\"]"}},
+    "sec-02-absolute-path": {"base":"config","operation":{"kind":"replace","path":".garden.toml","old":"roots = [\"src\"]","new":"roots = [\"/private/secret\"]"}},
+    "sec-03-symlink-confinement": {"base":"config-symlink","operation":{"kind":"symlink","path":"escape","link_target":"../outside"}},
+    "sec-04-version-bypass": {"base":"repository-git","operation":{"kind":"append","path":"plugins/garden/README.md","content":"\nPlugin change without version bump.\n"}},
+    "sec-05-invalid-manifest-json": {"base":"repository","operation":{"kind":"write","path":"plugins/garden/.codex-plugin/plugin.json","content":"{not-json\n"}},
+    "sec-06-hook-surface": {"base":"repository","operation":{"kind":"write","path":"plugins/garden/hooks/hooks.json","content":"{\n  \"hooks\": {\n    \"UserPromptSubmit\": []\n  }\n}\n"}},
+
+    "gap-01-missing-contract": {"base":"inspect","operation":{"kind":"delete","path":"src/orders/CONTRACT.md"}},
+    "gap-02-missing-mapped-test": {"base":"inspect","operation":{"kind":"delete","path":"src/orders/test_handler.py"}},
+    "gap-03-scan-roots": {"base":"inspect","operation":{"kind":"write","path":"outside/tool.py","content":"VALUE = \"outside configured roots\"\n"}},
+    "gap-04-contracts-required-for": {"base":"inspect","operation":{"kind":"append","path":".garden.toml","content":"\n[contracts]\nrequired_for = [\"orders\"]\n"}},
+    "gap-05-boundaries-public": {"base":"inspect","operation":{"kind":"append","path":".garden.toml","content":"\n[boundaries]\npublic = [\"src/orders\"]\n"}},
+    "gap-06-structured-exception": {"base":"inspect-exception","operation":{"kind":"replace","path":"src/orders/handler.py","old":"ready","new":"changed"}},
+    "gap-07-markers-resolution": {"base":"inspect","operation":{"kind":"replace","path":".garden.toml","old":"strategy = \"explicit\"","new":"strategy = \"markers\""}},
+    "gap-08-explicit-state-policy": {"base":"inspect","operation":{"kind":"append","path":".garden.toml","content":"\n[boundaries]\npublic = [\"src/orders\"]\n"}},
+
+    "clean-01-project-type": {"base":"config","operation":{"kind":"replace","path":".garden.toml","old":"type = \"service\"","new":"type = \"library\""}},
+    "clean-02-scan-include": {"base":"config","operation":{"kind":"replace","path":".garden.toml","old":"include = [\"**/*.py\"]","new":"include = [\"**/*.py\", \"**/*.yaml\"]"}},
+    "clean-03-capability-map": {"base":"config","operation":{"kind":"replace","path":".garden.toml","old":"\"src/orders\" = \"orders\"","new":"\"src/orders\" = \"orders\"\n\"src/billing\" = \"billing\""}},
+    "clean-04-boundary-config": {"base":"config","operation":{"kind":"append","path":".garden.toml","content":"\n[boundaries]\npublic = [\"src/orders\"]\n"}},
+    "clean-05-context-edit": {"base":"inspect","operation":{"kind":"append","path":"CONTEXT.md","content":"Additional bounded context.\n"}},
+    "clean-06-contract-patch": {"base":"inspect","operation":{"kind":"replace","path":"src/orders/CONTRACT.md","old":"Version: 1.0.0","new":"Version: 1.0.1"}},
+    "clean-07-evidence-verdict": {"base":"evidence","operation":{"kind":"replace","path":"docs/evidence/evidence-registry.md","old":"Verdict: confirmed","new":"Verdict: trend-only"}},
+    "clean-08-evidence-prose": {"base":"evidence","operation":{"kind":"replace","path":"docs/evidence/evidence-registry.md","old":"Synthetic limitation.","new":"Synthetic limitation with explicit scope."}},
+    "clean-09-doc-external-link": {"base":"repository","operation":{"kind":"append","path":"README.md","content":"\n[External benchmark source](https://example.invalid/source)\n"}},
+    "clean-10-package-doc": {"base":"repository","operation":{"kind":"append","path":"README.md","content":"\nPackage-neutral benchmark note.\n"}},
+    "clean-11-reference-unrelated": {"base":"repository","operation":{"kind":"append","path":"README.md","content":"\nReference-neutral benchmark note.\n"}},
+    "clean-12-version-unrelated": {"base":"repository-git","operation":{"kind":"append","path":"README.md","content":"\nNon-plugin benchmark note.\n"}}
+  }
+}
