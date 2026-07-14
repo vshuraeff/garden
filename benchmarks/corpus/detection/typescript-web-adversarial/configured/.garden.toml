@@ -1,0 +1,28 @@
+schema_version = 1
+
+[project]
+type = "service"
+
+[scan]
+include = ["**/*.ts", "**/*.tsx", "**/*.json"]
+exclude = ["**/contest.ts", "node_modules/**"]
+
+[capabilities]
+strategy = "explicit"
+shared_roots = ["src/shared"]
+
+[capabilities.map]
+"src/features/orders" = "orders"
+"config" = "orders"
+"src/features/billing" = "billing"
+
+[tests]
+patterns = ["src/**/tests/*.test.ts", "tests/**/*.spec.ts"]
+association = "test-roots"
+
+[tests.test_roots]
+"src/features/orders/tests" = "src/features/orders"
+"tests/web" = "src/features/billing"
+
+[documentation]
+root_context_required = false

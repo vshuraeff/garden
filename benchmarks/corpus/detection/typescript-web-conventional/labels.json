@@ -1,0 +1,14 @@
+[
+  {"path":"app/orders/page.tsx","production_source":true,"test":false,"capability":"orders","classification_reason":"orders page behavior","expected_findings":[]},
+  {"path":"app/orders/actions.ts","production_source":true,"test":false,"capability":"orders","classification_reason":"orders server actions","expected_findings":[]},
+  {"path":"app/billing/page.tsx","production_source":true,"test":false,"capability":"billing","classification_reason":"billing page behavior","expected_findings":[]},
+  {"path":"app/billing/actions.ts","production_source":true,"test":false,"capability":"billing","classification_reason":"billing server actions","expected_findings":[]},
+  {"path":"lib/shared/http.ts","production_source":true,"test":false,"capability":"shared","classification_reason":"shared HTTP support","expected_findings":[]},
+  {"path":"app/orders/route.json","production_source":true,"test":false,"capability":"orders","classification_reason":"behavioral orders route configuration","expected_findings":[]},
+  {"path":"app/orders/__tests__/page.test.ts","production_source":false,"test":true,"capability":"orders","classification_reason":"colocated orders page test","expected_findings":[]},
+  {"path":"tests/e2e/billing.spec.ts","production_source":false,"test":true,"capability":"billing","classification_reason":"mapped billing browser test","expected_findings":[]},
+  {"path":"app/orders/contest.ts","production_source":false,"test":false,"capability":"","classification_reason":"contest module is a deceptive non-test decoy","expected_findings":[]},
+  {"path":"docs/specification.md","production_source":false,"test":false,"capability":"","classification_reason":"prose specification","expected_findings":[]},
+  {"path":"dist/generated.ts","production_source":false,"test":false,"capability":"","classification_reason":"generated distribution artifact","expected_findings":[]},
+  {"path":"docs/guide.md","production_source":false,"test":false,"capability":"","classification_reason":"ordinary usage documentation","expected_findings":[]}
+]

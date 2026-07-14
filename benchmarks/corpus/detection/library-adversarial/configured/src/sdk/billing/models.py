@@ -1,0 +1,1 @@
+INVOICE_STATUS = "issued"

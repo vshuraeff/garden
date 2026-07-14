@@ -1,0 +1,143 @@
+{
+  "benchmark_version": "1",
+  "generated_at": "2026-07-14T09:53:23.234210Z",
+  "passed": false,
+  "schema_version": "1",
+  "suites": {
+    "detection": {
+      "counts": {
+        "failed": 107,
+        "incomplete": 0,
+        "passed": 181,
+        "total": 288
+      },
+      "metrics": {
+        "absolute_error_reduction": 0.7430555555555556,
+        "capability_exact_accuracy": 1.0,
+        "configured_error_rate": 0.0,
+        "improved_repositories": 12,
+        "incomplete_scan_present": false,
+        "legacy_error_rate": 0.7430555555555556,
+        "project_type_mean_regression_present": false,
+        "project_type_mean_regressions": 0,
+        "relative_error_reduction": 1.0,
+        "repository_count": 12,
+        "scan_complete": true,
+        "source_false_negative_rate": 0.0,
+        "source_false_positive_rate": 0.0,
+        "test_false_negative_rate": 0.0,
+        "test_false_positive_rate": 0.0
+      },
+      "passed": true,
+      "thresholds": {
+        "allow_project_type_mean_regression": false,
+        "capability_min_exact_accuracy": 0.95,
+        "configured_max_error_rate": 0.05,
+        "incomplete_scan_counts_as_pass": false,
+        "min_absolute_error_reduction": 0.1,
+        "min_improved_repositories": 6,
+        "min_relative_error_reduction": 0.5,
+        "repository_count": 12,
+        "source_max_false_negative_rate": 0.05,
+        "source_max_false_positive_rate": 0.05,
+        "test_max_false_negative_rate": 0.05,
+        "test_max_false_positive_rate": 0.05
+      }
+    },
+    "evidence": {
+      "counts": {
+        "failed": 0,
+        "incomplete": 0,
+        "passed": 48,
+        "total": 48
+      },
+      "metrics": {
+        "clean_false_blocks": 0,
+        "clean_total": 16,
+        "defect_total": 32,
+        "defects_detected": 32,
+        "false_block_rate": 0.0,
+        "supported_defect_recall": 1.0
+      },
+      "passed": true,
+      "thresholds": {
+        "clean_total": 16,
+        "defect_recall_required": 32,
+        "defect_total": 32,
+        "false_blocks_allowed": 0
+      }
+    },
+    "migration": {
+      "counts": {
+        "failed": 12,
+        "incomplete": 0,
+        "passed": 52,
+        "total": 64
+      },
+      "metrics": {
+        "config_validation_passed": 12,
+        "failure_atomicity_passed": 4,
+        "failure_atomicity_total": 4,
+        "force_idempotence_passed": 12,
+        "independent_output_parity_passed": 12,
+        "minimum_property_pass_count": 0,
+        "normalized_inspect_parity_passed": 0,
+        "normalized_output_identical_across_matrix": false,
+        "observed_platform_python_combinations": 1,
+        "property_count": 5,
+        "required_platform_python_combinations": 4,
+        "tree_atomicity_passed": 12,
+        "valid_fixture_count": 12
+      },
+      "passed": false,
+      "thresholds": {
+        "case_total": 12,
+        "cases_required_per_property": 12,
+        "failure_atomicity_required": 4,
+        "failure_atomicity_total": 4,
+        "normalized_output_identical_across_matrix": true,
+        "property_count": 5
+      }
+    },
+    "mutations": {
+      "counts": {
+        "failed": 0,
+        "incomplete": 0,
+        "passed": 68,
+        "total": 68
+      },
+      "metrics": {
+        "clean_blocked": 0,
+        "clean_false_block_rate": 0.0,
+        "clean_total": 12,
+        "gap_detect_only_detected": 2,
+        "gap_detect_only_total": 2,
+        "gap_known_unenforced_detected": 1,
+        "gap_known_unenforced_total": 6,
+        "gap_probe_blocked": 0,
+        "gap_probe_detected": 3,
+        "gap_probe_total": 8,
+        "kill_rate": 1.0,
+        "must_block_killed": 48,
+        "must_block_total": 48
+      },
+      "passed": true,
+      "thresholds": {
+        "clean_blocked_allowed": 0,
+        "clean_total": 12,
+        "gap_probe_total": 8,
+        "gap_probes_required": 8,
+        "killed_required": 48,
+        "mutation_total": 48
+      }
+    }
+  },
+  "toolchain": {
+    "garden_commit": "a5d39c12cfd62af43643ab89838aeb252cd75031",
+    "platform": "macos",
+    "plugin_version": "0.7.1",
+    "python_version": "3.14.0",
+    "repository_commit": "e8d5bc838ae40ba5c76fbe79c895c55da748e896",
+    "seed": 20260714
+  }
+}

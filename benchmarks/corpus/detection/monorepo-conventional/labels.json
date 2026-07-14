@@ -1,0 +1,14 @@
+[
+  {"path":"packages/orders/src/index.ts","production_source":true,"test":false,"capability":"orders","classification_reason":"orders package entry point","expected_findings":[]},
+  {"path":"packages/orders/src/service.ts","production_source":true,"test":false,"capability":"orders","classification_reason":"orders package behavior","expected_findings":[]},
+  {"path":"packages/billing/src/index.ts","production_source":true,"test":false,"capability":"billing","classification_reason":"billing package entry point","expected_findings":[]},
+  {"path":"packages/billing/src/service.ts","production_source":true,"test":false,"capability":"billing","classification_reason":"billing package behavior","expected_findings":[]},
+  {"path":"packages/shared/src/log.ts","production_source":true,"test":false,"capability":"shared","classification_reason":"shared package logging","expected_findings":[]},
+  {"path":"packages/orders/config/policy.yaml","production_source":true,"test":false,"capability":"orders","classification_reason":"behavioral package policy","expected_findings":[]},
+  {"path":"packages/orders/tests/index.test.ts","production_source":false,"test":true,"capability":"orders","classification_reason":"colocated package test","expected_findings":[]},
+  {"path":"tests/billing/index.test.ts","production_source":false,"test":true,"capability":"billing","classification_reason":"mapped package test","expected_findings":[]},
+  {"path":"packages/orders/src/contest.ts","production_source":false,"test":false,"capability":"","classification_reason":"contest module is a deceptive non-test decoy","expected_findings":[]},
+  {"path":"docs/specification.md","production_source":false,"test":false,"capability":"","classification_reason":"prose specification","expected_findings":[]},
+  {"path":"packages/orders/dist/generated.ts","production_source":false,"test":false,"capability":"","classification_reason":"generated package artifact","expected_findings":[]},
+  {"path":"docs/packages.md","production_source":false,"test":false,"capability":"","classification_reason":"ordinary package documentation","expected_findings":[]}
+]

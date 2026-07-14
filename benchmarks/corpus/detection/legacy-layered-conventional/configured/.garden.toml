@@ -1,0 +1,30 @@
+schema_version = 1
+
+[project]
+type = "service"
+
+[scan]
+include = ["**/*.py", "**/*.yaml"]
+exclude = ["**/contest.py", "build/**"]
+
+[capabilities]
+strategy = "explicit"
+shared_roots = ["shared"]
+
+[capabilities.map]
+"controllers/orders" = "orders"
+"services/orders" = "orders"
+"models/orders" = "orders"
+"config/orders" = "orders"
+"controllers/billing" = "billing"
+
+[tests]
+patterns = ["services/**/tests/test_*.py", "tests/**/test_*.py"]
+association = "test-roots"
+
+[tests.test_roots]
+"services/orders/tests" = "services/orders"
+"tests/billing" = "controllers/billing"
+
+[documentation]
+root_context_required = false

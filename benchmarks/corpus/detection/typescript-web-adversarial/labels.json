@@ -1,0 +1,14 @@
+[
+  {"path":"src/features/orders/ui.tsx","production_source":true,"test":false,"capability":"orders","classification_reason":"orders user interface","expected_findings":[]},
+  {"path":"src/features/orders/api.ts","production_source":true,"test":false,"capability":"orders","classification_reason":"orders API adapter","expected_findings":[]},
+  {"path":"src/features/orders/state.ts","production_source":true,"test":false,"capability":"orders","classification_reason":"orders state behavior","expected_findings":[]},
+  {"path":"src/features/billing/ui.tsx","production_source":true,"test":false,"capability":"billing","classification_reason":"billing user interface","expected_findings":[]},
+  {"path":"src/shared/client.ts","production_source":true,"test":false,"capability":"shared","classification_reason":"shared browser client","expected_findings":[]},
+  {"path":"config/features.json","production_source":true,"test":false,"capability":"orders","classification_reason":"behavioral feature configuration","expected_findings":[]},
+  {"path":"src/features/orders/tests/ui.test.ts","production_source":false,"test":true,"capability":"orders","classification_reason":"colocated feature test","expected_findings":[]},
+  {"path":"tests/web/billing.spec.ts","production_source":false,"test":true,"capability":"billing","classification_reason":"mapped billing web test","expected_findings":[]},
+  {"path":"src/features/orders/contest.ts","production_source":false,"test":false,"capability":"","classification_reason":"contest module is a deceptive non-test decoy","expected_findings":[]},
+  {"path":"docs/specification.md","production_source":false,"test":false,"capability":"","classification_reason":"prose specification","expected_findings":[]},
+  {"path":"node_modules/vendor/index.ts","production_source":false,"test":false,"capability":"","classification_reason":"vendored dependency artifact","expected_findings":[]},
+  {"path":"docs/deployment.md","production_source":false,"test":false,"capability":"","classification_reason":"ordinary deployment documentation","expected_findings":[]}
+]

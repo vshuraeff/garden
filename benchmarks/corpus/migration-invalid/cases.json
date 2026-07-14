@@ -1,0 +1,26 @@
+[
+  {
+    "case_id": "missing-registry",
+    "fixture_path": "missing-registry",
+    "expected_behavior": "fail",
+    "expected_signature": "legacy naming registry not found"
+  },
+  {
+    "case_id": "invalid-utf8",
+    "fixture_path": "invalid-utf8",
+    "expected_behavior": "fail",
+    "expected_signature": "cannot read legacy naming registry"
+  },
+  {
+    "case_id": "empty-registry",
+    "fixture_path": "empty-registry",
+    "expected_behavior": "succeed_then_strict_reject",
+    "expected_signature": "N-NAMING-EMPTY-REGISTRY"
+  },
+  {
+    "case_id": "malformed-entries",
+    "fixture_path": "malformed-entries",
+    "expected_behavior": "succeed_then_strict_reject",
+    "expected_signature": "N-NAMING-INVALID-ENTRY"
+  }
+]

@@ -1,0 +1,27 @@
+schema_version = 1
+
+[project]
+type = "infra"
+
+[scan]
+include = ["**/*.yml", "**/*.json", "**/*.py"]
+exclude = ["**/contest.py", "vendor/**"]
+
+[capabilities]
+strategy = "explicit"
+shared_roots = ["inventory/shared"]
+
+[capabilities.map]
+"roles/web" = "web"
+"roles/db" = "database"
+
+[tests]
+patterns = ["roles/**/tests/test_*.py", "tests/**/test_*.py"]
+association = "test-roots"
+
+[tests.test_roots]
+"roles/web/tests" = "roles/web"
+"tests/db" = "roles/db"
+
+[documentation]
+root_context_required = false

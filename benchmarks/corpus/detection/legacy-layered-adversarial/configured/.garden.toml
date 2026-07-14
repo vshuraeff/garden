@@ -1,0 +1,30 @@
+schema_version = 1
+
+[project]
+type = "service"
+
+[scan]
+include = ["**/*.py", "**/*.toml"]
+exclude = ["**/contest.py", "vendor/**"]
+
+[capabilities]
+strategy = "explicit"
+shared_roots = ["common"]
+
+[capabilities.map]
+"modules/sales" = "orders"
+"core/order_engine.py" = "orders"
+"data/order_store.py" = "orders"
+"settings/order_flow.toml" = "orders"
+"modules/invoices" = "billing"
+
+[tests]
+patterns = ["modules/**/tests/test_*.py", "verification/**/test_*.py"]
+association = "test-roots"
+
+[tests.test_roots]
+"modules/sales/tests" = "modules/sales"
+"verification/invoices" = "modules/invoices"
+
+[documentation]
+root_context_required = false

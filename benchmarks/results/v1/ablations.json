@@ -1,0 +1,160 @@
+{
+  "absent_families": [
+    "G",
+    "E"
+  ],
+  "benchmark_version": "1",
+  "computed_families": {
+    "A": {
+      "leave_one_out_loss": 0,
+      "leave_one_out_loss_rate": 0.0,
+      "leave_one_out_remaining_killed": 48,
+      "represented_rules": [
+        "A-colocated-tests"
+      ],
+      "standalone_coverage": 0.0,
+      "standalone_covered_mutations": 0,
+      "targeted_killed": 0,
+      "targeted_mutations": 0,
+      "targeted_recall": null
+    },
+    "D": {
+      "leave_one_out_loss": 1,
+      "leave_one_out_loss_rate": 0.020833333333333332,
+      "leave_one_out_remaining_killed": 47,
+      "represented_rules": [
+        "D-project-scan-limit"
+      ],
+      "standalone_coverage": 0.020833333333333332,
+      "standalone_covered_mutations": 1,
+      "targeted_killed": 1,
+      "targeted_mutations": 1,
+      "targeted_recall": 1.0
+    },
+    "N": {
+      "leave_one_out_loss": 10,
+      "leave_one_out_loss_rate": 0.20833333333333334,
+      "leave_one_out_remaining_killed": 38,
+      "represented_rules": [
+        "N-CONTEXT-MISSING",
+        "N-NAMING-DUPLICATE-CANONICAL",
+        "N-NAMING-DUPLICATE-CONCEPT",
+        "N-NAMING-EMPTY-REGISTRY",
+        "N-NAMING-INVALID-ENTRY",
+        "N-NAMING-MISSING",
+        "N-context-budget",
+        "N-context-scan-limit"
+      ],
+      "standalone_coverage": 0.20833333333333334,
+      "standalone_covered_mutations": 10,
+      "targeted_killed": 10,
+      "targeted_mutations": 10,
+      "targeted_recall": 1.0
+    },
+    "R": {
+      "leave_one_out_loss": 2,
+      "leave_one_out_loss_rate": 0.041666666666666664,
+      "leave_one_out_remaining_killed": 46,
+      "represented_rules": [
+        "R-component-contract",
+        "R-contract-scan-limit",
+        "R-contract-version"
+      ],
+      "standalone_coverage": 0.041666666666666664,
+      "standalone_covered_mutations": 2,
+      "targeted_killed": 2,
+      "targeted_mutations": 2,
+      "targeted_recall": 1.0
+    }
+  },
+  "definitions": {
+    "leave_one_out_loss": "targeted killed rows lost when this family's expected rule is removed",
+    "standalone_coverage": "fraction of must-block rows killed with findings from only this represented family",
+    "targeted_recall": "killed fraction among must-block rows whose expected signature is a mapped rule in this family"
+  },
+  "family_presence": {
+    "A": {
+      "gate_rule_count": 1,
+      "mapped_rule_count": 1,
+      "mapped_rules": [
+        "A-colocated-tests"
+      ],
+      "observed_rule_count": 1,
+      "observed_rules": [
+        "A-colocated-tests"
+      ]
+    },
+    "D": {
+      "gate_rule_count": 1,
+      "mapped_rule_count": 1,
+      "mapped_rules": [
+        "D-project-scan-limit"
+      ],
+      "observed_rule_count": 1,
+      "observed_rules": [
+        "D-project-scan-limit"
+      ]
+    },
+    "E": {
+      "gate_rule_count": 0,
+      "mapped_rule_count": 0,
+      "mapped_rules": [],
+      "observed_rule_count": 0,
+      "observed_rules": []
+    },
+    "G": {
+      "gate_rule_count": 0,
+      "mapped_rule_count": 0,
+      "mapped_rules": [],
+      "observed_rule_count": 0,
+      "observed_rules": []
+    },
+    "N": {
+      "gate_rule_count": 10,
+      "mapped_rule_count": 10,
+      "mapped_rules": [
+        "N-CONFIG-INVALID",
+        "N-CONTEXT-MISSING",
+        "N-LEGACY-NAMING-REGISTRY",
+        "N-NAMING-DUPLICATE-CANONICAL",
+        "N-NAMING-DUPLICATE-CONCEPT",
+        "N-NAMING-EMPTY-REGISTRY",
+        "N-NAMING-INVALID-ENTRY",
+        "N-NAMING-MISSING",
+        "N-context-budget",
+        "N-context-scan-limit"
+      ],
+      "observed_rule_count": 8,
+      "observed_rules": [
+        "N-CONTEXT-MISSING",
+        "N-NAMING-DUPLICATE-CANONICAL",
+        "N-NAMING-DUPLICATE-CONCEPT",
+        "N-NAMING-EMPTY-REGISTRY",
+        "N-NAMING-INVALID-ENTRY",
+        "N-NAMING-MISSING",
+        "N-context-budget",
+        "N-context-scan-limit"
+      ]
+    },
+    "R": {
+      "gate_rule_count": 3,
+      "mapped_rule_count": 3,
+      "mapped_rules": [
+        "R-component-contract",
+        "R-contract-scan-limit",
+        "R-contract-version"
+      ],
+      "observed_rule_count": 3,
+      "observed_rules": [
+        "R-component-contract",
+        "R-contract-scan-limit",
+        "R-contract-version"
+      ]
+    }
+  },
+  "must_block_killed": 48,
+  "must_block_total": 48,
+  "population": "must_block mutation rows",
+  "repository_commit": "e8d5bc838ae40ba5c76fbe79c895c55da748e896",
+  "schema_version": "1"
+}

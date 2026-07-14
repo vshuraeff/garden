@@ -1,0 +1,14 @@
+[
+  {"path":"controllers/orders/create.py","production_source":true,"test":false,"capability":"orders","classification_reason":"orders controller","expected_findings":[]},
+  {"path":"services/orders/service.py","production_source":true,"test":false,"capability":"orders","classification_reason":"orders service","expected_findings":[]},
+  {"path":"models/orders/model.py","production_source":true,"test":false,"capability":"orders","classification_reason":"orders model","expected_findings":[]},
+  {"path":"controllers/billing/create.py","production_source":true,"test":false,"capability":"billing","classification_reason":"billing controller","expected_findings":[]},
+  {"path":"shared/db.py","production_source":true,"test":false,"capability":"shared","classification_reason":"shared database helper","expected_findings":[]},
+  {"path":"config/orders/rules.yaml","production_source":true,"test":false,"capability":"orders","classification_reason":"behavioral orders rules","expected_findings":[]},
+  {"path":"services/orders/tests/test_service.py","production_source":false,"test":true,"capability":"orders","classification_reason":"colocated layered service test","expected_findings":[]},
+  {"path":"tests/billing/test_controller.py","production_source":false,"test":true,"capability":"billing","classification_reason":"mapped billing controller test","expected_findings":[]},
+  {"path":"services/orders/contest.py","production_source":false,"test":false,"capability":"","classification_reason":"contest module is a deceptive non-test decoy","expected_findings":[]},
+  {"path":"docs/specification.md","production_source":false,"test":false,"capability":"","classification_reason":"prose specification","expected_findings":[]},
+  {"path":"build/generated_models.py","production_source":false,"test":false,"capability":"","classification_reason":"generated model artifact","expected_findings":[]},
+  {"path":"docs/architecture.md","production_source":false,"test":false,"capability":"","classification_reason":"ordinary architecture documentation","expected_findings":[]}
+]

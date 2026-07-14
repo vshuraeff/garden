@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://garden.local/benchmarks/schemas/labels.schema.json",
+  "title": "Detection fixture labels",
+  "type": "array",
+  "items": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+      "path",
+      "production_source",
+      "test",
+      "capability",
+      "classification_reason",
+      "expected_findings"
+    ],
+    "properties": {
+      "path": { "type": "string", "minLength": 1 },
+      "production_source": { "type": "boolean" },
+      "test": { "type": "boolean" },
+      "capability": { "type": "string" },
+      "classification_reason": { "type": "string", "minLength": 1 },
+      "expected_findings": {
+        "type": "array",
+        "items": { "type": "string", "minLength": 1 },
+        "uniqueItems": true
+      }
+    }
+  }
+}

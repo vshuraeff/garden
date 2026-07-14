@@ -1,0 +1,14 @@
+[
+  {"path":"package/codec/encode.py","production_source":true,"test":false,"capability":"codec","classification_reason":"codec encoder","expected_findings":[]},
+  {"path":"package/codec/decode.py","production_source":true,"test":false,"capability":"codec","classification_reason":"codec decoder","expected_findings":[]},
+  {"path":"package/client/http.py","production_source":true,"test":false,"capability":"client","classification_reason":"client transport","expected_findings":[]},
+  {"path":"package/client/auth.py","production_source":true,"test":false,"capability":"client","classification_reason":"client authentication behavior","expected_findings":[]},
+  {"path":"package/shared/types.py","production_source":true,"test":false,"capability":"shared","classification_reason":"shared library types","expected_findings":[]},
+  {"path":"package/codec/formats.toml","production_source":true,"test":false,"capability":"codec","classification_reason":"behavioral codec format registry","expected_findings":[]},
+  {"path":"package/codec/tests/test_encode.py","production_source":false,"test":true,"capability":"codec","classification_reason":"colocated codec test","expected_findings":[]},
+  {"path":"tests/client/test_http.py","production_source":false,"test":true,"capability":"client","classification_reason":"mapped client test","expected_findings":[]},
+  {"path":"package/codec/contest.py","production_source":false,"test":false,"capability":"","classification_reason":"contest helper is a deceptive non-test decoy","expected_findings":[]},
+  {"path":"docs/specification.md","production_source":false,"test":false,"capability":"","classification_reason":"prose specification","expected_findings":[]},
+  {"path":"dist/generated.py","production_source":false,"test":false,"capability":"","classification_reason":"generated distribution artifact","expected_findings":[]},
+  {"path":"docs/api.md","production_source":false,"test":false,"capability":"","classification_reason":"ordinary API documentation","expected_findings":[]}
+]

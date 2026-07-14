@@ -1,0 +1,27 @@
+schema_version = 1
+
+[project]
+type = "monorepo"
+
+[scan]
+include = ["**/*.ts", "**/*.yaml"]
+exclude = ["**/contest.ts", "**/dist/**"]
+
+[capabilities]
+strategy = "explicit"
+shared_roots = ["packages/shared"]
+
+[capabilities.map]
+"packages/orders" = "orders"
+"packages/billing" = "billing"
+
+[tests]
+patterns = ["packages/**/tests/*.test.ts", "tests/**/*.test.ts"]
+association = "test-roots"
+
+[tests.test_roots]
+"packages/orders/tests" = "packages/orders"
+"tests/billing" = "packages/billing"
+
+[documentation]
+root_context_required = false

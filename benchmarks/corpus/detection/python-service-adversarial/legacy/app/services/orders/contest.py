@@ -1,0 +1,1 @@
+CONTEST_NAME = "regional"

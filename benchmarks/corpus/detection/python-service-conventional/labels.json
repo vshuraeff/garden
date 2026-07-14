@@ -1,0 +1,14 @@
+[
+  {"path":"src/orders/api.py","production_source":true,"test":false,"capability":"orders","classification_reason":"orders request boundary","expected_findings":[]},
+  {"path":"src/orders/service.py","production_source":true,"test":false,"capability":"orders","classification_reason":"orders behavior","expected_findings":[]},
+  {"path":"src/billing/api.py","production_source":true,"test":false,"capability":"billing","classification_reason":"billing request boundary","expected_findings":[]},
+  {"path":"src/billing/service.py","production_source":true,"test":false,"capability":"billing","classification_reason":"billing behavior","expected_findings":[]},
+  {"path":"src/shared/logging.py","production_source":true,"test":false,"capability":"shared","classification_reason":"shared logging support","expected_findings":[]},
+  {"path":"src/orders/policy.yaml","production_source":true,"test":false,"capability":"orders","classification_reason":"behavioral orders policy","expected_findings":[]},
+  {"path":"src/orders/tests/test_service.py","production_source":false,"test":true,"capability":"orders","classification_reason":"colocated orders test","expected_findings":[]},
+  {"path":"tests/billing/test_api.py","production_source":false,"test":true,"capability":"billing","classification_reason":"mapped billing test","expected_findings":[]},
+  {"path":"src/orders/contest.py","production_source":false,"test":false,"capability":"","classification_reason":"contest helper is a deceptive non-test decoy","expected_findings":[]},
+  {"path":"docs/specification.md","production_source":false,"test":false,"capability":"","classification_reason":"prose specification","expected_findings":[]},
+  {"path":"vendor/generated_client.py","production_source":false,"test":false,"capability":"","classification_reason":"vendored generated client","expected_findings":[]},
+  {"path":"docs/operations.md","production_source":false,"test":false,"capability":"","classification_reason":"ordinary operations documentation","expected_findings":[]}
+]

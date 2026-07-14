@@ -1,0 +1,14 @@
+[
+  {"path":"modules/network/main.tf","production_source":true,"test":false,"capability":"network","classification_reason":"network module resources","expected_findings":[]},
+  {"path":"modules/network/variables.tf","production_source":true,"test":false,"capability":"network","classification_reason":"network module inputs","expected_findings":[]},
+  {"path":"modules/compute/main.tf","production_source":true,"test":false,"capability":"compute","classification_reason":"compute module resources","expected_findings":[]},
+  {"path":"modules/compute/variables.tf","production_source":true,"test":false,"capability":"compute","classification_reason":"compute module inputs","expected_findings":[]},
+  {"path":"modules/shared/tags.json","production_source":true,"test":false,"capability":"shared","classification_reason":"shared infrastructure tags","expected_findings":[]},
+  {"path":"environments/prod/network.yaml","production_source":true,"test":false,"capability":"network","classification_reason":"behavioral production network configuration","expected_findings":[]},
+  {"path":"modules/network/molecule/default/verify.yml","production_source":false,"test":true,"capability":"network","classification_reason":"colocated Molecule verification","expected_findings":[]},
+  {"path":"tests/compute/test_plan.py","production_source":false,"test":true,"capability":"compute","classification_reason":"mapped compute plan test","expected_findings":[]},
+  {"path":"modules/network/contest.py","production_source":false,"test":false,"capability":"","classification_reason":"contest helper is a deceptive non-test decoy","expected_findings":[]},
+  {"path":"docs/specification.md","production_source":false,"test":false,"capability":"","classification_reason":"prose specification","expected_findings":[]},
+  {"path":"vendor/provider.tf","production_source":false,"test":false,"capability":"","classification_reason":"vendored provider artifact","expected_findings":[]},
+  {"path":"docs/runbook.md","production_source":false,"test":false,"capability":"","classification_reason":"ordinary infrastructure runbook","expected_findings":[]}
+]
