@@ -1,0 +1,2 @@
+def contest() -> None:
+    pass

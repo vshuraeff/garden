@@ -16,8 +16,8 @@ project root.
 | `schema_version` | integer | `1` | Configuration schema. If present, the value must be exactly `1`; booleans are not integers. |
 | `project` | table | section defaults | Project classification and root context declarations. |
 | `scan` | table | section defaults | Source discovery roots and globs. |
-| `capabilities` | table | section defaults | Capability-resolution intent. |
-| `tests` | table | section defaults | Test discovery and association intent. |
+| `capabilities` | table | section defaults | Capability resolution for deterministic structural checks. |
+| `tests` | table | section defaults | Test discovery and capability association. |
 | `contracts` | table | section defaults | Contract policy for declared public boundaries. |
 | `boundaries` | table | section defaults | Explicit public boundary declarations. |
 | `naming` | table | section defaults | Naming-registry location and requirement. |
@@ -38,13 +38,21 @@ When `any_of` and `all_of` are both non-empty, both conditions apply.
 
 | Key | Type | Default | Semantics |
 | --- | --- | --- | --- |
-| `scan.roots` | array of paths | `["."]` | Roots from which source discovery begins. |
+| `scan.roots` | array of paths | `["."]` | Declared source discovery roots; deterministic walk restriction is deferred below. |
 | `scan.include` | array of globs | `["**/*.py", "**/*.ts"]` | Candidate source paths. Configuration formats are not included unless listed explicitly. |
 | `scan.exclude` | array of globs | `["**/node_modules/**", "**/dist/**"]` | Paths removed from source discovery. |
 
 Each glob list accepts at most 200 patterns. Each pattern is at most 4096
 characters. Adjacent recursive segments such as `**/**` and `a/**/**/b` are
 invalid.
+
+Deterministic inspection matches `scan.include` and `scan.exclude` against each
+POSIX-normalized project-relative path. Exclusions win. An explicitly empty
+`scan.include` uses the legacy source-suffix filter, while configuration formats
+become source candidates only when an include glob matches them. Dotfiles and
+files under ignored build or dependency directories remain excluded. `scan.roots`
+is resolved for configuration consumers, but restricting the project walk to those
+roots is deferred.
 
 ## Capabilities
 
@@ -59,6 +67,13 @@ invalid.
 `markers` declares experimental intent only. Its resolver returns `unknown` tagged
 `EXPERIMENTAL`; schema v1 does not define a marker-file format.
 
+Configured deterministic inspection groups source files by the resolved capability
+identity. `shared`, `none`, and `unknown` results do not receive capability contract
+or colocated-test findings. A `children` capability checks for `CONTRACT.md` in its
+resolved directory under the matched capability root. An `explicit` capability uses
+the mapped name as its grouping identity and checks `CONTRACT.md` in the matched map
+prefix, such as `src/client/CONTRACT.md` for `"src/client" = "client"`.
+
 ## Tests
 
 | Key | Type | Default | Semantics |
@@ -68,8 +83,12 @@ invalid.
 | `tests.test_roots` | path-to-path table | `{}` | For `test-roots`, maps a test-path prefix to its source-path prefix; the longest match wins. |
 
 The 200-pattern and 4096-character limits also apply to `tests.patterns`.
-Deterministic project inspection currently consumes only `tests.patterns` and keeps
-same-capability behavior. Full association-aware rule wiring is deferred.
+With a config present, only matching paths are test candidates; filename substrings
+do not count. `same-capability` resolves the test path through the configured
+capability strategy. `test-roots` maps the test path to a source path and resolves
+that source path through the same capability strategy. Mapped tests satisfy the
+resulting capability across the whole project. Unmapped tests do not satisfy a
+capability. Test candidates themselves do not receive capability-scoped findings.
 
 ## Contracts and boundaries
 
@@ -88,6 +107,13 @@ inspection.
 | --- | --- | --- | --- |
 | `naming.registry` | path | `"naming-registry.txt"` | Root-relative naming-registry path. |
 | `naming.required` | boolean | `false` | Declares whether the configured registry is required. Integers are rejected. |
+
+A required registry must exist and contain at least one entry. When `naming.required`
+is true or a `[naming]` table is present, deterministic inspection validates every
+non-blank, non-comment line as `concept: canonical_name`. Empty values, duplicate
+concepts, and duplicate canonical names are errors. If `[naming]` is explicit but
+`naming.required` is false, an absent registry is allowed; an existing registry is
+still validated.
 
 A project without `.garden.toml` can still activate through a root
 `naming-registry.txt`. Run `garden migrate-config ROOT` to create a checked v1 config
@@ -191,7 +217,7 @@ map = { "src/client" = "client", "src/types" = "types" }
 [tests]
 patterns = ["**/*.test.ts"]
 association = "test-roots"
-test_roots = { "tests" = "src" }
+test_roots = { "tests/client" = "src/client", "tests/types" = "src/types" }
 ```
 
 ## Monorepo example

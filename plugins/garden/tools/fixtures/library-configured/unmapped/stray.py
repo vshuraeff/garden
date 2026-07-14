@@ -1,0 +1,2 @@
+def stray() -> None:
+    pass

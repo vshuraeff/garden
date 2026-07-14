@@ -1,0 +1,16 @@
+schema_version = 1
+
+[scan]
+include = ["**/*.py"]
+
+[capabilities]
+strategy = "explicit"
+map = { "libcore" = "core" }
+
+[tests]
+patterns = ["tests/**"]
+association = "test-roots"
+test_roots = { "tests" = "libcore" }
+
+[documentation]
+root_context_required = false
