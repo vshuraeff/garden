@@ -1,0 +1,34 @@
+{
+  "active": true,
+  "root": "<FIXTURE_ROOT>",
+  "findings": [
+    {
+      "severity": "advisory",
+      "rule": "R-component-contract",
+      "path": "other-widget/handler.py",
+      "message": "capability has no CONTRACT.md"
+    },
+    {
+      "severity": "advisory",
+      "rule": "A-colocated-tests",
+      "path": "other-widget/handler.py",
+      "message": "capability has no colocated tests"
+    },
+    {
+      "severity": "advisory",
+      "rule": "R-component-contract",
+      "path": "widget/contest.py",
+      "message": "capability has no CONTRACT.md"
+    },
+    {
+      "severity": "advisory",
+      "rule": "A-colocated-tests",
+      "path": "widget/contest.py",
+      "message": "capability has no colocated tests"
+    }
+  ],
+  "summary": {
+    "errors": 0,
+    "advisories": 4
+  }
+}

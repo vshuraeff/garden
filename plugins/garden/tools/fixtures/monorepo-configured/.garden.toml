@@ -1,0 +1,17 @@
+schema_version = 1
+
+[scan]
+include = ["**/*.py"]
+
+[capabilities]
+strategy = "children"
+roots = ["packages"]
+depth = 1
+shared_roots = ["packages/shared"]
+
+[tests]
+patterns = ["**/test_*.py"]
+association = "same-capability"
+
+[documentation]
+root_context_required = false

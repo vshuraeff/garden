@@ -1,0 +1,2 @@
+def core() -> None:
+    pass

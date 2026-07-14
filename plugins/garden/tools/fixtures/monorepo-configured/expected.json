@@ -1,0 +1,16 @@
+{
+  "active": true,
+  "root": "<FIXTURE_ROOT>",
+  "findings": [
+    {
+      "severity": "advisory",
+      "rule": "A-colocated-tests",
+      "path": "packages/b/handler.py",
+      "message": "capability has no colocated tests"
+    }
+  ],
+  "summary": {
+    "errors": 0,
+    "advisories": 1
+  }
+}
