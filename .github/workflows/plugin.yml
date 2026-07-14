@@ -24,6 +24,10 @@ jobs:
         run: uv run --no-project plugins/garden/tools/validate_evidence.py
       - name: Validate documentation checks
         run: uv run --no-project plugins/garden/tools/validate_docs.py
+      - name: Validate this repository's own GARDEN activation
+        run: uv run --no-project plugins/garden/tools/garden_cli.py config validate .
+      - name: Run the blocking GARDEN self-audit
+        run: uv run --no-project plugins/garden/tools/garden_cli.py inspect --strict .
       - name: Require a plugin SemVer bump
         if: github.event_name == 'pull_request'
         run: uv run --no-project plugins/garden/tools/plugin_version.py check --base ${{ github.event.pull_request.base.sha }}
