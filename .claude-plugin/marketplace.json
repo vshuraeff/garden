@@ -1,12 +1,12 @@
 {
   "name": "garden",
   "owner": { "name": "vshuraeff" },
-  "description": "GARDEN methodology tooling: agent-first software design principles enforcement",
+  "description": "GARDEN tooling: agent-first software design methodology and deterministic checks",
   "plugins": [
     {
       "name": "garden",
       "source": "./plugins/garden",
-      "description": "Bootstrap, retrofit, review, and audit projects against the GARDEN principles (Grep-first, Atomic slices, Regenerable, Deterministic verification, Explicit everything, Navigable knowledge)",
+      "description": "Bootstrap, retrofit, review, and audit projects against the GARDEN principles (Graph-resolvable Discoverability, Adaptive Capability Locality, Replaceable Components, Defense-in-depth Verification, Explicit Boundaries and State, Nearby Maintained Knowledge)",
       "homepage": "https://github.com/vshuraeff/garden",
       "repository": "https://github.com/vshuraeff/garden",
       "category": "development",

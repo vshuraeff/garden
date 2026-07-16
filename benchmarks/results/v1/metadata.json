@@ -1,9 +1,9 @@
 {
   "benchmark_version": "1",
-  "garden_commit": "a5d39c12cfd62af43643ab89838aeb252cd75031",
-  "generated_at": "2026-07-14T09:53:23.234210Z",
+  "garden_commit": "7822a59e40446729168445f12516101b0c198b9f",
+  "generated_at": "2026-07-16T08:41:06.153133Z",
   "platform": "macos",
-  "plugin_version": "0.7.1",
+  "plugin_version": "0.7.2",
   "producers": {
     "detection": {
       "path": "benchmarks/run_detection.py",

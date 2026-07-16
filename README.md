@@ -4,7 +4,7 @@ GARDEN is a system of six language-agnostic software design principles for the
 agent-first era, where code is written, reviewed, and analyzed primarily by LLM agents
 and humans set intent and constraints but rarely read the code line by line. The
 metaphor: a codebase is a garden that agents continuously tend, and untended code grows
-wild. GARDEN principles are the tending practices that keep a codebase navigable,
+wild. GARDEN principles are the tending practices intended to keep a codebase navigable,
 verifiable, and extensible across years of agent-driven changes.
 
 ## The six principles
@@ -17,6 +17,15 @@ verifiable, and extensible across years of agent-driven changes.
 | D | Defense-in-depth Verification | Changes carry independent, reproducible evidence selected for their risks; executable gates and an authorized decision process prevent agent self-certification. |
 | E | Explicit Boundaries and State | Inputs, outputs, side effects, state transitions, and operational policies are explicit at the boundaries where omission would change behavior or risk. |
 | N | Nearby, Maintained Knowledge | Governed knowledge stays near its boundary, and navigation docs follow public-boundary, ownership, decision, independent-edit, operational, and entry-point signals rather than directory-size thresholds. |
+
+## Evidence status
+
+[Benchmark v1](docs/evidence/benchmark-v1.md) is a deterministic, non-agent
+benchmark over fixed synthetic corpora. Its detection, evidence, and mutation
+suites pass; migration remains a documented negative result because the
+preregistered parity invariant conflicts with intentional configured-mode
+detection fixes. Nothing in this repository measures whether GARDEN improves
+LLM-agent task outcomes.
 
 ## Who this is for
 

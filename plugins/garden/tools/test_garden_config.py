@@ -389,8 +389,10 @@ class ConfigCliTests(unittest.TestCase):
                 "orders: orders\n", encoding="utf-8"
             )
 
+            legacy_report = inspect_project(root)
             destination = migrate_config(root)
             result = load_config(root)
+            migrated_report = inspect_project(root)
             with self.assertRaises(ConfigWriteError):
                 migrate_config(root)
             destination.write_text("broken = true\n", encoding="utf-8")
@@ -399,7 +401,17 @@ class ConfigCliTests(unittest.TestCase):
 
         self.assertTrue(result.valid)
         self.assertTrue(reparsed.valid)
-        self.assertTrue(resolve_effective(reparsed.config).naming.required.value)
+        effective = resolve_effective(reparsed.config)
+        self.assertTrue(effective.naming.required.value)
+        self.assertFalse(effective.documentation.root_context_required.value)
+        self.assertNotIn(
+            "N-CONTEXT-MISSING",
+            [finding["rule"] for finding in legacy_report["findings"]],
+        )
+        self.assertNotIn(
+            "N-CONTEXT-MISSING",
+            [finding["rule"] for finding in migrated_report["findings"]],
+        )
 
     def test_atomic_failure_preserves_existing_config_and_cleans_temp(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
