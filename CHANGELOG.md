@@ -1,5 +1,30 @@
 # Changelog
 
+## 0.8.0
+
+- `garden inspect` and `garden_inspect_project` now return a versioned
+  schema-v2 report: `schema_version`, `scope`, `complete`, `configuration`,
+  rule `coverage` (from `garden_rule_metadata.COVERAGE`), surfaced
+  (unenforced) `exceptions`, and a five-counter `summary`
+  (`errors`/`warnings`/`advisories`/`unknown`/`suppressed`).
+- Findings carry current rule IDs alongside their runtime alias:
+  `rule_id`, `runtime_alias`, `level`, `state`, `evidence`, `remediation`,
+  and `confidence`, in addition to the legacy `rule`, `severity`, `path`,
+  and `message` keys.
+- `inspect --strict` now also fails on an inactive project, invalid
+  configuration, incomplete analysis, and expired exceptions, not only on
+  `error`-severity findings.
+- MCP tool responses return the same schema-v2 report.
+- Added `validate_report.py`, a deterministic validator for schema-v2
+  reports, wired into CI to check the report the strict inspection produces.
+- CI wording changed from "GARDEN self-audit" to "deterministic structural
+  inspection" to match this report's declared scope; the `garden:audit`
+  skill remains the separate checklist-based review.
+- Legacy v1 report keys (`active`, `root`, `findings[].rule`,
+  `findings[].severity`, `findings[].path`, `findings[].message`,
+  `summary.errors`, `summary.advisories`) are unchanged, so existing v1
+  consumers keep working against a v2 report.
+
 ## 0.7.3
 
 - All active documentation migrated to the revised GARDEN principles; how-to

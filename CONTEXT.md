@@ -45,6 +45,10 @@ The plugin workflow runs these commands in order:
 - `uv run --no-project plugins/garden/tools/validate_docs.py`
 - `uv run --no-project plugins/garden/tools/garden_cli.py config validate .`
 - `uv run --no-project plugins/garden/tools/garden_cli.py inspect --strict .`
+- `uv run --no-project plugins/garden/tools/garden_cli.py inspect --strict . >
+  ${{ runner.temp }}/garden-report.json`, then
+  `uv run --no-project plugins/garden/tools/validate_report.py
+  ${{ runner.temp }}/garden-report.json`
 - `uv run --no-project plugins/garden/tools/plugin_version.py check --base ...`
   on pull requests
 - `uvx ruff check plugins/garden/tools && uvx ruff format --check plugins/garden/tools`
@@ -63,5 +67,6 @@ GARDEN capabilities because the scanner excludes them by design.
 - `docs/evidence/evidence-registry.md` records evidence and citations.
 - `.garden.toml` declares this repository's capability boundaries and exceptions.
 
-The repository self-audits under its own rules. `garden-maintainers` owns the
-capability boundaries and exceptions in `.garden.toml`.
+The repository undergoes deterministic structural inspection under its own
+rules. `garden-maintainers` owns the capability boundaries and exceptions in
+`.garden.toml`.

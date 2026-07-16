@@ -82,17 +82,60 @@ class GoldenSchemaTests(ActiveProjectTestCase):
 
         report = inspect_project(self.root)
 
-        self.assertEqual({"active", "root", "findings", "summary"}, set(report))
+        self.assertEqual(
+            {
+                "schema_version",
+                "scope",
+                "active",
+                "complete",
+                "root",
+                "configuration",
+                "coverage",
+                "exceptions",
+                "findings",
+                "summary",
+            },
+            set(report),
+        )
         summary = report["summary"]
-        self.assertEqual({"errors", "advisories"}, set(summary))
-        self.assertIsInstance(summary["errors"], int)
-        self.assertIsInstance(summary["advisories"], int)
+        self.assertEqual(
+            {"errors", "warnings", "advisories", "unknown", "suppressed"},
+            set(summary),
+        )
+        for value in summary.values():
+            self.assertIsInstance(value, int)
         findings = report["findings"]
         self.assertIsInstance(findings, list)
         for finding in findings:
-            self.assertEqual({"severity", "rule", "path", "message"}, set(finding))
-            for value in finding.values():
-                self.assertIsInstance(value, str)
+            self.assertIsInstance(finding, dict)
+            self.assertTrue(
+                {
+                    "severity",
+                    "rule",
+                    "rule_id",
+                    "runtime_alias",
+                    "level",
+                    "state",
+                    "path",
+                    "message",
+                    "evidence",
+                    "remediation",
+                    "confidence",
+                }.issubset(finding)
+            )
+            for key in (
+                "severity",
+                "rule",
+                "rule_id",
+                "level",
+                "state",
+                "path",
+                "message",
+            ):
+                self.assertIsInstance(finding[key], str)
+            for key in ("runtime_alias", "remediation", "confidence"):
+                self.assertIsInstance(finding[key], (str, type(None)))
+            self.assertIsInstance(finding["evidence"], list)
 
     def test_inspect_file_schema(self) -> None:
         source = self.root / "orders" / "handler.py"
