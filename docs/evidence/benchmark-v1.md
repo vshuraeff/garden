@@ -9,8 +9,8 @@ operators, revision, and toolchain.
 [`benchmarks/toolchain.toml`](../../benchmarks/toolchain.toml) records repository
 commit `e8d5bc838ae40ba5c76fbe79c895c55da748e896` as the revision against which the
 corpus and labels were authored. Runtime identity is pinned separately to the
-`plugins` subtree tree hash `00582f98165adaa86e9204142a809632155c9356`, GARDEN
-plugin version `0.7.1`, and seed `20260714`. The declared portability matrix is
+`plugins` subtree tree hash `817bdf4b195bf93b421f43dca9836215f5c42eaf`, GARDEN
+plugin version `0.7.2`, and seed `20260714`. The declared portability matrix is
 Ubuntu and macOS with Python 3.11 and 3.14. The committed run records its locally
 observed platform and Python version in `metadata.json` and `summary.json`.
 
@@ -169,7 +169,7 @@ Families without observed mapped rules: G, E.
 
 ### Result integrity and reproduction
 
-`summary.json` SHA-256: `da5ac747bad77fa3e23d4cf3129fbabcac71a03ec3e7b33ec57ec32ed9b12076`
+`summary.json` SHA-256: `ed8b77e59426c4ef2b9b52d0326bb8327b1185aac08341d1c44c2f4190dd9c12`
 
 ```sh
 uv run --no-project benchmarks/run.py
@@ -180,14 +180,25 @@ uv run --no-project benchmarks/validate_results.py
 
 ## Negative results and deviations
 
-Migration `normalized-inspect-parity` measured 0/12. The migration command
-writes a `.garden.toml` whose `[documentation] root_context_required = true`
-default causes a new `N-CONTEXT-MISSING` finding in the post-migration
-configured tree. That finding was absent and not applicable in the
-pre-migration inactive legacy tree because none of the fixed corpus fixtures
-has a root `CONTEXT.md`. The comparison drops only the legacy-deprecation
-advisory, as preregistered. The fixtures were not modified after the result to
-manufacture parity.
+Migration `normalized-inspect-parity` measured 0/12 in the initial run and the
+0.7.2 re-run. The initial result included a new `N-CONTEXT-MISSING` finding
+because the migrated `.garden.toml` inherited
+`documentation.root_context_required = true`. Version 0.7.2 fixes that behavior
+by rendering `root_context_required = false` with an explicit TODO to enable it
+after the project adds a root `CONTEXT.md`.
+
+That fix is a protocol deviation relative to the preregistered migration
+comparison, which permitted dropping only the legacy-deprecation advisory. The
+remaining parity differences expose a flaw in the invariant: exact parity
+effectively requires conserving legacy detection bugs. Configured mode
+intentionally corrects legacy source and test misclassification, so the
+post-migration finding set differs on `R-component-contract` and
+`A-colocated-tests` even after `N-CONTEXT-MISSING` is removed. Corpus labels and
+thresholds were not changed to manufacture parity.
+
+Revising the invariant to parity modulo documented intentional detection fixes
+is deferred to a future Benchmark v1.1 protocol cycle. Benchmark v1 retains the
+failed migration result as measured.
 
 The committed run exercises one local platform and Python combination, not the
 four declared matrix cells. Cross-matrix normalized-output identity is therefore

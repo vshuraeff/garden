@@ -1,9 +1,9 @@
 schema_version = 1
 benchmark_version = "1"
 repository_commit = "e8d5bc838ae40ba5c76fbe79c895c55da748e896"
-# git tree for plugins/ at repository_commit; used by the runtime identity gate
-plugin_tree_commit = "00582f98165adaa86e9204142a809632155c9356"
-plugin_version = "0.7.1"
+# git tree for the release plugins/ subtree; used by the runtime identity gate
+plugin_tree_commit = "817bdf4b195bf93b421f43dca9836215f5c42eaf"
+plugin_version = "0.7.2"
 seed = 20260714
 python_versions = ["3.11", "3.14"]
 platforms = ["ubuntu", "macos"]

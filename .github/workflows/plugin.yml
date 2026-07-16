@@ -42,6 +42,6 @@ jobs:
         if: github.event_name == 'pull_request' && matrix.os == 'ubuntu-latest' && matrix.python-version == '3.14'
         run: uv run --no-project plugins/garden/tools/plugin_version.py check --base ${{ github.event.pull_request.base.sha }}
       - name: Lint deterministic tools
-        run: uvx ruff check plugins/garden/tools && uvx ruff format --check plugins/garden/tools
+        run: uvx ruff@0.15.21 check plugins/garden/tools && uvx ruff@0.15.21 format --check plugins/garden/tools
       - name: Validate shell adapters
         run: bash -n plugins/garden/hooks/garden-check.sh plugins/garden/assets/garden-prompt.sh

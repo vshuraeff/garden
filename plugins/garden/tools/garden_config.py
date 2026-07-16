@@ -502,6 +502,7 @@ def _migrated_raw_config(registry_name: str) -> GardenConfig:
     return GardenConfig(
         schema_version=SCHEMA_VERSION,
         naming=NamingConfig(registry=registry_name, required=True),
+        documentation=DocumentationConfig(root_context_required=False),
     )
 
 
@@ -513,6 +514,9 @@ def render_migrated_config(registry_name: str = "naming-registry.txt") -> str:
         "# TODO: set project.type and context_files for this project.\n"
         "# TODO: set scan roots and source globs for this project.\n"
         "# TODO: choose a capability strategy and test association.\n\n"
+        "[documentation]\n"
+        "root_context_required = false\n"
+        "# TODO: set to true once a root CONTEXT.md exists for this project.\n\n"
         "[naming]\n"
         f"registry = {_toml_string(registry_name)}\n"
         "required = true\n\n"
