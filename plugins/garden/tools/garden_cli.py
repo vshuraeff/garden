@@ -16,6 +16,7 @@ from garden_config import (
     initialize_config,
     load_config,
     migrate_config,
+    migrate_config_to_schema_v2,
     render_effective,
     resolve_effective,
 )
@@ -77,6 +78,8 @@ def main(argv: list[str] | None = None) -> int:
     )
     migrate_parser.add_argument("root", nargs="?", default=".")
     migrate_parser.add_argument("--force", action="store_true")
+    migrate_parser.add_argument("--to-schema", type=int, choices=[2])
+    migrate_parser.add_argument("--owner")
 
     for command in ("install-project", "remove-project"):
         project_parser = subparsers.add_parser(command)
@@ -128,12 +131,22 @@ def main(argv: list[str] | None = None) -> int:
         return 0
 
     else:
+        if (
+            args.command == "migrate-config"
+            and args.owner is not None
+            and args.to_schema != 2
+        ):
+            print("--owner requires --to-schema 2", file=sys.stderr)
+            return 1
         try:
-            destination = (
-                initialize_config(Path(args.root), force=args.force)
-                if args.command == "init"
-                else migrate_config(Path(args.root), force=args.force)
-            )
+            if args.command == "init":
+                destination = initialize_config(Path(args.root), force=args.force)
+            elif args.to_schema == 2:
+                destination = migrate_config_to_schema_v2(
+                    Path(args.root), force=args.force, owner=args.owner
+                )
+            else:
+                destination = migrate_config(Path(args.root), force=args.force)
         except (ConfigWriteError, OSError) as error:
             print(error, file=sys.stderr)
             return 1

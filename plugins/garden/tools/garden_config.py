@@ -6,18 +6,20 @@ import json
 import os
 import tempfile
 import tomllib
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from pathlib import Path, PurePosixPath
 from typing import Callable, TypeVar
 
 from config_schema import (
     BoundariesConfig,
+    BoundaryConfig,
     CapabilitiesConfig,
     ConfigError,
     ContextFilesConfig,
     ContractsConfig,
     DocumentationConfig,
     EffectiveBoundariesConfig,
+    EffectiveBoundaryConfig,
     EffectiveCapabilitiesConfig,
     EffectiveConfig,
     EffectiveContextFilesConfig,
@@ -106,6 +108,18 @@ def resolve_effective(config: GardenConfig | None) -> EffectiveConfig:
     naming = raw.naming or NamingConfig()
     documentation = raw.documentation or DocumentationConfig()
 
+    raw_boundary_entries = raw.boundary_entries or ()
+    effective_boundary_entries = tuple(
+        EffectiveBoundaryConfig(
+            path=_resolved(item.path, ""),
+            kind=_resolved(item.kind, ""),
+            owner=_resolved(item.owner, ""),
+            versioning=_resolved(item.versioning, "none"),
+            contracts=_resolved(item.contracts, ()),
+            required_evidence=_resolved(item.required_evidence, ()),
+        )
+        for item in raw_boundary_entries
+    )
     raw_exceptions = raw.exceptions or ()
     effective_exceptions = tuple(
         EffectiveExceptionConfig(
@@ -151,6 +165,10 @@ def resolve_effective(config: GardenConfig | None) -> EffectiveConfig:
             ),
         ),
         boundaries=EffectiveBoundariesConfig(public=_resolved(boundaries.public, ())),
+        boundary_entries=ResolvedValue(
+            effective_boundary_entries,
+            "file" if raw.boundary_entries is not None else "default",
+        ),
         naming=EffectiveNamingConfig(
             registry=_resolved(naming.registry, "naming-registry.txt"),
             required=_resolved(naming.required, False),
@@ -203,6 +221,18 @@ def _configured_paths(config: GardenConfig) -> tuple[tuple[str, str], ...]:
     if config.exceptions:
         for index, item in enumerate(config.exceptions):
             add(f"exceptions[{index}].paths", item.paths)
+    if config.boundary_entries:
+        for index, item in enumerate(config.boundary_entries):
+            if item.path is not None:
+                values.append((f"boundaries[{index}].path", item.path))
+                if item.contracts:
+                    values.extend(
+                        (
+                            f"boundaries[{index}].contracts",
+                            str(PurePosixPath(item.path, artifact)),
+                        )
+                        for artifact in item.contracts
+                    )
     return tuple(values)
 
 
@@ -404,6 +434,18 @@ def render_effective(config: EffectiveConfig) -> str:
     add("contracts.required_for", config.contracts.required_for)
     add("contracts.accepted_names", config.contracts.accepted_names)
     add("boundaries.public", config.boundaries.public)
+    boundary_entries = config.boundary_entries.value
+    lines.append(
+        f"boundaries = {len(boundary_entries)} "
+        f"# origin: {config.boundary_entries.origin}"
+    )
+    for index, item in enumerate(boundary_entries):
+        add(f"boundaries[{index}].path", item.path)
+        add(f"boundaries[{index}].kind", item.kind)
+        add(f"boundaries[{index}].owner", item.owner)
+        add(f"boundaries[{index}].versioning", item.versioning)
+        add(f"boundaries[{index}].contracts", item.contracts)
+        add(f"boundaries[{index}].required_evidence", item.required_evidence)
     add("naming.registry", config.naming.registry)
     add("naming.required", config.naming.required)
     add(
@@ -524,6 +566,138 @@ def render_migrated_config(registry_name: str = "naming-registry.txt") -> str:
     )
 
 
+def render_v1_to_v2_config(config: GardenConfig, *, owner: str | None) -> str:
+    """Render a parsed v1 configuration as schema v2 TOML."""
+
+    public_boundaries = (
+        config.boundaries.public
+        if config.boundaries is not None and config.boundaries.public
+        else ()
+    )
+    if public_boundaries and owner is None:
+        raise ConfigWriteError("owner is required to migrate public boundaries")
+
+    lines = [
+        "schema_version = 2",
+        "",
+        "# migrated from schema_version 1 to schema_version 2.",
+    ]
+    if public_boundaries:
+        lines.append(
+            "# public boundaries became structured boundary entries with owner "
+            f"{_toml_string(owner)}."
+        )
+    lines.append("")
+
+    if config.exceptions == ():
+        lines.extend(("exceptions = []", ""))
+
+    def add_table(
+        name: str, fields: tuple[tuple[str, object | None, bool], ...]
+    ) -> None:
+        lines.append(f"[{name}]")
+        for key, value, mapping in fields:
+            if value is not None:
+                lines.append(f"{key} = {_show_value(value, mapping=mapping)}")
+        lines.append("")
+
+    if config.project is not None:
+        add_table("project", (("type", config.project.type, False),))
+        if config.project.context_files is not None:
+            add_table(
+                "project.context_files",
+                (
+                    ("any_of", config.project.context_files.any_of, False),
+                    ("all_of", config.project.context_files.all_of, False),
+                ),
+            )
+    if config.scan is not None:
+        add_table(
+            "scan",
+            (
+                ("roots", config.scan.roots, False),
+                ("include", config.scan.include, False),
+                ("exclude", config.scan.exclude, False),
+            ),
+        )
+    if config.capabilities is not None:
+        add_table(
+            "capabilities",
+            (
+                ("strategy", config.capabilities.strategy, False),
+                ("roots", config.capabilities.roots, False),
+                ("depth", config.capabilities.depth, False),
+                ("map", config.capabilities.map, True),
+                ("shared_roots", config.capabilities.shared_roots, False),
+            ),
+        )
+    if config.tests is not None:
+        add_table(
+            "tests",
+            (
+                ("patterns", config.tests.patterns, False),
+                ("association", config.tests.association, False),
+                ("test_roots", config.tests.test_roots, True),
+            ),
+        )
+    if config.contracts is not None:
+        add_table(
+            "contracts",
+            (
+                ("required_for", config.contracts.required_for, False),
+                ("accepted_names", config.contracts.accepted_names, False),
+            ),
+        )
+    if config.naming is not None:
+        add_table(
+            "naming",
+            (
+                ("registry", config.naming.registry, False),
+                ("required", config.naming.required, False),
+            ),
+        )
+    if config.documentation is not None:
+        add_table(
+            "documentation",
+            (
+                (
+                    "root_context_required",
+                    config.documentation.root_context_required,
+                    False,
+                ),
+                ("max_context_lines", config.documentation.max_context_lines, False),
+            ),
+        )
+
+    for path in public_boundaries:
+        lines.extend(
+            (
+                "[[boundaries]]",
+                f"path = {_toml_string(path)}",
+                'kind = "public-api"',
+                'versioning = "none"',
+                f"owner = {_toml_string(owner)}",
+                "",
+            )
+        )
+
+    if config.exceptions:
+        for exception in config.exceptions:
+            lines.append("[[exceptions]]")
+            for key, value in (
+                ("rule_id", exception.rule_id),
+                ("paths", exception.paths),
+                ("reason", exception.reason),
+                ("owner", exception.owner),
+                ("review_after", exception.review_after),
+            ):
+                if value is not None:
+                    lines.append(f"{key} = {_show_value(value)}")
+            lines.append("")
+
+    return "\n".join(lines).rstrip() + "\n"
+
+
 def _check_rendered_config(text: str, intended: GardenConfig) -> None:
     try:
         parsed = tomllib.loads(text)
@@ -601,5 +775,58 @@ def migrate_config(root: Path, *, force: bool = False) -> Path:
         ) from error
     intended = _migrated_raw_config(registry.name)
     content = render_migrated_config(registry.name)
+    _check_rendered_config(content, intended)
+    return _write_config(resolved, content, force=force)
+
+
+def migrate_config_to_schema_v2(
+    root: Path, *, force: bool = False, owner: str | None = None
+) -> Path:
+    """Migrate an existing v1 configuration to schema v2."""
+
+    resolved = root.resolve()
+    result = load_config(resolved)
+    if not result.present:
+        raise ConfigWriteError(f"configuration not found: {result.path}")
+    if result.errors:
+        rendered = "; ".join(str(error) for error in result.errors)
+        raise ConfigWriteError(f"cannot migrate invalid configuration: {rendered}")
+    if result.config is None:
+        raise ConfigWriteError(f"cannot load configuration: {result.path}")
+
+    config = result.config
+    if config.schema_version == 2:
+        raise ConfigWriteError("configuration already uses schema_version 2")
+
+    public_boundaries = (
+        config.boundaries.public
+        if config.boundaries is not None and config.boundaries.public
+        else ()
+    )
+    if public_boundaries and owner is None:
+        raise ConfigWriteError("owner is required to migrate public boundaries")
+
+    boundary_entries = (
+        tuple(
+            BoundaryConfig(
+                path=path,
+                kind="public-api",
+                owner=owner,
+                versioning="none",
+                contracts=None,
+                required_evidence=None,
+            )
+            for path in public_boundaries
+        )
+        if public_boundaries
+        else None
+    )
+    intended = replace(
+        config,
+        schema_version=2,
+        boundaries=None,
+        boundary_entries=boundary_entries,
+    )
+    content = render_v1_to_v2_config(config, owner=owner)
     _check_rendered_config(content, intended)
     return _write_config(resolved, content, force=force)

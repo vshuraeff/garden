@@ -1,5 +1,30 @@
 # Changelog
 
+## 0.8.1
+
+- Added `.garden.toml` configuration schema v2 with structured `[[boundaries]]`
+  declarations for `path`, `kind`, `owner`, `versioning`, `contracts`, and
+  `required_evidence`, with closed-enum validation for `kind`, `versioning`,
+  and `required_evidence` categories, owner-required-except-private and
+  contradiction checks, duplicate-path rejection, and project-root
+  path-confinement validation, including symlink escapes for boundary and
+  contract paths. Private boundaries reject `versioning`, `contracts`, and
+  `required_evidence`; internal-versioned boundaries require non-none
+  `versioning`.
+- `garden config show` now renders effective schema-v2 boundary entries with
+  per-field `file`/`default` origins, alongside existing v1 rendering.
+- `garden migrate-config --to-schema 2 --owner NAME` converts valid schema-v1
+  `boundaries.public` entries to `[[boundaries]]` entries with
+  `kind = "public-api"` and `versioning = "none"`; `--owner` is required when
+  public boundaries are declared, and using `--owner` without `--to-schema 2`
+  is a clear CLI error.
+- Schema v1 remains fully supported with no breaking changes to existing v1
+  configs, CLI behavior, or report output; v2 rejects the v1 `[boundaries]`
+  table, and v1 rejects the v2 `[[boundaries]]` array within a single config.
+- Boundary declarations are parsed, validated, and rendered, but are not yet
+  enforced by deterministic project inspection; enforcement is planned for a
+  later release.
+
 ## 0.8.0
 
 - `garden inspect` and `garden_inspect_project` now return a versioned

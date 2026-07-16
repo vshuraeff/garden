@@ -1,6 +1,6 @@
 ---
 owner: vshuraeff
-last_reviewed: 2026-07-14
+last_reviewed: 2026-07-17
 review_on:
   - config-schema-change
   - major-release
@@ -8,9 +8,11 @@ review_on:
 
 # Project configuration reference
 
-GARDEN reads `.garden.toml` from the project root. The file uses schema v1 and is
-parsed with strict key and type validation. Unknown keys are errors at every level.
-Every key is optional; omitted keys take the defaults listed below.
+GARDEN reads `.garden.toml` from the project root. It supports schema versions 1
+and 2. Schema v1 remains fully supported during the pre-1.0 migration window.
+Schema v2 adds structured boundary declarations through `[[boundaries]]`. The file
+is parsed with strict key and type validation. Unknown keys are errors at every level.
+Every root key is optional; omitted keys take the defaults listed below.
 
 For how deterministic inspection reports a configuration's location, schema version,
 and validation result, see [report-schema.md](report-schema.md).
@@ -26,13 +28,13 @@ compatibility layer; see
 
 | Key | Type | Default | Semantics |
 | --- | --- | --- | --- |
-| `schema_version` | integer | `1` | Configuration schema. If present, the value must be exactly `1`; booleans are not integers. |
+| `schema_version` | integer | `1` | Configuration schema. If present, the value must be `1` or `2`; booleans are not integers. |
 | `project` | table | section defaults | Project classification and root context declarations. |
 | `scan` | table | section defaults | Source discovery roots and globs. |
 | `capabilities` | table | section defaults | Capability resolution for deterministic structural checks. |
 | `tests` | table | section defaults | Test discovery and capability association. |
 | `contracts` | table | section defaults | Contract policy for declared public boundaries. |
-| `boundaries` | table | section defaults | Explicit public boundary declarations. |
+| `boundaries` | table (v1) / array of tables (v2) | section defaults | Schema v1 uses `[boundaries]` for public boundary declarations. Schema v2 uses `[[boundaries]]` for structured boundary entries. |
 | `naming` | table | section defaults | Naming-registry location and requirement. |
 | `documentation` | table | section defaults | Root context requirement and line budget. |
 | `exceptions` | array of tables | `[]` | Structured rule waivers. Enforcement is deferred; entries are parsed and resolved in schema v1. |
@@ -120,6 +122,55 @@ capability. Test candidates themselves do not receive capability-scoped findings
 Schema v1 resolves these values but does not yet enforce them in deterministic project
 inspection.
 
+## Schema v2 boundaries
+
+Each `[[boundaries]]` entry accepts only these keys:
+
+| Key | Type | Required | Semantics |
+| --- | --- | --- | --- |
+| `path` | string | yes | Project-relative boundary path. |
+| `kind` | string | yes | Boundary kind. |
+| `owner` | string | except for `private` | Person or team responsible for the boundary. |
+| `versioning` | string | no | Compatibility versioning policy. |
+| `contracts` | array of paths | no | Project-relative contract artifact paths resolved from `path`. |
+| `required_evidence` | array of strings | no | Evidence categories required for the boundary. |
+
+`kind` is a closed enum: `public-api`, `external-integration`,
+`independently-deployed`, `persisted-schema`, `trust-boundary`,
+`internal-versioned`, and `private`.
+
+`versioning` is a closed enum: `none`, `semver`, `calendar`, `schema-specific`, and
+`custom`.
+
+`required_evidence` uses the closed `EVIDENCE_CATEGORIES` enum: `contract-tests`,
+`compatibility-tests`, `rollback-plan`, `observability`, `migration-plan`, and
+`security-review`.
+
+An owner is required except when `kind = "private"`. Private boundaries must not
+declare a versioning policy other than `none`. Private boundaries must not declare
+`contracts` or `required_evidence`.
+`internal-versioned` boundaries require a versioning policy other than `none`.
+
+Two `[[boundaries]]` entries cannot use the same normalized `path`. Boundary `path`
+values and contract artifact paths resolved from `contracts` are subject to the same
+project-root confinement as other configured paths. The other fields are validated
+strings or enums, not filesystem paths.
+
+```toml
+schema_version = 2
+
+[[boundaries]]
+path = "src/api"
+kind = "public-api"
+owner = "platform-team"
+versioning = "semver"
+contracts = ["CONTRACT.md"]
+required_evidence = ["contract-tests", "rollback-plan"]
+```
+
+Schema v2 resolves and renders `[[boundaries]]` entries but does not yet enforce them
+in deterministic project inspection; enforcement is planned for a later release.
+
 ## Naming
 
 | Key | Type | Default | Semantics |
@@ -189,6 +240,12 @@ replace an existing config.
 `garden migrate-config [ROOT]` reads `naming-registry.txt`, renders keys in a fixed
 schema-specific order, validates the generated TOML and effective meaning, and replaces
 the destination atomically. It requires `--force` to replace an existing config.
+
+`garden migrate-config ROOT --to-schema 2 --owner NAME` migrates an existing valid
+schema v1 config to schema v2. It converts each `boundaries.public` path to a
+`[[boundaries]]` entry with `kind = "public-api"`, the given owner, and
+`versioning = "none"`. `--owner` is required when the v1 config declares public
+boundaries. The command requires `--force` to replace an existing `.garden.toml`.
 
 ## Service example
 
