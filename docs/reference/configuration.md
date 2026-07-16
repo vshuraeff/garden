@@ -1,6 +1,6 @@
 ---
 owner: vshuraeff
-last_reviewed: 2026-07-17
+last_reviewed: 2026-07-16
 review_on:
   - config-schema-change
   - major-release
