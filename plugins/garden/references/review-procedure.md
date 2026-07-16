@@ -1,6 +1,6 @@
 ---
 owner: vshuraeff
-last_reviewed: 2026-07-14
+last_reviewed: 2026-07-16
 review_on:
   - rule-change
   - evidence-change
@@ -27,40 +27,47 @@ Before reading a single line for review, check the CI results for this change.
 
 Do not re-litigate anything a passing gate already proved. If lint enforces an import
 boundary and lint passed, do not raise a finding about that boundary; instead, look for
-what the gates cannot see. If a gate did not run at all (for example, no contract test
-exists for the slice being changed), treat that absence itself as a finding under the D
-lens in step 5, rather than trying to manually verify what the missing gate would have
-checked.
+what the gates cannot see. Treat a gate that did not run as unknown verification evidence
+and a `D-VER-*` finding under the D lens in step 5, rather than trying to manually verify
+what the missing gate would have checked.
 
 ## 2. Apply the G lens: naming and discoverability
 
-- Action: check whether every new or renamed identifier maps to exactly one entry in the
-  project's naming registry, and whether any new domain logic is reachable only through
-  string-built identifiers, reflection, or convention-based routing.
-- Acceptance signal: each finding names the specific identifier or call site and states
-  which canonical name it should use, or which static-search path is broken.
+- Action: resolve the project's actual naming mechanism first: use the effective
+  `.garden.toml` `naming.registry` path when configured, otherwise use root
+  `naming-registry.txt` as the legacy fallback. Check that new or renamed domain concepts
+  use the canonical name within their bounded context, that boundary vocabulary has an
+  explicit translation map where needed, and that production relationships remain
+  recoverable through the project's stated graph mechanism; registries and generated
+  graphs count as discoverability evidence. Cite applicable `G-DISC-*` rule IDs.
+- Acceptance signal: each finding names the specific identifier, boundary translation,
+  call site, registry entry, manifest, or broken resolution path and states the canonical
+  name or graph evidence it requires.
 
-## 3. Apply the A lens: slice boundaries and duplication budget
+## 3. Apply the A lens: capability boundaries and duplication budget
 
-- Action: check whether the change stays inside its slice's directory, whether it reaches
-  into another slice's internals instead of its explicit interface, and whether it
-  introduces an abstraction before three concrete usages exist.
-- Acceptance signal: each finding cites the specific cross-slice reach or the premature
-  abstraction, with file paths, and states whether it falls within the clone-detection
-  budget or exceeds it.
+- Action: read the effective `.garden.toml` capability strategy before judging locality:
+  `children`, `explicit`, `markers`, or `none`, including shared roots. Check boundary
+  crossings against declared interfaces, test placement against the project's configured
+  `[tests]` patterns and mapping, and early abstractions against the configured exception
+  to the rule of three. Cite applicable `A-LOC-*` rule IDs.
+- Acceptance signal: each finding cites the resolved capability or unknown mapping, the
+  relevant cross-boundary reach, test mapping, or premature abstraction, with file paths,
+  and states the applicable clone-detection evidence.
 
 ## 4. Apply the R lens: contract drift
 
-- Action: check whether the change modifies a component's observable behavior without
-  updating its contract, or whether it patches around a contract instead of correcting
-  the contract first.
-- Acceptance signal: each finding identifies the contract file and the specific clause
-  that no longer matches the code, or confirms no drift was found.
+- Action: check whether observable behavior changed without a corresponding update to the
+  configured contract or replacement evidence, or whether code diverges from an accepted
+  contract artifact that should be corrected first. Cite applicable `R-REPL-*` rule IDs.
+- Acceptance signal: each finding identifies the relevant contract artifact or replacement
+  evidence and the clause or evidence that agrees or conflicts with the changed behavior.
 
 ## 5. Apply the D lens: new invariants without gates
 
 - Action: check whether the change introduces a new invariant (an assumption the code
-  depends on) that is not backed by a type, lint rule, or test.
+  depends on) that is not backed by a type, lint rule, or test. Cite applicable `D-VER-*`
+  rule IDs.
 - Acceptance signal: each finding names the invariant in plain language and proposes the
   specific deterministic gate (type, lint rule, or test) that would catch a future
   violation.
@@ -69,18 +76,21 @@ checked.
 
 - Action: check for hidden ordering requirements between operations, magic values without
   named constants, dependencies passed through ambient state instead of parameters, and
-  errors that do not state what failed, why, and what the caller can do.
+  errors that do not state what failed, why, and what the caller can do. Cite applicable
+  `E-EXPL-*` rule IDs.
 - Acceptance signal: each finding points to the specific implicit coupling and states the
   explicit form it should take.
 
-## 7. Apply the N lens: knowledge hop distance
+## 7. Apply the N lens: nearby, maintained knowledge
 
-- Action: check whether the knowledge needed to understand or safely extend this change
-  is reachable within one hop from the edit site (a README, a linked contract, a context
-  file entry), or whether it exists only in the reviewing agent's own memory of the
-  conversation.
-- Acceptance signal: each finding states what documentation is missing and where it
-  should live (which README or context file) to close the hop-distance gap.
+- Action: apply `N-KNOW-004`'s public-boundary, separate-owner, non-obvious-decision,
+  independent-edit, operational-obligation, and navigation-entry signals. Where a signal
+  warrants nearby documentation, check that governed knowledge is linked from its boundary
+  and uses progressive disclosure to expose the requisite context. Treat information known
+  only from the review conversation as missing documentation. Cite applicable `N-KNOW-*`
+  rule IDs.
+- Acceptance signal: each finding states what governed knowledge is missing and the
+  maintained location that should link from the relevant boundary to close the gap.
 
 ## 8. Report findings as verifiable hypotheses, never as verdicts
 
@@ -89,6 +99,9 @@ with the author's own four-agent system and reported a 50% false-positive rate f
 system. Treat every finding from this review as a hypothesis a human or a deterministic
 check must confirm, not as a fact or verdict.
 ([CLAIM-N003](../evidence/evidence-registry.md#claim-n003))
+
+Report missing evidence, ambiguous applicability, unavailable gates, and unresolved
+experimental capability markers as `unknown`, never as an implied pass.
 
 - Action: for every finding, cite the exact file and line range as evidence, state the
   specific GARDEN rule it violates, and avoid restating the same underlying issue as

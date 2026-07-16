@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.7.3
+
+- All active documentation migrated to the revised GARDEN principles; how-to
+  guides now align with the review skill's lens names and workflow.
+- Packaged references (`plugins/garden/references/review-procedure.md`)
+  regenerated from the migrated source.
+- Added `validate_migration_language.py`, a deterministic validator that flags
+  stale pre-migration principle terminology in tracked documentation, with
+  unit tests and a CI step.
+- No runtime behavior changes.
+
 ## 0.7.2
 
 - Migrated configurations now set `documentation.root_context_required = false`

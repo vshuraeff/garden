@@ -1,6 +1,6 @@
 ---
 owner: vshuraeff
-last_reviewed: 2026-07-14
+last_reviewed: 2026-07-16
 review_on:
   - rule-change
   - evidence-change
@@ -42,25 +42,32 @@ rule: no identifier built by string concatenation for domain dispatch
 - Acceptance signal: a change that crosses a forbidden import boundary or reintroduces a
   banned construct fails lint in CI.
 
-## 3. Write contract tests per slice
+## 3. Write risk-scoped contract tests
 
-Each slice's contract (**R**) needs an executable test that fails if the implementation
-diverges from it.
+An executable contract test is warranted at a configured boundary whose replacement can
+affect correctness, compatibility, or security, such as a public API or a replaceable
+component boundary under `R-REPL-001` and `R-REPL-002`. It is not required uniformly for
+every slice.
 
-- Action: for every slice contract, write at least one test that exercises the contract
-  as stated (not the implementation's internal steps), and colocate the test with the
-  slice per **A**.
+- Action: for each boundary that warrants a contract test, write at least one test that
+  exercises the contract as stated (not the implementation's internal steps). Place tests
+  according to the project's configured capability and `[tests]` mapping; colocation is
+  the `A-LOC-004` DEFAULT when the stack supports it.
 - Acceptance signal: intentionally breaking the contract (for example, changing an output
   field's meaning) fails the contract test without any other code change.
 
 ## 4. Order CI gates to fail fast
 
-Run gates in increasing cost order so a violation is caught at the cheapest possible
-step: type check, then lint, then unit tests, then contract tests, then anything slower.
+Run gates in increasing cost order by default so a violation is caught at the cheapest
+possible step: type check, then lint, then unit tests, then contract tests, then anything
+slower. This is a cost-based optimization, not a pipeline invariant: a project may run a
+cheaper contract test before a slow unit-test suite as long as every REQUIRED rule is
+enforced before merge.
 
-- Action: configure the CI pipeline so type check runs before lint, lint before tests,
-  and unit tests before slower integration or contract tests; stop the pipeline at the
-  first failure.
+- Action: configure the CI pipeline in a cost-based order; type check normally runs before
+  lint, lint before tests, and unit tests before slower integration or contract tests, but
+  a cheaper contract test may run before a slow unit-test suite. Enforce every REQUIRED
+  rule before merge and stop the pipeline at the first failure.
 - Acceptance signal: a type error is reported without waiting for the test suite to run.
 
 ```text
@@ -86,7 +93,21 @@ Managed duplication (**A**) needs a mechanical signal, not a policy statement.
 - Acceptance signal: the job produces a report on every CI run and the report is visible
   to whoever decides whether to extract an abstraction.
 
-## 6. Prefer runtime hooks and gates over instruction files for enforcement
+## 6. Extend verification beyond pre-merge gates
+
+Pre-merge gates do not cover every verification level. `D-VER-001` requires each change
+to identify the levels relevant to its risk.
+
+- Action: define applicable runtime assertions (invariant checks that fire in production),
+  telemetry or observability signals that reveal a post-deploy violation, and staged
+  rollout as a verification gate through a canary or percentage rollout. When full
+  verification is not feasible, record residual-risk acceptance as an explicit, owned,
+  expiring decision under `D-VER-004`.
+- Acceptance signal: the verification record states the result or why each level is not
+  applicable; a residual-risk acceptance records its owner, supporting evidence, scope,
+  and expiry.
+
+## 7. Prefer runtime hooks and gates over instruction files for enforcement
 
 An informal single-author practitioner report covering 166 Claude Code sessions found
 compliance with a rule stated only in an instruction file at 25-40%, versus about 95%
@@ -100,7 +121,7 @@ peer-reviewed research. Use instruction files to explain, use gates to enforce.
 - Acceptance signal: the rule now fails a build or a hook instead of depending on an
   agent reading and following a sentence in a context file.
 
-## 7. Place LLM review after the gates, not instead of them
+## 8. Place LLM review after the gates, not instead of them
 
 LLM code review is a useful complement but must never be the sole gate. One preprint,
 evaluating 99 samples with its author's own four-agent system, reported a 39.7

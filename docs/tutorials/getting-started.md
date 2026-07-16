@@ -1,28 +1,111 @@
 # Getting started with GARDEN
 
-This tutorial builds a tiny link-shortener service from nothing, applying all six
-GARDEN principles as you go. It has two capabilities: `shorten` (turn a long URL into a
-short code) and `resolve` (turn a short code back into the long URL). Follow the steps
-in order; each one produces a concrete file and something you can observe. There are no
-optional branches here — if you want task-specific guidance afterward, the how-to guides
-linked at the end cover that.
+In this tutorial, we will build a small link-shortener service with two capabilities:
+`shorten` turns a long URL into a short code, and `resolve` turns that code back into
+the long URL. We will choose a capability-slice layout for this service, record that
+choice in `.garden.toml`, and make the public contract, tests, state, ownership, and
+verification paths discoverable.
 
-## What you will end with
+The capability-slice layout is one valid GARDEN strategy for this example. GARDEN also
+supports framework-standard, explicitly mapped, marker-based, and ungrouped layouts;
+it does not require vertical slices for every project.
 
-A directory tree with one vertical slice per capability, a contract file per slice, a
-failing-then-passing contract test, a lint rule that enforces a boundary, a short
-context file, and a simulated agent task that a fresh agent can complete by reading only
-files within one hop of the edit site.
+## What you will build
 
-## Step 1 — Start a name registry
+The finished example has a configured `children` capability strategy, a naming
+registry scoped to the link-shortener context, a machine-readable capability map, a
+published HTTP contract, replacement evidence, tests in a separately mapped tree,
+explicit state dependencies, a boundary lint rule, and a maintained context entry
+point.
 
-Before writing any code, fix the canonical names for the concepts this service will
-use. This is Grep-first Discoverability (G) applied first: pick one name per concept so
-every later file, test, and error message can reuse it without inventing synonyms.
+## Step 1 — Initialize the project
 
-Create `naming-registry.txt`:
+Create an empty project directory and let GARDEN write its conservative schema-v1
+configuration:
 
+```sh
+mkdir link-shortener
+garden init link-shortener
+cd link-shortener
 ```
+
+`garden init` writes only `.garden.toml` and prints its path. It does not move files or
+create a source layout. We will now replace the detected defaults with choices for this
+service.
+
+## Step 2 — Choose Adaptive Capability Locality
+
+For this service, `shorten` and `resolve` are useful ownership and change units. We
+will keep their production code under separate children of `src/`, keep shared state
+in a declared shared root, and map a separate test tree back to those capabilities.
+
+Create the directories:
+
+```sh
+mkdir -p api src/shorten src/resolve src/shared tests/shorten tests/resolve
+```
+
+Replace `.garden.toml` with:
+
+```toml
+schema_version = 1
+
+[project]
+type = "service"
+context_files = { any_of = ["CONTEXT.md"] }
+
+[scan]
+roots = ["src"]
+include = ["**/*.impl"]
+exclude = ["**/dist/**"]
+
+[capabilities]
+strategy = "children"
+roots = ["src"]
+depth = 1
+shared_roots = ["src/shared"]
+
+[tests]
+patterns = ["tests/**"]
+association = "test-roots"
+test_roots = { "tests/shorten" = "src/shorten", "tests/resolve" = "src/resolve" }
+
+[contracts]
+required_for = ["published-api"]
+accepted_names = ["openapi.yaml", "replacement-evidence.md"]
+
+[boundaries]
+public = ["api"]
+
+[naming]
+registry = "link-shortener-naming.txt"
+required = true
+
+[documentation]
+root_context_required = true
+max_context_lines = 120
+```
+
+Run the schema and confinement check:
+
+```sh
+garden config validate .
+```
+
+The command reports `.garden.toml` as valid. Notice that the test files do not need to
+be colocated with production code: `tests.test_roots` gives GARDEN a stable path from
+each test directory to the capability it verifies. The 120-line context limit is this
+project's configured budget, not a universal GARDEN threshold.
+
+## Step 3 — Make relationships graph-resolvable
+
+Graph-resolvable Discoverability requires production relationships to be recoverable
+through a stated mechanism. For this example, use a bounded-context naming registry
+and a machine-readable capability map.
+
+Create `link-shortener-naming.txt`:
+
+```text
 short code: short_code
 long URL: long_url
 link: link
@@ -30,200 +113,264 @@ create link: shorten
 resolve link: resolve
 ```
 
-Observe: from now on, no file in this tutorial calls `short_code` a "slug" or "token",
-and no file calls `resolve` a "lookup" or "get". One canonical name per concept.
+These names are canonical inside the link-shortener bounded context. If another
+context uses different vocabulary, record a translation at that boundary instead of
+forcing one repository-wide term.
 
-## Step 2 — Scaffold the vertical slices
+Create `capabilities.yaml`:
 
-Atomic Vertical Slices (A) means organizing by capability, not by technical layer.
-Create one directory per capability, each holding its own entry point, logic, and
-tests — not a shared `controllers/`, `services/`, `models/` split.
-
-```
-link-shortener/
-  naming-registry.txt
-  shorten/
-    CONTRACT.md
-    shorten.test
-    shorten.impl
-  resolve/
-    CONTRACT.md
-    resolve.test
-    resolve.impl
-```
-
-Observe: `shorten/` and `resolve/` do not import each other's internals. Each is small
-enough to read in one sitting, and each will hold its own tests rather than a separate
-top-level `tests/` tree.
-
-## Step 3 — Write the contract before the code
-
-Regenerable Components (R) requires a contract precise enough that the component could
-be rewritten from scratch against it. Write the contract for `shorten` first, before any
-implementation exists.
-
-Create `shorten/CONTRACT.md`:
-
-```
-Version: 1.0.0
-
-# contract: shorten
-
-## input
-- long_url: string, must be a well-formed absolute url
-
-## output
-- short_code: string, 6 lowercase alphanumeric characters, unique among stored links
-
-## behavior
-- given a long_url not seen before, shorten creates a new link and returns its
-  short_code
-- given a long_url already stored, shorten returns the existing short_code
-  (idempotent)
-- given a malformed long_url, shorten fails with an invalid_long_url error
-
-## errors
-- invalid_long_url: long_url is not a well-formed absolute url
+```yaml
+capabilities:
+  shorten:
+    operation: "POST /links"
+    code: src/shorten
+    state: src/shared/link_store.impl
+    tests: tests/shorten
+    contract: api/openapi.yaml
+    owner: link-service
+  resolve:
+    operation: "GET /links/{short_code}"
+    code: src/resolve
+    state: src/shared/link_store.impl
+    tests: tests/resolve
+    contract: api/openapi.yaml
+    owner: link-service
 ```
 
-Observe: this file mentions no implementation detail (no storage engine, no framework).
-It is the durable artifact; `shorten.impl` below is expendable against it.
+The map connects each operation to its code, state, tests, public contract, and owner.
+The naming registry is now configured project data; `.garden.toml`, rather than the
+registry's mere presence, is the primary GARDEN activation mechanism.
 
-## Step 4 — Write a failing contract test
+## Step 4 — Define the public boundary before its implementation
 
-Deterministic Verification (D) means the contract is checked in executable form before
-any implementation exists. Translate the contract into a test that currently fails
-because `shorten.impl` does not exist yet.
+The `api/` directory is this service's declared public boundary. Replaceable
+Components requires evidence appropriate to that boundary, while Explicit Boundaries
+and State requires the input, output, validation, compatibility, state, and ownership
+decisions to be visible there. A file named `CONTRACT.md` is not the only accepted
+artifact.
 
-Create `shorten/shorten.test` (pseudocode):
+Create `api/openapi.yaml` with the two operations:
 
+```yaml
+openapi: 3.1.0
+info:
+  title: Link shortener API
+  version: 1.0.0
+paths:
+  /links:
+    post:
+      operationId: shorten
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [long_url]
+              properties:
+                long_url: { type: string, format: uri }
+      responses:
+        "201":
+          description: Link created or returned from existing state
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [short_code]
+                properties:
+                  short_code: { type: string, pattern: "^[a-z0-9]{6}$" }
+        "400":
+          description: Invalid URL with error_code invalid_long_url
+  /links/{short_code}:
+    get:
+      operationId: resolve
+      parameters:
+        - name: short_code
+          in: path
+          required: true
+          schema: { type: string, pattern: "^[a-z0-9]{6}$" }
+      responses:
+        "200":
+          description: Link resolved
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [long_url]
+                properties:
+                  long_url: { type: string, format: uri }
+        "404":
+          description: Unknown code with error_code unknown_short_code
 ```
-test "shorten returns a 6-character short_code for a new long_url":
-    result = shorten("https://example.com/a/long/path")
-    assert length(result.short_code) == 6
-    assert result.short_code matches "^[a-z0-9]{6}$"
+
+Create `api/replacement-evidence.md`:
+
+```markdown
+# Link shortener API replacement evidence
+
+Owner: link-service
+
+- Compatibility: the published HTTP API is a designated versioned boundary and uses
+  SemVer. Breaking request or response changes require a new major version.
+- Behavior: shortening the same long_url returns the existing short_code; resolving a
+  stored short_code returns its long_url.
+- Errors: invalid_long_url and unknown_short_code are stable machine-readable codes.
+- Data ownership: this tutorial uses process-local state owned by link-service; there
+  is no persisted schema.
+- Concurrency and ordering: not applicable to this single-process walkthrough. Define
+  and test them before using a concurrent or distributed store.
+- Migration and rollback: there is no persisted migration. Roll back by restoring the
+  previous service build.
+- Observability: count requests and stable error codes per operation.
+```
+
+Only the published HTTP API carries `version: 1.0.0`. The private `.impl` files below
+use Git history and do not receive artificial versions. Schema v1 validates and
+resolves the `contracts` and `boundaries` declarations but does not yet enforce their
+artifacts during project inspection, so the project's CI must check that the two files
+exist and validate the OpenAPI document.
+
+## Step 5 — Start Defense-in-depth Verification with failing tests
+
+The test tree is separate from `src/`, but the `test_roots` mapping in `.garden.toml`
+makes the association deterministic. Create `tests/shorten/shorten.test`:
+
+```text
+test "shorten returns a six-character short_code":
+    store = in_memory_link_store()
+    result = shorten("https://example.com/a/long/path", store, fixed_code("a1b2c3"))
+    assert result.short_code == "a1b2c3"
 
 test "shorten is idempotent for a repeated long_url":
-    first = shorten("https://example.com/a/long/path")
-    second = shorten("https://example.com/a/long/path")
+    store = in_memory_link_store()
+    first = shorten("https://example.com/a/long/path", store, fixed_code("a1b2c3"))
+    second = shorten("https://example.com/a/long/path", store, fixed_code("z9y8x7"))
     assert first.short_code == second.short_code
 
 test "shorten rejects a malformed long_url":
-    assert_raises(invalid_long_url):
-        shorten("not-a-url")
+    assert_error_code("invalid_long_url"):
+        shorten("not-a-url", in_memory_link_store(), fixed_code("a1b2c3"))
 ```
 
-Observe: running the test suite now reports three failures with a clear
-`shorten is not defined` (or equivalent) error — the gate exists and is red before the
-code exists, not after.
+Create `tests/resolve/resolve.test`:
 
-## Step 5 — Implement against the contract
+```text
+test "resolve returns the stored long_url":
+    store = in_memory_link_store({"a1b2c3": "https://example.com/a/long/path"})
+    result = resolve("a1b2c3", store)
+    assert result.long_url == "https://example.com/a/long/path"
 
-Write the smallest implementation that turns the three tests green. Keep it inside
-`shorten/shorten.impl`; nothing here reaches into `resolve/`.
-
+test "resolve reports an unknown short_code":
+    assert_error_code("unknown_short_code"):
+        resolve("z9y8x7", in_memory_link_store())
 ```
-# shorten/shorten.impl
 
-store = {}  # long_url -> short_code, private to this slice
+Run the project's test command now. All five tests fail because the implementation is
+absent. That failure is the first executable evidence for the behavior in the public
+contract; it is not replaced by an agent's review.
 
-function shorten(long_url):
+## Step 6 — Implement with explicit state and enforce the capability boundary
+
+Create the shared store and pass it into both capabilities. The pseudocode keeps state
+and code generation visible instead of reading hidden ambient dependencies:
+
+```text
+# src/shared/link_store.impl
+
+function in_memory_link_store(initial_links = {}):
+    return store supporting find_by_long_url, find_by_short_code, and put
+
+# src/shorten/shorten.impl
+
+function shorten(long_url, store, generate_short_code):
     if not is_well_formed_absolute_url(long_url):
-        raise invalid_long_url(long_url)
+        raise error(code = "invalid_long_url", field = "long_url")
 
-    if long_url in store:
-        return { short_code: store[long_url] }
+    existing = store.find_by_long_url(long_url)
+    if existing:
+        return { short_code: existing.short_code }
 
-    short_code = generate_short_code()  # 6 lowercase alphanumeric characters
-    store[long_url] = short_code
+    short_code = generate_short_code()
+    store.put(short_code, long_url)
     return { short_code: short_code }
+
+# src/resolve/resolve.impl
+
+function resolve(short_code, store):
+    link = store.find_by_short_code(short_code)
+    if not link:
+        raise error(code = "unknown_short_code", field = "short_code")
+    return { long_url: link.long_url }
 ```
 
-Observe: rerunning the test suite turns all three `shorten` tests green. Repeat steps
-3–5 for `resolve/` (contract, failing test, implementation) before moving on; the
-tutorial omits that repetition here for brevity, but a real pass through GARDEN does
-not skip it.
+Rerun the tests; all five now pass. Then express this invariant in the native syntax of
+the project's linter or dependency checker:
 
-## Step 6 — Add a lint boundary rule
-
-Deterministic Verification (D) treats lint configuration as executable architecture
-spec, not convention. Encode the vertical-slice boundary from step 2 as a rule instead
-of a comment.
-
-Create `lint-rules.md` (or your linter's native config, expressed the same way):
-
-```
-# import boundary rule
-
-rule "no-cross-slice-internals":
-    forbid: shorten/* importing anything from resolve/* except resolve/CONTRACT.md
-    forbid: resolve/* importing anything from shorten/* except shorten/CONTRACT.md
+```text
+rule "no-cross-capability-internals":
+    forbid src/shorten/** importing src/resolve/**
+    forbid src/resolve/** importing src/shorten/**
+    allow src/shorten/** importing src/shared/link_store.impl
+    allow src/resolve/** importing src/shared/link_store.impl
 ```
 
-Observe: if a later change makes `resolve.impl` reach directly into `shorten`'s private
-`store`, the lint gate fails on that change — the boundary is enforced mechanically, not
-by someone remembering to review for it.
+Run that rule in CI with the tests and the OpenAPI check. If either capability reaches
+into the other's private implementation, the gate fails without depending on a
+reviewer to remember the selected layout.
 
-## Step 7 — Write the root context file
+## Step 7 — Add Nearby, Maintained Knowledge
 
-Navigable Knowledge (N) requires a short, hand-written context file rather than an
-autogenerated dump. Keep it under roughly 200 lines and load-bearing only.
+Create `CONTEXT.md` as the maintained entry point selected by `.garden.toml`:
 
-Create `link-shortener/CONTEXT.md`:
+```markdown
+# Link shortener context
 
+Owner: link-service
+Last reviewed: 2026-07-16
+Review trigger: capability ownership, public API, state model, or verification changes
+
+- Effective GARDEN configuration: .garden.toml
+- Canonical names for this bounded context: link-shortener-naming.txt
+- Capability code, state, tests, contracts, and owners: capabilities.yaml
+- Published API and replacement evidence: api/
+- Required gates: config validation, tests, dependency lint, and OpenAPI validation
 ```
-# link-shortener context
 
-- canonical names: see naming-registry.txt
-- one vertical slice per capability: shorten/, resolve/
-- every slice has a CONTRACT.md; read it before editing that slice's impl
-- import boundary: a slice may depend on another slice's CONTRACT.md, never its impl
-- tests are colocated with the slice they verify; a green test suite is required
-  before any change is considered done
-```
+This file links to governing artifacts without restating them. The project selected it
+as the root entry point and gave it an owner, a review date, a staleness trigger, and a
+local line budget.
 
-Observe: this file states only what is not already obvious from opening the directory
-tree — it does not restate the contracts themselves, and it links to
-`naming-registry.txt` and each slice's `CONTRACT.md` rather than duplicating their
-content.
+## Step 8 — Follow the requisite context for an expiry change
 
-## Step 8 — A simulated agent task: add expiry
+Consider a follow-up task: links expire 30 days after creation, and resolving an
+expired `short_code` returns `link_expired`.
 
-Now simulate handing this codebase to a fresh agent with a one-sentence task: "links
-should expire 30 days after creation; resolving an expired short_code should fail."
+Start at `CONTEXT.md`, then use `capabilities.yaml` to identify the affected public
+contract, shared state, capability code, tests, and owner. Update
+`api/openapi.yaml` and `api/replacement-evidence.md` first, add failing tests for the
+creation timestamp and expiry result, then change the shared store and the two
+capability implementations. Finish by running config validation, all five existing
+tests plus the new expiry tests, dependency lint, and OpenAPI validation.
 
-Follow what that agent needs to read, in hop order:
+The required files are bounded by this project's declared capability graph and the
+risk of this change. GARDEN does not impose a universal path-count rule: the project
+uses progressive disclosure so a contributor loads the requisite context without
+guessing which code, contract, state, tests, or decisions govern the behavior.
 
-1. `CONTEXT.md` (root, one hop) — points it at `naming-registry.txt` and the relevant
-   slice
-   contracts.
-2. `shorten/CONTRACT.md` and `resolve/CONTRACT.md` (one hop from `CONTEXT.md`) — the
-   agent updates both contracts first: `shorten` now records a creation time, `resolve`
-   now checks it and can fail with a new `link_expired` error.
-3. `shorten/shorten.test`, `resolve/resolve.test`, `shorten/shorten.impl`,
-   `resolve/resolve.impl` (one hop from each contract) — the agent adds a failing test
-   per updated contract, then updates each implementation to turn it green.
-
-Observe: the agent never had to open a directory outside `link-shortener/`, never had to
-guess a name (the registry already defines `link`, `short_code`, `resolve`), and the
-lint boundary rule from step 6 did not need to change, because expiry is internal to
-each slice's own contract and implementation. All requisite context for the change —
-`CONTEXT.md`, two contracts, two tests, and two implementations — fits in a single agent
-context window.
+You have now applied all six current principles: Graph-resolvable Discoverability in
+the naming and capability maps, Adaptive Capability Locality in the selected service
+layout, Replaceable Components in the boundary evidence, Defense-in-depth Verification
+in the executable gates, Explicit Boundaries and State in the API and injected store,
+and Nearby, Maintained Knowledge in the governed context entry point.
 
 ## Where to go next
-
-You have now touched all six principles once: G in the name registry, A in the slice
-scaffold, R in the contracts, D in the failing-test-first workflow and the lint rule, E
-implicitly in the typed contract inputs/outputs and named `invalid_long_url` /
-`link_expired` errors, and N in the context file and hop-distance discipline.
-
-For task-specific guidance beyond this walkthrough, see:
 
 - [Apply GARDEN to a new project](../how-to/apply-to-new-project.md)
 - [Retrofit a legacy codebase](../how-to/retrofit-legacy-codebase.md)
 - [Set up verification gates](../how-to/set-up-verification-gates.md)
 - [Review code as an agent](../how-to/review-code-as-agent.md)
 
-For the authoritative statement of each rule you applied here, see
-[the principles reference](../reference/principles.md).
+For the normative levels, stable rule IDs, and allowed exceptions behind this
+tutorial, see [the principles reference](../reference/principles.md). For every
+`.garden.toml` key used here, see the
+[configuration reference](../reference/configuration.md).

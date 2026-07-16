@@ -1,6 +1,6 @@
 {
   "name": "garden",
-  "version": "0.7.2",
+  "version": "0.7.3",
   "description": "Apply and check the GARDEN agent-first software design principles in Codex and Claude Code.",
   "author": {
     "name": "vshuraeff",
