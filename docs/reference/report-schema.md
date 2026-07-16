@@ -30,7 +30,7 @@ report neither replaces nor represents that review.
 | `root` | string | Resolved project root inspected by the tool. |
 | `configuration` | object | Configuration location, schema version, and validation result. |
 | `coverage` | object | Rule coverage declared by `garden_rule_metadata.COVERAGE`. |
-| `exceptions` | array | Configured exception records, reported without enforcement. |
+| `exceptions` | array | Configured exception records and their enforcement results. |
 | `findings` | array | Finding objects described below. |
 | `summary` | object | Counts from the deduplicated finding set. |
 
@@ -43,13 +43,18 @@ report neither replaces nor represents that review.
 | `valid` | boolean | Result of configuration loading; no configuration is represented as valid. |
 
 `summary.errors`, `summary.warnings`, and `summary.advisories` count findings by
-severity. `summary.unknown` and `summary.suppressed` count findings by state.
+severity after excluding findings with `state = "suppressed"`. `summary.unknown` and
+`summary.suppressed` count findings by state in the full deduplicated finding set.
 Every counter is a non-negative integer.
 
 `exceptions` serializes configured `[[exceptions]]` values as `rule_id`,
-`paths`, `reason`, `owner`, and `review_after`. The current inspector does not
-apply an exception to a finding or emit `suppressed` for it. Exception-suppression
-enforcement is future work and outside this report schema's current behavior.
+`paths`, `reason`, `owner`, `review_after`, `applied`, `matched_findings`, and
+`expired`. `applied` is true when the exception is not expired and at least one
+matched finding has `state = "suppressed"`; `matched_findings` counts findings with
+the matching canonical rule ID and path glob; and `expired` is true when an ISO-date
+`review_after` is in the past. Review markers do not expire. The inspector suppresses
+matching `fail` findings by canonical rule ID and path glob when the exception has
+not expired. It never suppresses `unknown` findings.
 
 ## Completion and finding state
 
@@ -66,11 +71,12 @@ The report validator accepts these states:
 | `fail` | The evaluated check found a structural violation. |
 | `not-applicable` | The evaluated rule does not apply to this project or path. It is a per-finding applicability result. |
 | `unknown` | The check could not be evaluated deterministically, such as after a bounded scan limit. It is a real finding state, never a pass. |
-| `suppressed` | Reserved for a finding suppressed by an enforced exception. Current structural inspection does not emit this state. |
+| `suppressed` | Emitted for a matching `fail` finding suppressed by a non-expired enforced exception. |
 
-Current rules construct `fail` findings and use `unknown` for bounded-scan
-failures. The other accepted values make the report contract usable by rules
-that can evaluate those outcomes without changing its schema.
+Current rules construct `fail` findings, use `unknown` for bounded-scan failures,
+and produce `suppressed` findings through exception application. The other accepted
+values make the report contract usable by rules that can evaluate those outcomes
+without changing its schema.
 
 ## Findings
 
@@ -78,7 +84,7 @@ Each finding has the following fields:
 
 | Field | Type | Semantics |
 | --- | --- | --- |
-| `rule_id` | string | Canonical rule identifier. For the four mappings in [principles.md](principles.md#runtime-rule-id-correspondence), this is the normative ID; otherwise it is the emitted runtime ID. |
+| `rule_id` | string | Canonical rule identifier. For the mappings in [principles.md](principles.md#runtime-rule-id-correspondence), this is the normative ID; otherwise it is the emitted runtime ID. |
 | `runtime_alias` | string or null | Earlier runtime identifier when `rule_id` has a normative mapping; otherwise `null`. |
 | `level` | string | One of `REQUIRED`, `DEFAULT`, or `EXPERIMENTAL`. |
 | `severity` | string | One of `error`, `warning`, `advisory`, or `information`. |

@@ -70,7 +70,11 @@ class GardenReportTests(unittest.TestCase):
             },
             set(report["coverage"]),
         )
-        self.assertEqual([exception], report["exceptions"])
+        self.assertEqual(1, len(report["exceptions"]))
+        self.assertEqual(
+            exception,
+            {key: report["exceptions"][0][key] for key in exception},
+        )
         self.assertEqual(
             {"errors", "warnings", "advisories", "unknown", "suppressed"},
             set(report["summary"]),
@@ -98,6 +102,102 @@ class GardenReportTests(unittest.TestCase):
         self.assertEqual("R-contract-version", serialized["runtime_alias"])
         self.assertEqual("REQUIRED", serialized["level"])
         self.assertEqual("fail", serialized["state"])
+
+    def test_configured_exception_suppresses_only_matching_finding(self) -> None:
+        (self.root / ".garden.toml").write_text(
+            "schema_version = 2\n"
+            "\n"
+            "[scan]\n"
+            'include = ["**/*.py"]\n'
+            "\n"
+            "[capabilities]\n"
+            'strategy = "children"\n'
+            'roots = ["src"]\n'
+            "depth = 1\n"
+            "\n"
+            "[tests]\n"
+            'patterns = ["**/test_*.py"]\n'
+            'association = "same-capability"\n'
+            "\n"
+            "[documentation]\n"
+            "root_context_required = false\n"
+            "\n"
+            "[[exceptions]]\n"
+            'rule_id = "A-LOC-004"\n'
+            'paths = ["src/matched/**"]\n'
+            'reason = "fixture exception"\n'
+            'owner = "tests"\n'
+            'review_after = "on-rule-change"\n',
+            encoding="utf-8",
+        )
+        for capability in ("matched", "active"):
+            capability_root = self.root / "src" / capability
+            capability_root.mkdir(parents=True)
+            (capability_root / "CONTRACT.md").write_text(
+                "# Contract\n", encoding="utf-8"
+            )
+            (capability_root / "handler.py").write_text(
+                "def handle() -> None:\n    pass\n", encoding="utf-8"
+            )
+
+        file_findings = inspect_file(self.root / "src" / "matched" / "handler.py")
+        report = inspect_project(self.root)
+        findings = {finding["path"]: finding for finding in report["findings"]}
+
+        self.assertEqual(["suppressed"], [finding.state for finding in file_findings])
+        self.assertEqual("suppressed", findings["src/matched/handler.py"]["state"])
+        self.assertEqual("fail", findings["src/active/handler.py"]["state"])
+        self.assertEqual("advisory", findings["src/matched/handler.py"]["severity"])
+        self.assertEqual("A-LOC-004", findings["src/matched/handler.py"]["rule_id"])
+        self.assertEqual(
+            "A-colocated-tests",
+            findings["src/matched/handler.py"]["runtime_alias"],
+        )
+        self.assertEqual(
+            {
+                "rule_id": "A-LOC-004",
+                "paths": ["src/matched/**"],
+                "reason": "fixture exception",
+                "owner": "tests",
+                "review_after": "on-rule-change",
+                "applied": True,
+                "matched_findings": 1,
+                "expired": False,
+            },
+            report["exceptions"][0],
+        )
+        self.assertEqual(1, report["summary"]["advisories"])
+        self.assertEqual(1, report["summary"]["suppressed"])
+
+    def test_configured_exception_does_not_suppress_unknown_finding(self) -> None:
+        (self.root / ".garden.toml").write_text(
+            "schema_version = 2\n"
+            "\n"
+            "[documentation]\n"
+            "root_context_required = false\n"
+            "\n"
+            "[[boundaries]]\n"
+            'path = "src/api"\n'
+            'kind = "public-api"\n'
+            'owner = "api-team"\n'
+            'required_evidence = ["contract-tests"]\n'
+            "\n"
+            "[[exceptions]]\n"
+            'rule_id = "R-REPL-001"\n'
+            'paths = ["src/api"]\n'
+            'reason = "manual review"\n'
+            'owner = "tests"\n'
+            'review_after = "on-rule-change"\n',
+            encoding="utf-8",
+        )
+
+        report = inspect_project(self.root)
+
+        self.assertEqual("unknown", report["findings"][0]["state"])
+        self.assertEqual(0, report["summary"]["suppressed"])
+        self.assertEqual(1, report["summary"]["unknown"])
+        self.assertEqual(1, report["exceptions"][0]["matched_findings"])
+        self.assertIs(report["exceptions"][0]["applied"], False)
 
     def test_real_report_uses_default_config_context_and_exact_coverage(self) -> None:
         report = inspect_project(self.root)
@@ -134,6 +234,20 @@ class GardenReportTests(unittest.TestCase):
         self.assertFalse(unknown_report["complete"])
         self.assertEqual(1, unknown_report["summary"]["unknown"])
         self.assertFalse(forced_incomplete["complete"])
+
+    def test_advisory_unknown_does_not_make_report_incomplete(self) -> None:
+        unknown = Finding(
+            severity="advisory",
+            rule="R-boundary-evidence-review",
+            path=".",
+            message="manual verification is required",
+            state="unknown",
+        )
+
+        report = build_project_report(self.root, True, [unknown])
+
+        self.assertTrue(report["complete"])
+        self.assertEqual(1, report["summary"]["unknown"])
 
     def test_inactive_project_is_incomplete(self) -> None:
         inactive = self.root / "inactive"

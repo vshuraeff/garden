@@ -41,7 +41,9 @@ def build_project_report(
             for item in findings
         }.values()
     )
-    complete = complete and not any(item.state == "unknown" for item in unique)
+    complete = complete and not any(
+        item.state == "unknown" and item.severity == "error" for item in unique
+    )
     serialized_findings = [
         {
             "rule_id": item.rule_id or item.rule,
@@ -58,6 +60,8 @@ def build_project_report(
         }
         for item in unique
     ]
+    # suppressed findings stay visible but are excluded from actionable counts.
+    active_findings = [item for item in unique if item.state != "suppressed"]
     # absent config context is represented by null path/schema and valid=true.
     return {
         "schema_version": 2,
@@ -79,9 +83,9 @@ def build_project_report(
         "exceptions": list(exceptions),
         "findings": serialized_findings,
         "summary": {
-            "errors": sum(item.severity == "error" for item in unique),
-            "warnings": sum(item.severity == "warning" for item in unique),
-            "advisories": sum(item.severity == "advisory" for item in unique),
+            "errors": sum(item.severity == "error" for item in active_findings),
+            "warnings": sum(item.severity == "warning" for item in active_findings),
+            "advisories": sum(item.severity == "advisory" for item in active_findings),
             "unknown": sum(item.state == "unknown" for item in unique),
             "suppressed": sum(item.state == "suppressed" for item in unique),
         },

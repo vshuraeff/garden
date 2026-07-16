@@ -1,0 +1,34 @@
+schema_version = 2
+
+[scan]
+include = ["**/*.py"]
+
+[capabilities]
+strategy = "children"
+roots = ["src"]
+depth = 1
+
+[tests]
+patterns = ["**/test_*.py"]
+association = "same-capability"
+
+[documentation]
+root_context_required = false
+
+[[boundaries]]
+path = "src/public-api"
+kind = "public-api"
+owner = "team-api"
+versioning = "semver"
+contracts = ["CONTRACT.md", "openapi.yaml"]
+
+[[boundaries]]
+path = "src/private-core"
+kind = "private"
+
+[[boundaries]]
+path = "src/internal-versioned"
+kind = "internal-versioned"
+owner = "team-platform"
+versioning = "custom"
+contracts = ["CONTRACT.md"]

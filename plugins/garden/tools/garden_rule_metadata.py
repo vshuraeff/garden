@@ -27,10 +27,20 @@ RUNTIME_ALIAS_TABLE: dict[str, tuple[str, str]] = {
     "N-NAMING-MISSING": ("N-NAMING-MISSING", "REQUIRED"),
     "N-context-budget": ("N-KNOW-005", "DEFAULT"),
     "N-context-scan-limit": ("N-context-scan-limit", "REQUIRED"),
+    "R-boundary-contract-missing": ("R-REPL-001", "REQUIRED"),
+    "R-boundary-evidence-review": ("R-REPL-001", "REQUIRED"),
     "R-component-contract": ("R-REPL-001", "REQUIRED"),
     "R-contract-scan-limit": ("R-contract-scan-limit", "REQUIRED"),
     "R-contract-version": ("R-REPL-002", "REQUIRED"),
 }
+
+# sourced from docs/reference/checklist.md exception clauses for exactly these
+# canonical rule ids. rules whose checklist text says exceptions are "not allowed"
+# (G-DISC-001..003, A-LOC-001, A-LOC-002, R-REPL-006, D-VER-004, D-VER-005,
+# N-KNOW-003) must never be added here.
+EXCEPTION_ELIGIBLE_RULES: frozenset[str] = frozenset(
+    {"R-REPL-001", "R-REPL-002", "A-LOC-004", "N-KNOW-005"}
+)
 
 
 def resolve_alias(runtime_id: str) -> tuple[str, str | None, str]:
@@ -39,6 +49,18 @@ def resolve_alias(runtime_id: str) -> tuple[str, str | None, str]:
     rule_id, level = RUNTIME_ALIAS_TABLE.get(runtime_id, (runtime_id, "REQUIRED"))
     runtime_alias = runtime_id if rule_id != runtime_id else None
     return rule_id, runtime_alias, level
+
+
+def canonical_for(rule_or_alias: str) -> str:
+    """Return the canonical rule ID for a runtime ID or canonical rule ID."""
+
+    return resolve_alias(rule_or_alias)[0]
+
+
+def is_exception_eligible(rule_or_alias: str) -> bool:
+    """Return whether a rule permits a configuration exception."""
+
+    return canonical_for(rule_or_alias) in EXCEPTION_ELIGIBLE_RULES
 
 
 _CHECKLIST_PATTERN = re.compile(

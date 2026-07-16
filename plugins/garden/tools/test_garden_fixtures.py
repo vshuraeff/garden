@@ -73,6 +73,9 @@ class FixtureRegressionTests(unittest.TestCase):
         # known false positives, documented in docs/development/baseline.md, to be fixed in a later pr
         self.assert_fixture_report("false-positives")
 
+    def test_boundaries_configured(self) -> None:
+        self.assert_fixture_report("boundaries-configured")
+
 
 class GoldenSchemaTests(ActiveProjectTestCase):
     def test_inspect_project_schema(self) -> None:

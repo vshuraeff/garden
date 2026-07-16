@@ -1,6 +1,6 @@
 ---
 owner: vshuraeff
-last_reviewed: 2026-07-14
+last_reviewed: 2026-07-16
 review_on:
   - rule-change
   - evidence-change
@@ -54,6 +54,8 @@ tests retain those strings; this table maps them to the nearest normative rule.
 | `N-KNOW-005` | `N-context-budget` | Bounded requisite context and progressive disclosure |
 | `R-REPL-002` | `R-contract-version` | Versioning at designated versioned boundaries |
 | `R-REPL-001` | `R-component-contract` | Evidence required to replace a component safely |
+| `R-REPL-001` | `R-boundary-contract-missing` | Missing declared boundary contract artifact |
+| `R-REPL-001` | `R-boundary-evidence-review` | Required evidence category surfaced as a manual `unknown` finding |
 | `A-LOC-004` | `A-colocated-tests` | Test placement or mapping under the project's capability strategy |
 
 ## G — Graph-resolvable Discoverability

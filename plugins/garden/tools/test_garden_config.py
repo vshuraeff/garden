@@ -119,6 +119,232 @@ include = ["/absolute/*.py", "../escape.py", "**/**", "a/**/**/b"]
         )
 
 
+class ExceptionSchemaTests(unittest.TestCase):
+    def test_unknown_rule_id_is_rejected(self) -> None:
+        result = validate_config(
+            tomllib.loads(
+                """
+[[exceptions]]
+rule_id = "NOT-A-REAL-RULE"
+paths = ["src/legacy/**"]
+reason = "legacy migration"
+owner = "platform"
+review_after = "2027-01-01"
+"""
+            )
+        )
+
+        self.assertEqual(
+            ["exceptions[0].rule_id"], [error.path for error in result.errors]
+        )
+        self.assertIn("NOT-A-REAL-RULE", result.errors[0].message)
+
+    def test_ineligible_known_rule_id_is_rejected(self) -> None:
+        result = validate_config(
+            tomllib.loads(
+                """
+[[exceptions]]
+rule_id = "G-DISC-001"
+paths = ["src/legacy/**"]
+reason = "legacy migration"
+owner = "platform"
+review_after = "2027-01-01"
+"""
+            )
+        )
+
+        self.assertEqual(
+            ["exceptions[0].rule_id"], [error.path for error in result.errors]
+        )
+        self.assertIn(
+            "does not permit configuration exceptions", result.errors[0].message
+        )
+
+    def test_schema_v2_rejects_rule_id_alias(self) -> None:
+        result = validate_config(
+            tomllib.loads(
+                """
+schema_version = 2
+[[exceptions]]
+rule_id = "R-component-contract"
+paths = ["src/legacy/**"]
+reason = "legacy migration"
+owner = "platform"
+review_after = "2027-01-01"
+"""
+            )
+        )
+
+        self.assertEqual(
+            ["exceptions[0].rule_id"], [error.path for error in result.errors]
+        )
+        self.assertIn("R-REPL-001", result.errors[0].message)
+
+    def test_schema_v1_accepts_rule_id_alias_without_normalizing_it(self) -> None:
+        result = validate_config(
+            tomllib.loads(
+                """
+schema_version = 1
+[[exceptions]]
+rule_id = "R-component-contract"
+paths = ["src/legacy/**"]
+reason = "legacy migration"
+owner = "platform"
+review_after = "2027-01-01"
+"""
+            )
+        )
+
+        self.assertEqual((), result.errors)
+        self.assertEqual("R-component-contract", result.config.exceptions[0].rule_id)
+
+    def test_exception_owner_must_not_be_empty(self) -> None:
+        result = validate_config(
+            tomllib.loads(
+                """
+[[exceptions]]
+rule_id = "R-REPL-001"
+paths = ["src/legacy/**"]
+reason = "legacy migration"
+owner = ""
+review_after = "2027-01-01"
+"""
+            )
+        )
+
+        self.assertEqual(
+            ["exceptions[0].owner"], [error.path for error in result.errors]
+        )
+        self.assertIn("must not be empty", result.errors[0].message)
+
+    def test_exception_owner_is_required(self) -> None:
+        result = validate_config(
+            tomllib.loads(
+                """
+[[exceptions]]
+rule_id = "R-REPL-001"
+paths = ["src/legacy/**"]
+reason = "legacy migration"
+review_after = "2027-01-01"
+"""
+            )
+        )
+
+        self.assertEqual(
+            ["exceptions[0].owner"], [error.path for error in result.errors]
+        )
+        self.assertIn("required key is missing", result.errors[0].message)
+
+    def test_exception_reason_must_not_be_empty(self) -> None:
+        result = validate_config(
+            tomllib.loads(
+                """
+[[exceptions]]
+rule_id = "R-REPL-001"
+paths = ["src/legacy/**"]
+reason = ""
+owner = "platform"
+review_after = "2027-01-01"
+"""
+            )
+        )
+
+        self.assertEqual(
+            ["exceptions[0].reason"], [error.path for error in result.errors]
+        )
+        self.assertIn("must not be empty", result.errors[0].message)
+
+    def test_exception_reason_is_required(self) -> None:
+        result = validate_config(
+            tomllib.loads(
+                """
+[[exceptions]]
+rule_id = "R-REPL-001"
+paths = ["src/legacy/**"]
+owner = "platform"
+review_after = "2027-01-01"
+"""
+            )
+        )
+
+        self.assertEqual(
+            ["exceptions[0].reason"], [error.path for error in result.errors]
+        )
+        self.assertIn("required key is missing", result.errors[0].message)
+
+    def test_exception_review_after_rejects_unknown_marker(self) -> None:
+        result = validate_config(
+            tomllib.loads(
+                """
+[[exceptions]]
+rule_id = "R-REPL-001"
+paths = ["src/legacy/**"]
+reason = "legacy migration"
+owner = "platform"
+review_after = "whenever"
+"""
+            )
+        )
+
+        self.assertEqual(
+            ["exceptions[0].review_after"], [error.path for error in result.errors]
+        )
+        self.assertIn("expected an ISO date", result.errors[0].message)
+
+    def test_exception_review_after_accepts_on_rule_change(self) -> None:
+        result = validate_config(
+            tomllib.loads(
+                """
+[[exceptions]]
+rule_id = "R-REPL-001"
+paths = ["src/legacy/**"]
+reason = "legacy migration"
+owner = "platform"
+review_after = "on-rule-change"
+"""
+            )
+        )
+
+        self.assertEqual((), result.errors)
+
+    def test_exception_review_after_accepts_on_major_release(self) -> None:
+        result = validate_config(
+            tomllib.loads(
+                """
+[[exceptions]]
+rule_id = "R-REPL-001"
+paths = ["src/legacy/**"]
+reason = "legacy migration"
+owner = "platform"
+review_after = "on-major-release"
+"""
+            )
+        )
+
+        self.assertEqual((), result.errors)
+
+    def test_exception_review_after_accepts_iso_date(self) -> None:
+        result = validate_config(
+            tomllib.loads(
+                """
+[[exceptions]]
+rule_id = "R-REPL-001"
+paths = ["src/legacy/**"]
+reason = "legacy migration"
+owner = "platform"
+review_after = "2027-01-01"
+"""
+            )
+        )
+
+        self.assertEqual((), result.errors)
+
+    def test_repo_root_config_validates(self) -> None:
+        result = load_config(Path(__file__).resolve().parents[3])
+
+        self.assertEqual((), result.errors)
+
+
 class BoundarySchemaV2Tests(unittest.TestCase):
     def test_valid_v2_boundaries_parse_and_resolve(self) -> None:
         result = validate_config(
@@ -498,7 +724,7 @@ contracts = ["CONTRACT.md"]
 required_evidence = ["contract-tests", "rollback-plan"]
 
 [[exceptions]]
-rule_id = "R-component-contract"
+rule_id = "R-REPL-001"
 paths = ["src/legacy/**"]
 reason = "legacy migration"
 owner = "platform"
@@ -936,7 +1162,7 @@ required = true
 root_context_required = false
 max_context_lines = 123
 [[exceptions]]
-rule_id = "R-component-contract"
+rule_id = "R-REPL-001"
 paths = ["src/legacy/**"]
 reason = "migration"
 owner = "platform"

@@ -37,7 +37,7 @@ compatibility layer; see
 | `boundaries` | table (v1) / array of tables (v2) | section defaults | Schema v1 uses `[boundaries]` for public boundary declarations. Schema v2 uses `[[boundaries]]` for structured boundary entries. |
 | `naming` | table | section defaults | Naming-registry location and requirement. |
 | `documentation` | table | section defaults | Root context requirement and line budget. |
-| `exceptions` | array of tables | `[]` | Structured rule waivers. Enforcement is deferred; entries are parsed and resolved in schema v1. |
+| `exceptions` | array of tables | `[]` | Structured rule waivers validated and applied to eligible matching findings. |
 
 ## Project
 
@@ -119,8 +119,10 @@ capability. Test candidates themselves do not receive capability-scoped findings
 | `contracts.accepted_names` | array of strings | `["CONTRACT.md", "openapi.yaml", "schema.graphql"]` | Accepted contract artifact names. |
 | `boundaries.public` | array of paths | `[]` | Explicit public boundary paths. |
 
-Schema v1 resolves these values but does not yet enforce them in deterministic project
-inspection.
+Schema v1 resolves `boundaries.public` and `contracts.required_for` but this wiring
+does not enforce either in deterministic project inspection. `contracts.required_for`
+is legacy and underspecified, superseded by schema v2 `[[boundaries]].contracts`, and
+kept only for compatibility; it has no runtime effect.
 
 ## Schema v2 boundaries
 
@@ -168,8 +170,15 @@ contracts = ["CONTRACT.md"]
 required_evidence = ["contract-tests", "rollback-plan"]
 ```
 
-Schema v2 resolves and renders `[[boundaries]]` entries but does not yet enforce them
-in deterministic project inspection; enforcement is planned for a later release.
+Deterministic project inspection checks each declared `contracts` artifact is a file;
+a missing artifact emits the `R-boundary-contract-missing` error. When
+`versioning = "semver"`, it checks boundary-relative files whose basename is an
+accepted contract name or whose path is declared in `contracts`: the first non-empty
+line must be `Version: MAJOR.MINOR.PATCH`, otherwise it emits
+`R-contract-version`. Boundaries with any other versioning policy, including private
+boundaries, are never version-checked. Each `required_evidence` category emits an
+`R-boundary-evidence-review` advisory finding with `state = "unknown"`; file
+existence cannot establish evidence completeness, so manual verification is required.
 
 ## Naming
 
@@ -212,8 +221,13 @@ Each `[[exceptions]]` entry accepts only these keys:
 | `owner` | string | `""` | Person or team responsible for review. |
 | `review_after` | string | `""` | Review date or project-specific review marker. |
 
-Exception enforcement is deferred. Schema v1 validates and preserves the structured
-values so later rule wiring does not require a schema change.
+Validation accepts only known canonical rule IDs or runtime aliases for
+exception-eligible rules; schema v2 requires the canonical ID rather than a runtime
+alias. `reason` and `owner` must be non-empty, and `review_after` must be an ISO
+`YYYY-MM-DD` date or `on-rule-change` or `on-major-release`. Inspection suppresses
+matching `fail` findings by canonical rule ID and path glob unless an ISO-date
+`review_after` is in the past; review markers do not expire. It never suppresses
+`unknown` findings.
 
 ## Commands
 

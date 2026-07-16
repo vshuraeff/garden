@@ -1,0 +1,23 @@
+schema_version = 2
+
+[scan]
+include = ["**/*.py"]
+
+[capabilities]
+strategy = "children"
+roots = ["src"]
+depth = 1
+
+[tests]
+patterns = ["**/test_*.py"]
+association = "same-capability"
+
+[documentation]
+root_context_required = false
+
+[[exceptions]]
+rule_id = "A-LOC-004"
+paths = ["src/matched/**"]
+reason = "the matched fixture capability intentionally has no colocated test"
+owner = "garden-tests"
+review_after = "on-rule-change"

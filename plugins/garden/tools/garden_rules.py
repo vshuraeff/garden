@@ -3,10 +3,13 @@
 from __future__ import annotations
 
 import re
+from dataclasses import replace
+from datetime import date
 from fnmatch import fnmatchcase
 from pathlib import Path, PurePosixPath
 from typing import Callable
 
+from config_schema import EffectiveBoundaryConfig, REVIEW_MARKERS
 from garden_config import (
     ConfigResult,
     EffectiveConfig,
@@ -22,7 +25,7 @@ from garden_paths import (
     is_within,
 )
 from garden_report import Finding, build_project_report
-from garden_rule_metadata import resolve_alias
+from garden_rule_metadata import canonical_for, resolve_alias
 from garden_scanner import (
     IGNORED_PARTS,
     ScanLimitExceeded,
@@ -79,19 +82,73 @@ def make_finding(
     )
 
 
-def _serialized_exceptions(config: EffectiveConfig | None) -> list[dict[str, object]]:
+def _exception_is_expired(review_after: str) -> bool:
+    if not review_after or review_after in REVIEW_MARKERS:
+        return False
+    try:
+        review_date = date.fromisoformat(review_after)
+    except ValueError:
+        return False
+    return review_date < date.today()
+
+
+def _serialized_exceptions(
+    config: EffectiveConfig | None, findings: list[Finding]
+) -> list[dict[str, object]]:
     if config is None:
         return []
-    return [
-        {
-            "rule_id": item.rule_id.value,
-            "paths": list(item.paths.value),
-            "reason": item.reason.value,
-            "owner": item.owner.value,
-            "review_after": item.review_after.value,
-        }
-        for item in config.exceptions.value
-    ]
+
+    serialized = []
+    for item in config.exceptions.value:
+        expired = _exception_is_expired(item.review_after.value)
+        matched = [
+            finding
+            for finding in findings
+            if canonical_for(item.rule_id.value) == canonical_for(finding.rule)
+            and _matches_path_pattern(
+                Path(*_relative_parts(finding.path)), item.paths.value
+            )
+        ]
+        serialized.append(
+            {
+                "rule_id": item.rule_id.value,
+                "paths": list(item.paths.value),
+                "reason": item.reason.value,
+                "owner": item.owner.value,
+                "review_after": item.review_after.value,
+                "applied": not expired
+                and any(finding.state == "suppressed" for finding in matched),
+                "matched_findings": len(matched),
+                "expired": expired,
+            }
+        )
+    return serialized
+
+
+def _apply_exceptions(
+    findings: list[Finding], config: EffectiveConfig | None
+) -> list[Finding]:
+    if config is None:
+        return findings
+
+    applied: list[Finding] = []
+    for finding in findings:
+        # exceptions never suppress unknown findings or convert uncertainty to a pass.
+        if finding.state != "fail":
+            applied.append(finding)
+            continue
+        relative = Path(*_relative_parts(finding.path))
+        for item in config.exceptions.value:
+            if _exception_is_expired(item.review_after.value):
+                continue
+            if canonical_for(item.rule_id.value) != canonical_for(finding.rule):
+                continue
+            if _matches_path_pattern(relative, item.paths.value):
+                applied.append(replace(finding, state="suppressed"))
+                break
+        else:
+            applied.append(finding)
+    return applied
 
 
 def _is_source_file(relative: Path) -> bool:
@@ -176,6 +233,21 @@ def _under(relative: Path, prefix: str) -> tuple[str, ...] | None:
     if relative.parts[: len(prefix_parts)] != prefix_parts:
         return None
     return relative.parts[len(prefix_parts) :]
+
+
+def resolve_boundary(
+    relative_path: str, effective: EffectiveConfig
+) -> EffectiveBoundaryConfig | None:
+    normalized = PurePosixPath(relative_path.replace("\\", "/")).as_posix()
+    relative = Path(*PurePosixPath(normalized).parts)
+    resolved = None
+    resolved_depth = -1
+    for boundary in effective.boundary_entries.value:
+        depth = len(_relative_parts(boundary.path.value))
+        if _under(relative, boundary.path.value) is not None and depth > resolved_depth:
+            resolved = boundary
+            resolved_depth = depth
+    return resolved
 
 
 def _no_capability_directory(
@@ -485,7 +557,20 @@ def inspect_file(
                 )
             )
 
-    if relative.name == "CONTRACT.md":
+    check_contract_version = not configured and relative.name == "CONTRACT.md"
+    if effective is not None and resolved.is_file():
+        boundary = resolve_boundary(display_path, effective)
+        if boundary is not None and boundary.versioning.value == "semver":
+            remainder = _under(relative, boundary.path.value)
+            boundary_relative = (
+                PurePosixPath(*remainder).as_posix() if remainder is not None else None
+            )
+            check_contract_version = (
+                relative.name in effective.contracts.accepted_names.value
+                or boundary_relative in boundary.contracts.value
+            )
+
+    if check_contract_version:
         first_nonempty = ""
         try:
             if resolved.is_file():
@@ -548,18 +633,23 @@ def inspect_file(
             )
         return findings
 
-    if effective is None or not _is_configured_source_file(relative, effective):
+    if effective is None:
         return findings
+    if not _is_configured_source_file(relative, effective):
+        return _apply_exceptions(findings, effective)
     if _matches_path_pattern(relative, effective.tests.patterns.value):
-        return findings
+        return _apply_exceptions(findings, effective)
     resolution = resolve_capability(relative.as_posix(), effective)
     if resolution.status != "capability" or resolution.capability is None:
-        return findings
+        return _apply_exceptions(findings, effective)
     capability = _capability_directory(relative, project_root, effective)
     if capability is None or not capability.is_dir() or capability.is_symlink():
-        return findings
+        return _apply_exceptions(findings, effective)
 
-    if not (capability / "CONTRACT.md").is_file():
+    if not any(
+        (capability / name).is_file()
+        for name in effective.contracts.accepted_names.value
+    ):
         findings.append(
             make_finding(
                 "R-component-contract",
@@ -598,7 +688,7 @@ def inspect_file(
                 state="unknown",
             )
         )
-    return findings
+    return _apply_exceptions(findings, effective)
 
 
 def inspect_project(root: Path) -> dict[str, object]:
@@ -630,6 +720,39 @@ def inspect_project(root: Path) -> dict[str, object]:
     )
     candidates: set[Path] = {resolved / path for path in context_paths}
     candidates.update(resolved.glob("*/CONTRACT.md"))
+    findings: list[Finding] = []
+    if effective:
+        for boundary in effective.boundary_entries.value:
+            boundary_parts = _relative_parts(boundary.path.value)
+            for artifact in boundary.contracts.value:
+                relative_artifact = Path(
+                    *boundary_parts, *PurePosixPath(artifact).parts
+                )
+                candidate = resolved / relative_artifact
+                candidates.add(candidate)
+                if not candidate.is_file():
+                    display_path = relative_artifact.as_posix()
+                    findings.append(
+                        make_finding(
+                            "R-boundary-contract-missing",
+                            "error",
+                            display_path,
+                            f"boundary declares contract artifact {artifact!r}, but "
+                            f"{display_path} is missing",
+                        )
+                    )
+            for category in boundary.required_evidence.value:
+                findings.append(
+                    make_finding(
+                        "R-boundary-evidence-review",
+                        "advisory",
+                        boundary.path.value,
+                        f"boundary declares required evidence category {category!r}; "
+                        "file existence alone does not establish evidence completeness, "
+                        "so manual verification is required",
+                        state="unknown",
+                    )
+                )
     scan_error: str | None = None
     sources: dict[str, Path] = {}
     tested_capabilities: set[str] = set()
@@ -673,7 +796,6 @@ def inspect_project(root: Path) -> dict[str, object]:
                     capability,
                     capability in tested_capabilities if scan_error is None else None,
                 )
-    findings = []
     if effective:
         missing = _context_missing(resolved, effective)
         if missing:
@@ -694,6 +816,7 @@ def inspect_project(root: Path) -> dict[str, object]:
                 state="unknown",
             )
         )
+    findings = _apply_exceptions(findings, effective)
     return build_project_report(
         resolved,
         True,
@@ -703,5 +826,5 @@ def inspect_project(root: Path) -> dict[str, object]:
         ),
         config_schema_version=(effective.schema_version.value if effective else None),
         config_valid=loaded.valid,
-        exceptions=_serialized_exceptions(effective),
+        exceptions=_serialized_exceptions(effective, findings),
     )

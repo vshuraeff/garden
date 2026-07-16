@@ -183,6 +183,25 @@ def _validate_exceptions(report_path: Path, value: object) -> list[Finding]:
                     report_path, item["paths"], f"{item_location}.paths"
                 )
             )
+        for field in ("applied", "expired"):
+            if field in item and not isinstance(item[field], bool):
+                findings.append(
+                    Finding(
+                        report_path,
+                        _field_path(item_location, field),
+                        "must be a boolean",
+                    )
+                )
+        if "matched_findings" in item:
+            matched_findings = item["matched_findings"]
+            if not _is_integer(matched_findings) or matched_findings < 0:
+                findings.append(
+                    Finding(
+                        report_path,
+                        f"{item_location}.matched_findings",
+                        "must be a non-negative integer",
+                    )
+                )
     return findings
 
 
