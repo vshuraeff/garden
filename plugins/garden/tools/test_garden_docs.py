@@ -74,6 +74,45 @@ class GardenDocumentationTests(unittest.TestCase):
 
         self.assertEqual([], findings)
 
+    def test_packaged_link_is_resolved_from_packaged_directory(self) -> None:
+        self.write("docs/reference/source.md", "# Source\n")
+        self.write("plugins/garden/references/target.md", "# Target\n")
+        path = self.write(
+            "plugins/garden/references/source.md",
+            "<!-- Generated from docs/reference/source.md. Do not edit directly. -->\n"
+            "[target](./target.md)\n",
+        )
+
+        findings = link_findings(path, self.root)
+
+        self.assertEqual([], findings)
+
+    def test_packaged_link_anchor_is_checked_from_packaged_directory(self) -> None:
+        self.write("plugins/garden/references/target.md", "# Target\n")
+        path = self.write(
+            "plugins/garden/references/source.md",
+            "[target](target.md#missing-anchor)\n",
+        )
+
+        findings = link_findings(path, self.root)
+
+        self.assertEqual(1, len(findings))
+        self.assertIn("anchor does not exist", findings[0].reason)
+
+    def test_generated_marker_does_not_redirect_packaged_link_resolution(self) -> None:
+        self.write("docs/reference/source.md", "# Source\n")
+        self.write("docs/reference/target.md", "# Target\n")
+        path = self.write(
+            "plugins/garden/references/source.md",
+            "<!-- Generated from docs/reference/source.md. Do not edit directly. -->\n"
+            "[target](target.md)\n",
+        )
+
+        findings = link_findings(path, self.root)
+
+        self.assertEqual(1, len(findings))
+        self.assertIn("broken link 'target.md'", findings[0].reason)
+
     def test_non_deterministic_headings_disable_anchor_checking(self) -> None:
         self.write("docs/target.md", "# Target\n\n## Foo Bar\n\n## foo-bar\n")
         path = self.write(

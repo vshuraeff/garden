@@ -9,6 +9,7 @@ import tomllib
 from pathlib import Path
 
 from sync_references import REFERENCE_PAIRS, render
+from validate_docs import markdown_links
 
 
 PLUGIN_ROOT = Path(__file__).resolve().parent.parent
@@ -22,6 +23,52 @@ def require(condition: bool, message: str) -> None:
 
 def load_json(path: Path) -> object:
     return json.loads(path.read_text(encoding="utf-8"))
+
+
+def plugin_markdown_files() -> list[Path]:
+    roots = (
+        PLUGIN_ROOT / "references",
+        PLUGIN_ROOT / "skills",
+        PLUGIN_ROOT / "assets",
+        PLUGIN_ROOT / "agents",
+    )
+    paths = {
+        path
+        for root in roots
+        if root.exists()
+        for path in root.rglob("*.md")
+        if path.is_file()
+    }
+    for path in (PLUGIN_ROOT / "README.md", PLUGIN_ROOT / "tools" / "README.md"):
+        if path.is_file():
+            paths.add(path)
+    return sorted(paths)
+
+
+def validate_packaged_links() -> None:
+    for path in plugin_markdown_files():
+        content = path.read_text(encoding="utf-8")
+        for _, raw_target in markdown_links(content):
+            target = raw_target.strip()
+            if target.lower().startswith(("http://", "https://", "mailto:")) or (
+                target.startswith(("#", "/"))
+            ):
+                continue
+            target_path = target.partition("#")[0].split("?", maxsplit=1)[0]
+            if not target_path:
+                continue
+            resolved = (path.parent / target_path).resolve()
+            source = path.relative_to(REPOSITORY_ROOT).as_posix()
+            require(
+                resolved.is_relative_to(PLUGIN_ROOT),
+                "packaged link self-containment violation: "
+                f"{source} links to {raw_target} outside plugins/garden",
+            )
+            require(
+                resolved.is_file(),
+                "packaged link self-containment violation: "
+                f"{source} links to missing target {raw_target}",
+            )
 
 
 def validate() -> None:
@@ -107,6 +154,8 @@ def validate() -> None:
     for source, copy in REFERENCE_PAIRS.items():
         copy_content = copy.read_bytes().decode("utf-8")
         require(copy_content == render(source), f"reference drift: {copy}")
+
+    validate_packaged_links()
 
 
 def main() -> int:

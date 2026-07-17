@@ -49,9 +49,6 @@ MARKDOWN_LINK = re.compile(
     r"(?:\s+(?:\"[^\"]*\"|'[^']*'|\([^)]*\)))?\s*\)"
 )
 HEADING = re.compile(r"^#{1,6}[ \t]+(.+?)[ \t]*$", re.MULTILINE)
-GENERATED_SOURCE = re.compile(
-    r"<!-- Generated from (?P<source>[^\s]+)\. Do not edit directly\."
-)
 FENCE = re.compile(r"^\s*(`{3,}|~{3,})")
 FRONT_MATTER_FIELD = re.compile(r"^([A-Za-z_][A-Za-z0-9_-]*):(?:[ \t]+(.*))?$")
 FRONT_MATTER_ITEM = re.compile(r"^[ \t]+-[ \t]+(.+?)\s*$")
@@ -105,22 +102,6 @@ def markdown_files(repository_root: Path) -> list[Path]:
     return sorted(paths)
 
 
-def generated_source(path: Path, content: str, repository_root: Path) -> Path | None:
-    try:
-        path.relative_to(repository_root / "plugins" / "garden" / "references")
-    except ValueError:
-        return None
-    match = GENERATED_SOURCE.search(content)
-    if match is None:
-        return None
-    source = (repository_root / match.group("source")).resolve()
-    try:
-        source.relative_to(repository_root)
-    except ValueError:
-        return None
-    return source if source.is_file() else None
-
-
 def without_inline_code(line: str) -> str:
     return re.sub(r"(`+).*?\1", lambda match: " " * len(match.group(0)), line)
 
@@ -170,7 +151,7 @@ def link_findings(path: Path, repository_root: Path) -> list[Finding]:
     except OSError as error:
         return [Finding(path, 1, f"cannot read Markdown file: {error}")]
 
-    base = generated_source(path, content, repository_root) or path
+    base = path
     findings: list[Finding] = []
     anchors: dict[Path, tuple[set[str], bool]] = {}
     for line, raw_target in markdown_links(content):

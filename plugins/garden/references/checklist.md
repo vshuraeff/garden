@@ -29,7 +29,7 @@ For an agent reviewer: evaluate each item against the code under review, and
 cite file-and-line evidence for every answer, whether the item passes or fails.
 Do not mark an item as passing without evidence; an unverifiable item is a
 finding, not a pass. Report findings as hypotheses per
-[review-code-as-agent.md](../how-to/review-code-as-agent.md), not verdicts.
+[review-code-as-agent.md](./review-procedure.md), not verdicts.
 
 For a CI script: mechanizable items are the priority automation targets. A
 check enforced by CI is reproducible evidence; it is not proof that defects are
@@ -104,5 +104,5 @@ unexpired residual-risk acceptance. A DEFAULT item may be overridden only by
 the documented configuration exception described by that item. An EXPERIMENTAL
 item records measurement status and does not block merely because the project
 has not run the experiment. See
-[set-up-verification-gates.md](../how-to/set-up-verification-gates.md) for wiring
+[set-up-verification-gates.md](./set-up-verification-gates.md) for wiring
 mechanizable items into CI.
