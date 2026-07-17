@@ -16,12 +16,14 @@ TOP_LEVEL_FIELDS = (
     "complete",
     "root",
     "configuration",
+    "scan",
     "coverage",
     "exceptions",
     "findings",
     "summary",
 )
 CONFIGURATION_FIELDS = ("path", "schema_version", "valid")
+SCAN_FIELDS = ("roots", "exceeded_budget", "missing_roots", "errors")
 COVERAGE_FIELDS = (
     "implemented_rules",
     "manual_rules",
@@ -151,6 +153,33 @@ def _validate_coverage(report_path: Path, value: object) -> list[Finding]:
             findings.extend(
                 _string_list_findings(report_path, value[field], f"coverage.{field}")
             )
+    return findings
+
+
+def _validate_scan(report_path: Path, value: object) -> list[Finding]:
+    location = "scan"
+    if not isinstance(value, dict):
+        return [Finding(report_path, location, "must be an object")]
+
+    findings = _exact_key_findings(report_path, value, location, SCAN_FIELDS)
+    for field in ("roots", "missing_roots", "errors"):
+        if field in value:
+            findings.extend(
+                _string_list_findings(report_path, value[field], f"scan.{field}")
+            )
+    exceeded_budget = value.get("exceeded_budget")
+    if (
+        "exceeded_budget" in value
+        and exceeded_budget is not None
+        and not isinstance(exceeded_budget, str)
+    ):
+        findings.append(
+            Finding(
+                report_path,
+                "scan.exceeded_budget",
+                "must be a string or null",
+            )
+        )
     return findings
 
 
@@ -333,6 +362,8 @@ def validate_report(path: Path) -> list[Finding]:
 
     if "configuration" in report:
         findings.extend(_validate_configuration(path, report["configuration"]))
+    if "scan" in report:
+        findings.extend(_validate_scan(path, report["scan"]))
     if "coverage" in report:
         findings.extend(_validate_coverage(path, report["coverage"]))
     if "exceptions" in report:

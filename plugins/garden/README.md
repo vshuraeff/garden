@@ -24,6 +24,9 @@ shared.
 The hard hook checks cover the `CONTEXT.md` 200-line budget and the required
 `Version: MAJOR.MINOR.PATCH` first line in `CONTRACT.md`. Missing contracts and
 colocated tests are advisory because the hook cannot prove the intended slice boundary.
+A hook event builds one project scan shared by every affected file rather than scanning
+once per file. A time-budget overrun is advisory and does not block the hook; an
+entry-budget overrun is an error that blocks the hook like the existing hard checks.
 
 ## Harness adapters
 

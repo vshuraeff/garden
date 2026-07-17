@@ -7,7 +7,7 @@ from dataclasses import replace
 from datetime import date
 from fnmatch import fnmatchcase
 from pathlib import Path, PurePosixPath
-from typing import Callable
+from typing import TYPE_CHECKING, Callable
 
 from config_schema import EffectiveBoundaryConfig, REVIEW_MARKERS
 from garden_config import (
@@ -34,6 +34,9 @@ from garden_scanner import (
     _has_colocated_test,
     _walk_files,
 )
+
+if TYPE_CHECKING:
+    from garden_index import ProjectIndex
 
 
 CONTEXT_LINE_BUDGET = 200
@@ -79,6 +82,19 @@ def make_finding(
         runtime_alias=runtime_alias,
         level=level,
         state=state,
+    )
+
+
+def _project_scan_limit_finding(
+    scan_error: str, exceeded_budget: str | None
+) -> Finding:
+    severity = "advisory" if exceeded_budget == "seconds" else "error"
+    return make_finding(
+        "D-project-scan-limit",
+        severity,
+        ".",
+        scan_error,
+        state="unknown",
     )
 
 
@@ -481,6 +497,7 @@ def inspect_file(
     root: Path | None = None,
     test_cache: dict[Path | str, bool | None] | None = None,
     config_result: ConfigResult | None = None,
+    index: ProjectIndex | None = None,
 ) -> list[Finding]:
     """Check the deterministic GARDEN rules affected by one confined file."""
 
@@ -663,12 +680,19 @@ def inspect_file(
     capability_key = resolution.capability
     scan_error: str | None = None
     if capability_key not in cache:
-        tested_capabilities, scan_error = _configured_test_capabilities(
-            project_root, effective
-        )
-        cache[capability_key] = (
-            capability_key in tested_capabilities if scan_error is None else None
-        )
+        if index is not None:
+            cache[capability_key] = (
+                bool(index.tests_by_capability.get(capability_key))
+                if index.complete
+                else None
+            )
+        else:
+            tested_capabilities, scan_error = _configured_test_capabilities(
+                project_root, effective
+            )
+            cache[capability_key] = (
+                capability_key in tested_capabilities if scan_error is None else None
+            )
     if cache[capability_key] is False:
         findings.append(
             make_finding(
@@ -719,8 +743,17 @@ def inspect_project(root: Path) -> dict[str, object]:
         else {"CONTEXT.md"}
     )
     candidates: set[Path] = {resolved / path for path in context_paths}
-    candidates.update(resolved.glob("*/CONTRACT.md"))
     findings: list[Finding] = []
+    index: ProjectIndex | None = None
+    if effective:
+        # local import avoids the garden_index -> garden_rules classification cycle.
+        import garden_index
+
+        index = garden_index.build_project_index(resolved, effective)
+        candidates.update(index.contract_artifacts)
+    else:
+        # legacy candidate selection is frozen and deprecated for output compatibility.
+        candidates.update(resolved.glob("*/CONTRACT.md"))
     if effective:
         for boundary in effective.boundary_entries.value:
             boundary_parts = _relative_parts(boundary.path.value)
@@ -754,36 +787,43 @@ def inspect_project(root: Path) -> dict[str, object]:
                     )
                 )
     scan_error: str | None = None
+    exceeded_budget: str | None = None
     sources: dict[str, Path] = {}
     tested_capabilities: set[str] = set()
-    try:
-        for path in _walk_files(resolved):
-            relative = path.relative_to(resolved)
-            if effective:
-                test_identity = _configured_test_identity(relative, effective)
-                if test_identity is not None:
-                    tested_capabilities.add(test_identity)
-                is_test = _matches_path_pattern(
-                    relative, effective.tests.patterns.value
-                )
-                if not is_test and _is_configured_source_file(relative, effective):
-                    capability_identity = _capability_identity(
-                        relative.as_posix(), effective
-                    )
-                    if capability_identity is not None:
-                        sources.setdefault(capability_identity, path)
-            elif len(relative.parts) >= 2 and _is_source_file(relative):
-                sources.setdefault(relative.parts[0], path)
+    if effective:
+        assert index is not None
+        sources.update(
+            {
+                capability: paths[0]
+                for capability, paths in index.source_by_capability.items()
+                if paths
+            }
+        )
         candidates.update(sources.values())
-    except (OSError, ScanLimitExceeded) as error:
-        scan_error = str(error)
+        tested_capabilities.update(
+            capability
+            for capability, tests in index.tests_by_capability.items()
+            if tests
+        )
+        scan_error = index.scan_errors[0] if index.scan_errors else None
+        exceeded_budget = index.exceeded_budget
+    else:
+        try:
+            for path in _walk_files(resolved):
+                relative = path.relative_to(resolved)
+                if len(relative.parts) >= 2 and _is_source_file(relative):
+                    sources.setdefault(relative.parts[0], path)
+            candidates.update(sources.values())
+        except (OSError, ScanLimitExceeded) as error:
+            scan_error = str(error)
 
     test_cache: dict[Path | str, bool | None] = {}
     if effective:
+        assert index is not None
         test_cache.update(
             {
                 capability: (
-                    capability in tested_capabilities if scan_error is None else None
+                    capability in tested_capabilities if index.complete else None
                 )
                 for capability in sources
             }
@@ -794,29 +834,54 @@ def inspect_project(root: Path) -> dict[str, object]:
             if capability is not None:
                 test_cache.setdefault(
                     capability,
-                    capability in tested_capabilities if scan_error is None else None,
+                    capability in tested_capabilities if index.complete else None,
                 )
     if effective:
         missing = _context_missing(resolved, effective)
         if missing:
             findings.append(missing)
         findings.extend(_naming_findings(resolved, loaded, effective))
-    findings.extend(
-        finding
-        for path in sorted(candidates)
-        for finding in inspect_file(path, resolved, test_cache, loaded)
-    )
-    if scan_error:
-        findings.append(
+    if effective:
+        findings.extend(
+            finding
+            for path in sorted(candidates)
+            for finding in inspect_file(path, resolved, test_cache, loaded, index=index)
+        )
+        assert index is not None
+        findings.extend(
             make_finding(
-                "D-project-scan-limit",
-                "error",
-                ".",
-                scan_error,
+                "D-scan-root-missing",
+                "advisory",
+                missing_root,
+                f"configured scan root {missing_root!r} does not exist or is unsafe to scan",
                 state="unknown",
             )
+            for missing_root in index.missing_roots
         )
+    else:
+        findings.extend(
+            finding
+            for path in sorted(candidates)
+            for finding in inspect_file(path, resolved, test_cache, loaded)
+        )
+    if scan_error:
+        findings.append(_project_scan_limit_finding(scan_error, exceeded_budget))
     findings = _apply_exceptions(findings, effective)
+    scan = (
+        {
+            "roots": list(effective.scan.roots.value),
+            "exceeded_budget": index.exceeded_budget,
+            "missing_roots": list(index.missing_roots),
+            "errors": list(index.scan_errors),
+        }
+        if effective and index is not None
+        else {
+            "roots": ["."],
+            "exceeded_budget": None,
+            "missing_roots": [],
+            "errors": [scan_error] if scan_error else [],
+        }
+    )
     return build_project_report(
         resolved,
         True,
@@ -827,4 +892,5 @@ def inspect_project(root: Path) -> dict[str, object]:
         config_schema_version=(effective.schema_version.value if effective else None),
         config_valid=loaded.valid,
         exceptions=_serialized_exceptions(effective, findings),
+        scan=scan,
     )

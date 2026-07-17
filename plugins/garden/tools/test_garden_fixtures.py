@@ -93,6 +93,7 @@ class GoldenSchemaTests(ActiveProjectTestCase):
                 "complete",
                 "root",
                 "configuration",
+                "scan",
                 "coverage",
                 "exceptions",
                 "findings",

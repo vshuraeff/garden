@@ -1,6 +1,6 @@
 ---
 owner: vshuraeff
-last_reviewed: 2026-07-16
+last_reviewed: 2026-07-17
 review_on:
   - config-schema-change
   - major-release
@@ -53,7 +53,7 @@ When `any_of` and `all_of` are both non-empty, both conditions apply.
 
 | Key | Type | Default | Semantics |
 | --- | --- | --- | --- |
-| `scan.roots` | array of paths | `["."]` | Declared source discovery roots; deterministic walk restriction is deferred below. |
+| `scan.roots` | array of paths | `["."]` | Roots that constrain the deterministic project walk. Overlapping or nested valid roots are deduplicated; a root that does not exist or resolves outside the project root is skipped and reported. |
 | `scan.include` | array of globs | `["**/*.py", "**/*.ts"]` | Candidate source paths. Configuration formats are not included unless listed explicitly. |
 | `scan.exclude` | array of globs | `["**/node_modules/**", "**/dist/**"]` | Paths removed from source discovery. |
 
@@ -65,9 +65,16 @@ Deterministic inspection matches `scan.include` and `scan.exclude` against each
 POSIX-normalized project-relative path. Exclusions win. An explicitly empty
 `scan.include` uses the legacy source-suffix filter, while configuration formats
 become source candidates only when an include glob matches them. Dotfiles and
-files under ignored build or dependency directories remain excluded. `scan.roots`
-is resolved for configuration consumers, but restricting the project walk to those
-roots is deferred.
+files under ignored build or dependency directories remain excluded. The project walk
+is restricted to `scan.roots`. `scan.exclude` prunes matching directories and files
+before the entry-count budget is evaluated, so excluded content does not consume that
+budget.
+
+Configured project-root context paths from `project.context_files.any_of` and
+`project.context_files.all_of` (default `CONTEXT.md`) and `.garden.toml` are checked
+as explicit paths, not discovered by the walk, so they remain inspected outside
+`scan.roots`. See [report-schema.md](report-schema.md) for the report's `scan` object
+and `D-scan-root-missing` findings for configured roots that are skipped.
 
 ## Capabilities
 

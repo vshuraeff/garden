@@ -215,15 +215,17 @@ class GardenSecurityTests(unittest.TestCase):
             source = capability / "handler.py"
             source.write_text("pass\n", encoding="utf-8")
 
-            def limited_walk(scan_root: Path):
+            def limited_walk(scan_root: Path, **kwargs: object):
                 self.assertEqual(root, scan_root)
                 yield source
-                raise ScanLimitExceeded("forced mid-scan limit")
+                # entries is deterministic and must remain an error-severity limit.
+                raise ScanLimitExceeded("forced mid-scan limit", budget="entries")
 
-            with patch("garden_rules._walk_files", side_effect=limited_walk):
+            with patch("garden_scanner._walk_files", side_effect=limited_walk) as walk:
                 report = inspect_project(root)
 
         rules = [finding["rule"] for finding in report["findings"]]
+        walk.assert_called_once()
         self.assertIn("D-project-scan-limit", rules)
         self.assertNotIn("A-colocated-tests", rules)
 

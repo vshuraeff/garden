@@ -1,6 +1,6 @@
 ---
 owner: vshuraeff
-last_reviewed: 2026-07-16
+last_reviewed: 2026-07-17
 review_on:
   - rule-change
   - config-schema-change
@@ -26,9 +26,10 @@ report neither replaces nor represents that review.
 | `schema_version` | integer | `2`. |
 | `scope` | string | Always `"deterministic-structural-inspection"`. |
 | `active` | boolean | Whether the resolved root is an active GARDEN project. |
-| `complete` | boolean | Whether structural inspection completed without an `unknown` finding. |
+| `complete` | boolean | Whether structural inspection met its finding- and scan-completeness conditions. |
 | `root` | string | Resolved project root inspected by the tool. |
 | `configuration` | object | Configuration location, schema version, and validation result. |
+| `scan` | object | Project scan roots, budget outcome, missing roots, and scan errors from the deterministic walk. |
 | `coverage` | object | Rule coverage declared by `garden_rule_metadata.COVERAGE`. |
 | `exceptions` | array | Configured exception records and their enforcement results. |
 | `findings` | array | Finding objects described below. |
@@ -41,6 +42,15 @@ report neither replaces nor represents that review.
 | `path` | string or null | Location of `.garden.toml`, or `null` when no configuration file is present. |
 | `schema_version` | integer or null | Configuration schema version, or `null` without a loaded configuration. |
 | `valid` | boolean | Result of configuration loading; no configuration is represented as valid. |
+
+`scan` has these fields:
+
+| Field | Type | Semantics |
+| --- | --- | --- |
+| `roots` | array of strings | Configured scan roots passed to the deterministic walk. A root listed in `missing_roots` was skipped. |
+| `exceeded_budget` | null, `"seconds"`, or `"entries"` | Budget that stopped the walk, or `null` when neither budget stopped it. |
+| `missing_roots` | array of strings | Configured roots skipped because they do not exist or resolve outside the project root. |
+| `errors` | array of strings | Scan error messages; the current walker records at most one. |
 
 `summary.errors`, `summary.warnings`, and `summary.advisories` count findings by
 severity after excluding findings with `state = "suppressed"`. `summary.unknown` and
@@ -58,10 +68,25 @@ not expired. It never suppresses `unknown` findings.
 
 ## Completion and finding state
 
-`complete` is false whenever any deduplicated finding has `state = "unknown"`.
-It is also false for roots that are inactive or cannot be fully inspected because
-configuration loading failed. A consumer must surface `complete = false`; it
-must not silently treat an incomplete inspection as a clean pass.
+`complete` is false when any deduplicated finding has `state = "unknown"` and
+`severity = "error"`, or when `scan.exceeded_budget` is non-null. It is also false
+for roots that are inactive or cannot be fully inspected because configuration loading
+failed. A consumer must surface `complete = false`; it must not silently treat an
+incomplete inspection as a clean pass.
+
+An elapsed-time budget (`"seconds"`) is an operational deadline reported by
+`D-project-scan-limit` as `advisory` with `state = "unknown"`. The entry budget
+(`"entries"`) is a deterministic structural limit reported by the same rule as
+`error` with `state = "unknown"`. Both budget outcomes force `complete = false`
+through `scan.exceeded_budget`; `garden inspect --strict` fails for either incomplete
+report regardless of the finding severity. Without `--strict`, a report with only the
+time-budget advisory does not fail the command because non-strict inspection fails on
+error findings.
+
+Hook mode builds one project scan per event and shares it across every affected file.
+A time-budget overrun is advisory and returns 0, a deliberate non-blocking outcome
+distinct from the outer fail-open handler for unrelated hook exceptions. An
+entry-budget overrun is an error and blocks the hook with exit 2.
 
 The report validator accepts these states:
 
@@ -174,6 +199,12 @@ Schema v2 retains that subset and adds report context and richer finding data:
     "schema_version": 1,
     "valid": true
   },
+  "scan": {
+    "roots": ["."],
+    "exceeded_budget": null,
+    "missing_roots": [],
+    "errors": []
+  },
   "coverage": {
     "implemented_rules": [],
     "manual_rules": [],
@@ -207,9 +238,9 @@ Schema v2 retains that subset and adds report context and richer finding data:
 ```
 
 The additive fields are `schema_version`, `scope`, `complete`, `configuration`,
-`coverage`, `exceptions`, `summary.warnings`, `summary.unknown`,
-`summary.suppressed`, and the finding fields `rule_id`, `runtime_alias`,
-`level`, `state`, `evidence`, `remediation`, and `confidence`.
+`scan`, `coverage`, `exceptions`, `summary.warnings`, `summary.unknown`,
+`summary.suppressed`, and the finding fields `rule_id`, `runtime_alias`, `level`,
+`state`, `evidence`, `remediation`, and `confidence`.
 
 `active`, `root`, `findings[].severity`, `findings[].path`,
 `findings[].message`, `summary.errors`, and `summary.advisories` retain their
