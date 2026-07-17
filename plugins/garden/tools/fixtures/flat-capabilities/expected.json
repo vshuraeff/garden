@@ -54,7 +54,6 @@
       "N-KNOW-004",
       "N-KNOW-007",
       "N-KNOW-008",
-      "R-REPL-001",
       "R-REPL-003",
       "R-REPL-004",
       "R-REPL-005",
@@ -65,7 +64,6 @@
     "planned_rules": [
       "A-LOC-002",
       "A-LOC-003",
-      "A-LOC-004",
       "D-VER-003",
       "D-VER-006",
       "E-EXPL-001",
@@ -73,9 +71,7 @@
       "E-EXPL-005",
       "G-DISC-001",
       "G-DISC-003",
-      "G-DISC-004",
-      "N-KNOW-005",
-      "R-REPL-002"
+      "G-DISC-004"
     ],
     "not_applicable_rules": []
   },

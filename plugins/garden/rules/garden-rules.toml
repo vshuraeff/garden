@@ -1,0 +1,656 @@
+# canonical source of GARDEN rule metadata. runtime metadata and the rules digest
+# derive from this registry; human-authored definition and procedure prose lives in
+# docs/reference/principles.md and docs/reference/checklist.md.
+# plugins/garden/tools/validate_registry.py checks drift with those documents.
+
+[[rules]]
+id = "G-DISC-001"
+principle = "G"
+title = "Recoverable relationships"
+level = "REQUIRED"
+digest = "Make production domain relationships recoverable through grep, an AST or LSP, a symbol index, a route map, a plugin or schema registry, or generated wiring. Back dynamic dispatch with a machine-readable manifest, schema, registry, or generated map."
+scope = "production domain relationships and runtime dispatch."
+implementation = "planned"
+runtime_aliases = []
+configuration_keys = []
+exception_policy = "not-allowed"
+exception_allowed = false
+
+[[rules]]
+id = "G-DISC-002"
+principle = "G"
+title = "Bounded canonical names"
+level = "REQUIRED"
+digest = "Use one canonical name inside each bounded context. Add explicit translation maps at boundaries whose contexts use different names."
+scope = "domain concepts crossing a bounded-context boundary."
+implementation = "manual-with-owner"
+runtime_aliases = []
+configuration_keys = []
+exception_policy = "not-allowed"
+exception_allowed = false
+
+[[rules]]
+id = "G-DISC-003"
+principle = "G"
+title = "Stable error identity"
+level = "REQUIRED"
+digest = "Give cross-boundary errors stable machine-readable codes and structured fields. Human-readable text is not a compatibility key."
+scope = "public, process, service, and operational error boundaries."
+implementation = "planned"
+runtime_aliases = []
+configuration_keys = []
+exception_policy = "not-allowed"
+exception_allowed = false
+
+[[rules]]
+id = "G-DISC-004"
+principle = "G"
+title = "Concept-aligned locations"
+level = "DEFAULT"
+digest = "Align files, symbols, routes, tests, and docs with the bounded context's canonical concepts or registry entries."
+scope = "project-owned source and knowledge artifacts."
+implementation = "planned"
+runtime_aliases = []
+configuration_keys = []
+exception_policy = "not-allowed"
+exception_allowed = false
+
+[[rules]]
+id = "G-DISC-005"
+principle = "G"
+title = "Lowest-cost graph mechanism"
+level = "DEFAULT"
+digest = "Use the lowest-cost graph mechanism the stack can inspect reliably; direct references are not mandatory when a registry or generated graph is authoritative."
+scope = "relationship mechanisms selected by the project."
+implementation = "manual-with-owner"
+runtime_aliases = []
+configuration_keys = []
+exception_policy = "not-allowed"
+exception_allowed = false
+
+[[rules]]
+id = "G-DISC-006"
+principle = "G"
+title = "Resolution effort"
+level = "EXPERIMENTAL"
+scope = "sampled entry-point-to-handler or schema traversals."
+implementation = "experimental"
+runtime_aliases = []
+configuration_keys = []
+exception_policy = "not-allowed"
+exception_allowed = false
+
+[[rules]]
+id = "A-LOC-001"
+principle = "A"
+title = "Stated capability strategy"
+level = "REQUIRED"
+digest = "State how each production capability maps to its code, state, tests, operational artifacts, boundaries, and owner."
+scope = "production capabilities."
+implementation = "manual-with-owner"
+runtime_aliases = []
+configuration_keys = []
+exception_policy = "not-allowed"
+exception_allowed = false
+
+[[rules]]
+id = "A-LOC-002"
+principle = "A"
+title = "Verified boundary crossings"
+level = "REQUIRED"
+digest = "Identify affected contracts and run relevant compatibility or integration checks when a change crosses a capability, trust, persistence, or deployment boundary."
+scope = "boundary-crossing changes."
+implementation = "planned"
+runtime_aliases = []
+configuration_keys = []
+exception_policy = "not-allowed"
+exception_allowed = false
+
+[[rules]]
+id = "A-LOC-003"
+principle = "A"
+title = "Low change-distance"
+level = "DEFAULT"
+digest = "Minimize unrelated modules touched, boundary crossings, requisite context, and ownership handoffs for a typical capability change. Choose the physical layout that fits the stack."
+scope = "completed capability changes sampled by the project."
+implementation = "planned"
+runtime_aliases = []
+configuration_keys = []
+exception_policy = "not-allowed"
+exception_allowed = false
+
+[[rules]]
+id = "A-LOC-004"
+principle = "A"
+title = "Discoverable tests"
+level = "DEFAULT"
+digest = "Colocate tests when the stack supports it; otherwise maintain a stable production-to-test map."
+scope = "project-owned executable behavior."
+implementation = "partial"
+runtime_aliases = ["A-colocated-tests"]
+configuration_keys = []
+exception_policy = "configuration override with owner, reason, alternate discovery mechanism, and review trigger"
+exception_allowed = true
+
+[[rules]]
+id = "A-LOC-005"
+principle = "A"
+title = "Rule of Three"
+level = "DEFAULT"
+digest = "Apply the Rule of Three before sharing an abstraction. Override it only for a documented boundary, security control, or platform constraint."
+scope = "new shared abstractions."
+implementation = "manual-with-owner"
+runtime_aliases = []
+configuration_keys = []
+exception_policy = "not-allowed"
+exception_allowed = false
+
+[[rules]]
+id = "A-LOC-006"
+principle = "A"
+title = "Change-locality profile"
+level = "EXPERIMENTAL"
+scope = "a representative sample of completed capability changes."
+implementation = "experimental"
+runtime_aliases = []
+configuration_keys = []
+exception_policy = "not-allowed"
+exception_allowed = false
+
+[[rules]]
+id = "R-REPL-001"
+principle = "R"
+title = "Replaceability evidence"
+level = "REQUIRED"
+digest = "Record applicable replaceability evidence: public interface or schema, behavioral examples, characterization tests, property tests where applicable, compatibility tests, non-functional requirements, migration and rollback, observability, data ownership, and concurrency or ordering semantics. Mark omissions not applicable with a reason."
+scope = "component boundaries whose replacement can affect correctness, compatibility, or security."
+implementation = "partial"
+runtime_aliases = [
+  "R-boundary-contract-missing",
+  "R-boundary-evidence-review",
+  "R-component-contract",
+]
+configuration_keys = []
+exception_policy = "category marked not applicable with boundary owner, reason, and supporting evidence"
+exception_allowed = true
+
+[[rules]]
+id = "R-REPL-002"
+principle = "R"
+title = "Scoped versioning"
+level = "REQUIRED"
+digest = "Apply SemVer only to published APIs, independently deployed components, persisted schemas, external integrations, or boundaries explicitly designated as versioned. Track private internal modules through Git; do not add an artificial `Version:` line."
+scope = "designated versioned boundaries and private modules evaluated for false versioning."
+implementation = "partial"
+runtime_aliases = ["R-contract-version"]
+configuration_keys = []
+exception_policy = "alternate versioning scheme with owner, artifact-specific reason, compatibility policy, and migration plan"
+exception_allowed = true
+
+[[rules]]
+id = "R-REPL-003"
+principle = "R"
+title = "Characterize legacy behavior"
+level = "REQUIRED"
+digest = "Characterize legacy behavior before a replacement or behavior-preserving rewrite."
+scope = "legacy rewrites and replacements."
+implementation = "manual-with-owner"
+runtime_aliases = []
+configuration_keys = []
+exception_policy = "not-allowed"
+exception_allowed = false
+
+[[rules]]
+id = "R-REPL-004"
+principle = "R"
+title = "Reproduce bugs first"
+level = "REQUIRED"
+digest = "Start a bug fix with a failing executable test or reproducer."
+scope = "changes classified as bug fixes."
+implementation = "manual-with-owner"
+runtime_aliases = []
+configuration_keys = []
+exception_policy = "not-allowed"
+exception_allowed = false
+
+[[rules]]
+id = "R-REPL-005"
+principle = "R"
+title = "Protect undocumented behavior"
+level = "REQUIRED"
+digest = "Do not rewrite observable undocumented behavior without compatibility evidence for affected consumers."
+scope = "observable legacy or de facto API behavior."
+implementation = "manual-with-owner"
+runtime_aliases = []
+configuration_keys = []
+exception_policy = "not-allowed"
+exception_allowed = false
+
+[[rules]]
+id = "R-REPL-006"
+principle = "R"
+title = "Contract-first public boundaries"
+level = "REQUIRED"
+digest = "Define a greenfield public boundary's behavior and compatibility expectations before implementation. Do not apply contract-first rewriting to legacy code before characterization."
+scope = "greenfield public APIs and external integration boundaries."
+implementation = "manual-with-owner"
+runtime_aliases = []
+configuration_keys = []
+exception_policy = "not-allowed"
+exception_allowed = false
+
+[[rules]]
+id = "R-REPL-007"
+principle = "R"
+title = "Replace through boundaries"
+level = "DEFAULT"
+digest = "Use declared interfaces, schemas, adapters, or ports when they reduce consumer coupling. Do not create an interface around a private module without replacement or test value."
+scope = "extension and replacement design."
+implementation = "manual-with-owner"
+runtime_aliases = []
+configuration_keys = []
+exception_policy = "not-allowed"
+exception_allowed = false
+
+[[rules]]
+id = "R-REPL-008"
+principle = "R"
+title = "Replacement drill"
+level = "EXPERIMENTAL"
+scope = "boundaries selected for a safe drill."
+implementation = "experimental"
+runtime_aliases = []
+configuration_keys = []
+exception_policy = "not-allowed"
+exception_allowed = false
+
+[[rules]]
+id = "D-VER-001"
+principle = "D"
+title = "Explicit verification levels"
+level = "REQUIRED"
+digest = "Record the result or not-applicable reason for each relevant level: static validation; unit or property tests; integration or contract tests; security or fuzz testing; runtime assertions and telemetry; canary or staged rollout; independent review; and residual-risk acceptance."
+scope = "every change, with level relevance determined by its risks."
+implementation = "manual-with-owner"
+runtime_aliases = []
+configuration_keys = []
+exception_policy = "not-allowed"
+exception_allowed = false
+
+[[rules]]
+id = "D-VER-002"
+principle = "D"
+title = "Reproducible executable checks"
+level = "REQUIRED"
+digest = "Run applicable types, lint, tests, and CI from versioned configuration. LLM review never substitutes for an executable check."
+scope = "changes with an applicable executable check."
+implementation = "automated"
+runtime_aliases = []
+configuration_keys = []
+exception_policy = "not-allowed"
+exception_allowed = false
+
+[[rules]]
+id = "D-VER-003"
+principle = "D"
+title = "Visible flakiness"
+level = "REQUIRED"
+digest = "Do not hide a flaky check behind automatic retries or report retry-to-green as a clean pass."
+scope = "executable verification gates."
+implementation = "planned"
+runtime_aliases = []
+configuration_keys = []
+exception_policy = "not-allowed"
+exception_allowed = false
+
+[[rules]]
+id = "D-VER-004"
+principle = "D"
+title = "Bounded risk acceptance"
+level = "REQUIRED"
+digest = "Record an owner, supporting evidence, scope, and expiry for every human residual-risk acceptance."
+scope = "every human decision to proceed with unresolved risk."
+implementation = "manual-with-owner"
+runtime_aliases = []
+configuration_keys = []
+exception_policy = "not-allowed"
+exception_allowed = false
+
+[[rules]]
+id = "D-VER-005"
+principle = "D"
+title = "No self-certification"
+level = "REQUIRED"
+digest = "An agent must not be the sole authority that its own change is correct or ready to ship."
+scope = "agent-authored or agent-modified changes."
+implementation = "manual-with-owner"
+runtime_aliases = []
+configuration_keys = []
+exception_policy = "not-allowed"
+exception_allowed = false
+
+[[rules]]
+id = "D-VER-006"
+principle = "D"
+title = "Earliest useful gate"
+level = "DEFAULT"
+digest = "Surface violations at the earliest useful gate without weakening higher-level checks."
+scope = "project gate ordering and local feedback."
+implementation = "planned"
+runtime_aliases = []
+configuration_keys = []
+exception_policy = "not-allowed"
+exception_allowed = false
+
+[[rules]]
+id = "D-VER-007"
+principle = "D"
+title = "Independent review lenses"
+level = "DEFAULT"
+digest = "Run relevant independent review lenses and treat LLM findings as hypotheses requiring confirmation."
+scope = "changes selected for independent review."
+implementation = "manual-with-owner"
+runtime_aliases = []
+configuration_keys = []
+exception_policy = "not-allowed"
+exception_allowed = false
+
+[[rules]]
+id = "D-VER-008"
+principle = "D"
+title = "Gate-value measurement"
+level = "EXPERIMENTAL"
+scope = "project verification telemetry."
+implementation = "experimental"
+runtime_aliases = []
+configuration_keys = []
+exception_policy = "not-allowed"
+exception_allowed = false
+
+[[rules]]
+id = "E-EXPL-001"
+principle = "E"
+title = "Boundary contracts"
+level = "REQUIRED"
+digest = "State shapes, validation, compatibility expectations, and ownership at public APIs, trust boundaries, and persistence formats."
+scope = "public, trust, and persistence boundaries."
+implementation = "planned"
+runtime_aliases = []
+configuration_keys = []
+exception_policy = "not-allowed"
+exception_allowed = false
+
+[[rules]]
+id = "E-EXPL-002"
+principle = "E"
+title = "Behavioral state"
+level = "REQUIRED"
+digest = "Expose side effects, external dependencies, and state transitions at the boundary that controls them. Do not let hidden ambient state determine cross-boundary domain behavior."
+scope = "domain side effects, external dependencies, and state transitions."
+implementation = "manual-with-owner"
+runtime_aliases = []
+configuration_keys = []
+exception_policy = "not-allowed"
+exception_allowed = false
+
+[[rules]]
+id = "E-EXPL-003"
+principle = "E"
+title = "Operational decisions"
+level = "REQUIRED"
+digest = "Expose retry, timeout, authorization, and cross-boundary error policies, including stable error codes, structured fields, and owners."
+scope = "operational and authorization boundaries."
+implementation = "planned"
+runtime_aliases = []
+configuration_keys = []
+exception_policy = "not-allowed"
+exception_allowed = false
+
+[[rules]]
+id = "E-EXPL-004"
+principle = "E"
+title = "Proportionate local explicitness"
+level = "DEFAULT"
+digest = "Keep local explicitness proportionate. Do not require a named constant for every literal, full type ceremony inside a small function, manual injection for static dependencies, replacement of generated wiring, or abandonment of reasonable framework defaults."
+scope = "implementation inside an already explicit boundary."
+implementation = "manual-with-owner"
+runtime_aliases = []
+configuration_keys = []
+exception_policy = "not-allowed"
+exception_allowed = false
+
+[[rules]]
+id = "E-EXPL-005"
+principle = "E"
+title = "Narrow magic-value rule"
+level = "DEFAULT"
+digest = "Name or explain a literal only when it affects domain or operational behavior and is not obvious at its point of use."
+scope = "domain and operational literals."
+implementation = "planned"
+runtime_aliases = []
+configuration_keys = []
+exception_policy = "not-allowed"
+exception_allowed = false
+
+[[rules]]
+id = "E-EXPL-006"
+principle = "E"
+title = "Implicit-dependency audit"
+level = "EXPERIMENTAL"
+scope = "project incident and change history."
+implementation = "experimental"
+runtime_aliases = []
+configuration_keys = []
+exception_policy = "not-allowed"
+exception_allowed = false
+
+[[rules]]
+id = "N-KNOW-001"
+principle = "N"
+title = "Governed knowledge"
+level = "REQUIRED"
+digest = "Keep governing correctness, compatibility, security, and operational knowledge at a repository-addressable location linked from its boundary, with an owner and staleness trigger."
+scope = "governing project knowledge."
+implementation = "manual-with-owner"
+runtime_aliases = []
+configuration_keys = []
+exception_policy = "not-allowed"
+exception_allowed = false
+
+[[rules]]
+id = "N-KNOW-002"
+principle = "N"
+title = "Human-authored decisions"
+level = "REQUIRED"
+digest = "Keep intent, trade-offs, business rationale, risk acceptance, and ownership decisions human-authored."
+scope = "decision and governance documentation."
+implementation = "manual-with-owner"
+runtime_aliases = []
+configuration_keys = []
+exception_policy = "not-allowed"
+exception_allowed = false
+
+[[rules]]
+id = "N-KNOW-003"
+principle = "N"
+title = "Generated facts only"
+level = "REQUIRED"
+digest = "Generate only derived facts such as API reference, dependency graphs, schema docs, CLI help, or config reference. Identify the source and regeneration path."
+scope = "generated API, dependency, schema, CLI, and configuration reference."
+implementation = "automated"
+runtime_aliases = []
+configuration_keys = []
+exception_policy = "not-allowed"
+exception_allowed = false
+
+[[rules]]
+id = "N-KNOW-004"
+principle = "N"
+title = "Navigation by judgment signals"
+level = "DEFAULT"
+digest = "Add nearby navigation or decision docs when a directory is a public boundary, has a separate owner, contains non-obvious decisions, is edited independently, carries operational obligations, or is a navigation entry point. Do not use file-count or subdirectory-count thresholds."
+scope = "project directories and boundary entry points."
+implementation = "manual-with-owner"
+runtime_aliases = []
+configuration_keys = []
+exception_policy = "not-allowed"
+exception_allowed = false
+
+[[rules]]
+id = "N-KNOW-005"
+principle = "N"
+title = "Bounded requisite context"
+level = "DEFAULT"
+digest = "Use progressive disclosure so a typical change loads only requisite context; no universal context-file name or line limit applies."
+scope = "project instruction and navigation documents."
+implementation = "partial"
+runtime_aliases = ["N-context-budget"]
+configuration_keys = []
+exception_policy = "configuration override with owner, reason, affected document class, and review trigger"
+exception_allowed = true
+
+[[rules]]
+id = "N-KNOW-006"
+principle = "N"
+title = "Normative-document maintenance fields"
+level = "DEFAULT"
+digest = "Give normative docs an owner, last-reviewed date, review trigger, and links to executable checks. Mechanical enforcement is planned."
+scope = "normative project documentation."
+implementation = "automated"
+runtime_aliases = []
+configuration_keys = []
+exception_policy = "not-allowed"
+exception_allowed = false
+
+[[rules]]
+id = "N-KNOW-007"
+principle = "N"
+title = "No code restatement"
+level = "DEFAULT"
+digest = "Delete human-authored docs that only restate code or generated facts."
+scope = "human-authored project documentation."
+implementation = "manual-with-owner"
+runtime_aliases = []
+configuration_keys = []
+exception_policy = "not-allowed"
+exception_allowed = false
+
+[[rules]]
+id = "N-KNOW-008"
+principle = "N"
+title = "Knowledge-maintenance signals"
+level = "EXPERIMENTAL"
+scope = "project knowledge-maintenance data."
+implementation = "experimental"
+runtime_aliases = []
+configuration_keys = []
+exception_policy = "not-allowed"
+exception_allowed = false
+
+[[principles]]
+letter = "G"
+name = "Graph-resolvable Discoverability"
+digest_notes = []
+
+[[principles]]
+letter = "A"
+name = "Adaptive Capability Locality"
+digest_notes = [
+  "Shared kernels, compiler passes, data pipelines, SDKs, infrastructure repositories, embedded targets, and generated code may use layouts suited to their constraints; document their capability strategy instead of forcing a vertical-slice root.",
+]
+
+[[principles]]
+letter = "R"
+name = "Replaceable Components"
+digest_notes = [
+  "Keep `CONTRACT.md` and SemVer guidance for boundaries classified under `R-REPL-002`; no particular contract filename is required for other components.",
+]
+
+[[principles]]
+letter = "D"
+name = "Defense-in-depth Verification"
+digest_notes = [
+  "A passing deterministic gate is evidence, not proof that defects are absent.",
+]
+
+[[principles]]
+letter = "E"
+name = "Explicit Boundaries and State"
+digest_notes = []
+
+[[principles]]
+letter = "N"
+name = "Nearby, Maintained Knowledge"
+digest_notes = []
+
+[[runtime_checks]]
+id = "D-project-scan-limit"
+principle = "D"
+level = "REQUIRED"
+title = "project scan could not complete within configured safety limits"
+
+[[runtime_checks]]
+id = "D-scan-root-missing"
+principle = "D"
+level = "DEFAULT"
+title = "configured scan root does not exist or is unsafe to scan"
+
+[[runtime_checks]]
+id = "N-CONFIG-INVALID"
+principle = "N"
+level = "REQUIRED"
+title = "project configuration is invalid"
+
+[[runtime_checks]]
+id = "N-CONTEXT-MISSING"
+principle = "N"
+level = "REQUIRED"
+title = "required root context file is missing"
+
+[[runtime_checks]]
+id = "N-LEGACY-NAMING-REGISTRY"
+principle = "N"
+level = "DEFAULT"
+title = "legacy naming registry activation is deprecated"
+
+[[runtime_checks]]
+id = "N-NAMING-DUPLICATE-CANONICAL"
+principle = "N"
+level = "REQUIRED"
+title = "naming registry repeats a canonical name"
+
+[[runtime_checks]]
+id = "N-NAMING-DUPLICATE-CONCEPT"
+principle = "N"
+level = "REQUIRED"
+title = "naming registry repeats a concept"
+
+[[runtime_checks]]
+id = "N-NAMING-EMPTY-REGISTRY"
+principle = "N"
+level = "REQUIRED"
+title = "required naming registry has no entries"
+
+[[runtime_checks]]
+id = "N-NAMING-INVALID-ENTRY"
+principle = "N"
+level = "REQUIRED"
+title = "naming registry entry is invalid or could not be validated"
+
+[[runtime_checks]]
+id = "N-NAMING-MISSING"
+principle = "N"
+level = "REQUIRED"
+title = "required naming registry file was not found"
+
+[[runtime_checks]]
+id = "N-context-scan-limit"
+principle = "N"
+level = "REQUIRED"
+title = "context file scan exceeded configured safety limits"
+
+[[runtime_checks]]
+id = "R-contract-scan-limit"
+principle = "R"
+level = "REQUIRED"
+title = "contract file scan exceeded configured safety limits"

@@ -46,7 +46,7 @@ rule's scope or its Allowed exceptions section says so.
 
 ## Runtime rule-ID correspondence
 
-The plugin runtime still emits four earlier rule-ID strings. Runtime code and
+The plugin runtime still emits earlier rule-ID strings. Runtime code and
 tests retain those strings; this table maps them to the nearest normative rule.
 
 | New normative rule ID | Existing runtime rule ID | Correspondence |
@@ -57,6 +57,11 @@ tests retain those strings; this table maps them to the nearest normative rule.
 | `R-REPL-001` | `R-boundary-contract-missing` | Missing declared boundary contract artifact |
 | `R-REPL-001` | `R-boundary-evidence-review` | Required evidence category surfaced as a manual `unknown` finding |
 | `A-LOC-004` | `A-colocated-tests` | Test placement or mapping under the project's capability strategy |
+
+The machine-readable source of this alias mapping is the canonical registry at
+`plugins/garden/rules/garden-rules.toml` (`runtime_aliases` per rule); this table is a
+human-readable view of the same data. [rule-registry.md](./rule-registry.md) records
+its derivations and drift checks.
 
 ## G — Graph-resolvable Discoverability
 

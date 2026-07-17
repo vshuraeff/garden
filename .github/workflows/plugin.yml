@@ -27,8 +27,12 @@ jobs:
       - name: Validate both plugin packages and reference copies
         if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.14'
         run: uv run --no-project plugins/garden/tools/validate_package.py
+      - name: Validate generated rules digest
+        run: uv run --no-project plugins/garden/tools/generate_rules_digest.py --check
       - name: Validate evidence registry and citations
         run: uv run --no-project plugins/garden/tools/validate_evidence.py
+      - name: Validate rule registry
+        run: uv run --no-project plugins/garden/tools/validate_registry.py
       - name: Validate documentation checks
         run: uv run --no-project plugins/garden/tools/validate_docs.py
       - name: Validate migration language

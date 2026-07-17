@@ -1,5 +1,21 @@
 # Changelog
 
+## 0.8.4
+
+- Added the canonical, hand-authored, machine-readable rule registry at
+  `plugins/garden/rules/garden-rules.toml`, covering 42 rules and 12 runtime
+  checks.
+- Runtime alias tables, exception eligibility, and report coverage lists now
+  derive from the registry instead of separate hand-maintained lists.
+- Rules with `implementation = "partial"` now keep mechanized and manual
+  coverage lists disjoint, so a rule cannot appear in both.
+- Added generation of a compact rules digest with a registry drift check through
+  `generate_rules_digest.py --check`.
+- `validate_registry.py` now runs in CI to keep the registry, documentation,
+  runtime alias table, and benchmark principle map consistent.
+- Added `garden explain RULE_ID`.
+- Benchmark principle-map consistency checks now cross-validate the registry.
+
 ## 0.8.3
 
 - Inspection and hook processing build one `ProjectIndex` per inspection or hook

@@ -304,6 +304,59 @@ class GardenCliIntegrationTests(unittest.TestCase):
         self.assertIn("schema_version = 1", shown.stdout)
         self.assertIn('capabilities.strategy = "children"', shown.stdout)
 
+    def test_explain_canonical_rule(self) -> None:
+        completed = self.run_garden("explain", "A-LOC-004")
+
+        self.assertEqual(0, completed.returncode, completed.stderr)
+        self.assertEqual(
+            {
+                "id": "A-LOC-004",
+                "principle": "A",
+                "title": "Discoverable tests",
+                "level": "DEFAULT",
+                "scope": "project-owned executable behavior.",
+                "implementation": "partial",
+                "runtime_aliases": ["A-colocated-tests"],
+                "configuration_keys": [],
+                "exception_policy": (
+                    "configuration override with owner, reason, alternate discovery "
+                    "mechanism, and review trigger"
+                ),
+                "exception_allowed": True,
+                "digest": (
+                    "Colocate tests when the stack supports it; otherwise maintain "
+                    "a stable production-to-test map."
+                ),
+            },
+            json.loads(completed.stdout),
+        )
+
+    def test_explain_runtime_alias(self) -> None:
+        completed = self.run_garden("explain", "A-colocated-tests")
+
+        self.assertEqual(0, completed.returncode, completed.stderr)
+        self.assertEqual(
+            {
+                "id": "A-colocated-tests",
+                "principle": "A",
+                "level": "DEFAULT",
+                "title": "Discoverable tests",
+                "kind": "runtime-check",
+                "canonical": "A-LOC-004",
+            },
+            json.loads(completed.stdout),
+        )
+
+    def test_explain_unknown_id(self) -> None:
+        completed = self.run_garden("explain", "Z-UNKNOWN")
+
+        self.assertEqual(1, completed.returncode)
+        self.assertEqual("", completed.stdout)
+        self.assertEqual(
+            "unknown rule or runtime id: Z-UNKNOWN",
+            completed.stderr.strip(),
+        )
+
     def test_init_refuses_overwrite_without_force(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)

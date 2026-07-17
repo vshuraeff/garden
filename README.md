@@ -66,6 +66,8 @@ you need instead of searching a single sprawling document.
   agent reviewers and CI scripts.
 - [Report schema](docs/reference/report-schema.md) — JSON contract for deterministic
   structural inspection results.
+- [Rule registry](docs/reference/rule-registry.md) — canonical machine-readable rule
+  metadata and the derived artifacts and drift checks that use it.
 - [Glossary](docs/reference/glossary.md) — canonical meanings of GARDEN terms.
 
 ### Explanation
