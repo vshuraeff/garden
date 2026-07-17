@@ -88,7 +88,11 @@ Run these checks before publishing:
 
 ```sh
 uv run --no-project -m unittest discover -s plugins/garden/tools -p "test_*.py" -v
+uv run --no-project -m unittest plugins.garden.tools.test_harness_smoke -v
 uv run --no-project plugins/garden/tools/validate_package.py
 uv run --with pyyaml /path/to/plugin-creator/scripts/validate_plugin.py plugins/garden
 claude plugin validate plugins/garden
 ```
+
+`test_harness_smoke.py` runs packaged copies through installed CLI binaries instead of
+in-process fixtures and uses `unittest.skipTest` when either CLI is absent.

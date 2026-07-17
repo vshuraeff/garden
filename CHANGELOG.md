@@ -1,5 +1,21 @@
 # Changelog
 
+## 0.9.1
+
+- Added installed-harness smoke tests that install the packaged plugin into
+  isolated Claude Code and Codex configurations and exercise the full offline
+  lifecycle with real, pinned CLI binaries: marketplace registration, plugin
+  installation, discovery listings, and MCP server listing.
+- Added installed-copy behavioral checks against the installed package: hook
+  pass and fail round-trips, a real MCP handshake, and a `garden:start` /
+  `garden:stop` project surface round-trip.
+- Added `.github/workflows/integration.yml`, a scheduled integration workflow
+  separate from per-PR validation, running on `workflow_dispatch`, a weekly
+  schedule, and pull requests that modify plugin packaging paths, with pinned
+  harness CLI versions.
+- Documented the validated harness CLI versions (Claude Code CLI 2.1.212,
+  Codex CLI 0.144.1) in `docs/reference/platform-support.md`.
+
 ## 0.9.0
 
 - Replaced Benchmark v1.1's exact migration-parity invariant with a semantic

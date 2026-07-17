@@ -1,0 +1,44 @@
+# separate lower-frequency integration check: this installs real harness clis; plugin.yml does not.
+# test_harness_smoke.py self-skips with unittest.skipTest when a cli is absent.
+# this keeps plugin.yml's unittest discovery green without harness clis.
+name: integration
+
+on:
+  workflow_dispatch:
+  schedule:
+    # runs weekly.
+    - cron: '17 3 * * 0'
+  pull_request:
+    paths:
+      - 'plugins/garden/**'
+      - '.claude-plugin/**'
+      - '.agents/plugins/**'
+      - '.github/workflows/integration.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  harness-smoke:
+    timeout-minutes: 15
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - uses: astral-sh/setup-uv@11f9893b081a58869d3b5fccaea48c9e9e46f990 # v8.3.2
+        with:
+          python-version: "3.14"
+      - name: Install claude CLI
+        run: npm install -g @anthropic-ai/claude-code@2.1.212
+      - name: Install codex CLI
+        run: npm install -g @openai/codex@0.144.1
+      - name: Assert harness CLIs installed
+        run: |
+          claude --version
+          codex --version
+      - name: Run harness installed-package smoke tests
+        run: uv run --no-project -m unittest plugins.garden.tools.test_harness_smoke -v
