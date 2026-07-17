@@ -14,6 +14,15 @@ plugin version `0.7.2`, and seed `20260714`. The declared portability matrix is
 Ubuntu and macOS with Python 3.11 and 3.14. The committed run records its locally
 observed platform and Python version in `metadata.json` and `summary.json`.
 
+### v1.1 protocol (2026-07-17)
+
+The active toolchain sets `benchmark_version = "1.1"` and
+`protocol_file = "protocol-v1.1.toml"`; it retains the pinned `plugins` subtree
+tree hash `817bdf4b195bf93b421f43dca9836215f5c42eaf` and plugin version `0.7.2`.
+[`benchmarks/protocol-v1.1.toml`](../../benchmarks/protocol-v1.1.toml) is the
+v1.1 protocol, while [`benchmarks/protocol-v1.toml`](../../benchmarks/protocol-v1.toml)
+remains the historical v1 protocol.
+
 ## Hypotheses and preregistered thresholds
 
 The thresholds below were fixed in
@@ -34,6 +43,32 @@ classification error on this corpus while satisfying the class-specific limits.
 The other hypotheses are that the enumerated evidence defects and must-block
 mutations meet their exact corpus thresholds, and that migration meets every
 listed reproducibility property. A failed hypothesis remains a reported result.
+
+### v1.1 migration and matrix requirements (2026-07-17)
+
+Protocol v1.1 adds
+`semantic_migration_invariant_required = true` under `[migration]` and a
+`[matrix_identity]` section with `required_combinations = 4` and
+`enforced_in = "ci-matrix-comparison"`. Intentional classification changes are
+declared in
+[`benchmarks/corpus/migration-intentional-changes.json`](../../benchmarks/corpus/migration-intentional-changes.json),
+which currently contains the reviewed `N-LEGACY-NAMING-REGISTRY`,
+`R-component-contract`, and `A-colocated-tests` entries.
+
+The v1.1 migration requirement has three invariants:
+
+1. (a) `semantic-migration-invariant` computes the symmetric difference of
+   normalized `(severity, rule, path, message)` finding-instance keys from
+   legacy and configured inspection. Every difference fails unless its rule is
+   in the registry with a direction that permits it: `removed-in-configured`,
+   `added-in-configured`, or `either` as applicable.
+2. (b) The intentional-changes registry is valid only when every entry has
+   exactly the non-empty string fields `rule`, `direction`, `reason`, and
+   `source`; its direction is one of those three values; and no rule appears
+   more than once.
+3. (c) `tree-atomicity` passes only when the migrated tree preserves the hashes
+   of every source-tree file other than configuration and contains exactly the
+   original file set plus `.garden.toml`.
 
 ## Corpus and label procedure
 
@@ -80,6 +115,18 @@ uv run --no-project benchmarks/run_evidence.py
 uv run --no-project benchmarks/run_mutations.py
 uv run --no-project benchmarks/run_migration.py
 ```
+
+For v1.1, the intentional-changes registry is
+[`benchmarks/corpus/migration-intentional-changes.json`](../../benchmarks/corpus/migration-intentional-changes.json)
+and the protocol is
+[`benchmarks/protocol-v1.1.toml`](../../benchmarks/protocol-v1.1.toml). The
+`validate` job runs `uv run --no-project benchmarks/run.py --check` on the
+authoritative Ubuntu and Python 3.14 cell. Each of the four Ubuntu/macOS and
+Python 3.11/3.14 cells runs `benchmarks/run.py --out-dir`, normalizes its
+results with `benchmarks/compare_matrix.py normalize`, and uploads its bundle.
+The `benchmark-matrix-compare` job downloads all four normalized bundles and
+runs `benchmarks/compare_matrix.py compare` with all four `--cell-dir`
+arguments to assert cross-matrix identity.
 
 ## Results
 
@@ -205,6 +252,22 @@ four declared matrix cells. Cross-matrix normalized-output identity is therefore
 not established by this artifact and counts as unsatisfied in the migration
 summary.
 
+### v1.1 (2026-07-17)
+
+Benchmark v1.1 implements the deferred revision: the migration comparison is
+now parity modulo the documented, reviewed intentional-changes registry through
+the semantic-migration invariant, rather than exact, unqualified finding
+parity. The invariant compares normalized finding keys, not byte-for-byte
+report output. The v1 exact-parity failure remains the honest measurement under
+the v1 protocol; it is neither retracted nor superseded, because v1.1 changes
+the invariant's scope rather than the v1 measurement.
+
+Cross-matrix normalized-output identity changes from structurally unmeasurable
+for the v1 single committed cell to a CI-measured v1.1 property through the
+four-cell `benchmark-matrix-compare` job. The committed artifact in this
+repository still reflects one local cell; only CI runs and asserts the four-cell
+comparison.
+
 ## Known gaps
 
 The eight gap probes are reporting rows, not must-block mutation catches.
@@ -235,6 +298,12 @@ agents, token consumption, wall-clock task time, files opened, search effort,
 human review effort, or rollback frequency. It also cannot attribute an agent
 outcome to an individual GARDEN principle. Those outcomes remain EXPERIMENTAL
 until a preregistered agent-task benchmark is run.
+
+The intentional-changes registry
+[`benchmarks/corpus/migration-intentional-changes.json`](../../benchmarks/corpus/migration-intentional-changes.json)
+is itself a curated, human-reviewed artifact. An unreviewed or incorrect entry
+could mask a real regression as an intentional change, so registry entries need
+the same review scrutiny as corpus labels.
 
 A killed mutation shows that the named gate detects that specific, checked-in
 defect operator at the pinned repository revision. It is not evidence that the

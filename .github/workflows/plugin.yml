@@ -24,6 +24,8 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - name: Test deterministic tools and fixtures
         run: uv run --no-project -m unittest discover -s plugins/garden/tools -p "test_*.py" -v
+      - name: Test benchmark lib unit tests
+        run: uv run --no-project -m unittest discover -s benchmarks/lib -p 'test_*.py' -v
       - name: Validate both plugin packages and reference copies
         if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.14'
         run: uv run --no-project plugins/garden/tools/validate_package.py
@@ -40,6 +42,22 @@ jobs:
       - name: Validate committed benchmark v1 results
         if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.14'
         run: uv run --no-project benchmarks/validate_results.py
+      - name: Rerun benchmark v1 against current plugin tree
+        if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.14'
+        run: uv run --no-project benchmarks/run.py --check
+      - name: Generate normalized benchmark summary
+        shell: bash
+        run: |
+          results_dir="${{ runner.temp }}/benchmark-results"
+          normalized_bundle="${{ runner.temp }}/benchmark-normalized/bundle.json"
+          uv run --no-project benchmarks/run.py --out-dir "$results_dir"
+          uv run --no-project benchmarks/compare_matrix.py normalize --results-dir "$results_dir" --output "$normalized_bundle"
+      - name: Upload normalized benchmark summary
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: benchmark-normalized-${{ matrix.os }}-${{ matrix.python-version }}
+          path: ${{ runner.temp }}/benchmark-normalized/bundle.json
+          if-no-files-found: error
       - name: Validate this repository's own GARDEN activation
         run: uv run --no-project plugins/garden/tools/garden_cli.py config validate .
       - name: Run the blocking deterministic structural inspection
@@ -55,3 +73,41 @@ jobs:
         run: uvx ruff@0.15.21 check plugins/garden/tools && uvx ruff@0.15.21 format --check plugins/garden/tools
       - name: Validate shell adapters
         run: bash -n plugins/garden/hooks/garden-check.sh plugins/garden/assets/garden-prompt.sh
+
+  benchmark-matrix-compare:
+    needs: validate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - uses: astral-sh/setup-uv@11f9893b081a58869d3b5fccaea48c9e9e46f990 # v8.3.2
+        with:
+          python-version: "3.14"
+      - name: Download ubuntu-latest Python 3.11 benchmark summary
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: benchmark-normalized-ubuntu-latest-3.11
+          path: ${{ runner.temp }}/benchmark-matrix/ubuntu-latest-3.11
+      - name: Download ubuntu-latest Python 3.14 benchmark summary
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: benchmark-normalized-ubuntu-latest-3.14
+          path: ${{ runner.temp }}/benchmark-matrix/ubuntu-latest-3.14
+      - name: Download macos-latest Python 3.11 benchmark summary
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: benchmark-normalized-macos-latest-3.11
+          path: ${{ runner.temp }}/benchmark-matrix/macos-latest-3.11
+      - name: Download macos-latest Python 3.14 benchmark summary
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: benchmark-normalized-macos-latest-3.14
+          path: ${{ runner.temp }}/benchmark-matrix/macos-latest-3.14
+      - name: Compare normalized benchmark matrix summaries
+        run: |
+          uv run --no-project benchmarks/compare_matrix.py compare \
+            --cell-dir "ubuntu-latest-3.11=${{ runner.temp }}/benchmark-matrix/ubuntu-latest-3.11" \
+            --cell-dir "ubuntu-latest-3.14=${{ runner.temp }}/benchmark-matrix/ubuntu-latest-3.14" \
+            --cell-dir "macos-latest-3.11=${{ runner.temp }}/benchmark-matrix/macos-latest-3.11" \
+            --cell-dir "macos-latest-3.14=${{ runner.temp }}/benchmark-matrix/macos-latest-3.14"

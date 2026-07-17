@@ -1,0 +1,42 @@
+schema_version = 1
+benchmark_version = "1.1"
+
+[detection]
+configured_max_error_rate = 0.05
+min_absolute_error_reduction = 0.10
+min_relative_error_reduction = 0.50
+allow_project_type_mean_regression = false
+min_improved_repositories = 6
+repository_count = 12
+source_max_false_positive_rate = 0.05
+source_max_false_negative_rate = 0.05
+test_max_false_positive_rate = 0.05
+test_max_false_negative_rate = 0.05
+capability_min_exact_accuracy = 0.95
+incomplete_scan_counts_as_pass = false
+
+[evidence]
+defect_recall_required = 32
+defect_total = 32
+false_blocks_allowed = 0
+clean_total = 16
+
+[mutations]
+killed_required = 48
+mutation_total = 48
+clean_blocked_allowed = 0
+clean_total = 12
+gap_probes_required = 8
+gap_probe_total = 8
+
+[migration]
+cases_required_per_property = 12
+case_total = 12
+property_count = 5
+failure_atomicity_required = 4
+failure_atomicity_total = 4
+semantic_migration_invariant_required = true
+
+[matrix_identity]
+required_combinations = 4
+enforced_in = "ci-matrix-comparison"

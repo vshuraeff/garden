@@ -16,6 +16,11 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, TextIO
 
+from lib.migration_invariants import (
+    FindingDifference,
+    evaluate_migration_invariant,
+    validate_intentional_changes,
+)
 from lib.provenance import (
     git_commit,
     load_toolchain,
@@ -34,7 +39,7 @@ VALID_PROPERTIES = (
     "config-validation",
     "force-idempotence",
     "tree-atomicity",
-    "normalized-inspect-parity",
+    "semantic-migration-invariant",
 )
 
 
@@ -64,6 +69,18 @@ def invalid_root() -> Path:
     """Return the invalid migration corpus root."""
 
     return benchmark_root() / "corpus" / "migration-invalid"
+
+
+def _load_intentional_changes() -> list[dict[str, Any]]:
+    path = benchmark_root() / "corpus" / "migration-intentional-changes.json"
+    value = json.loads(path.read_text(encoding="utf-8"))
+    if not isinstance(value, list):
+        raise ValueError("migration intentional changes must be a JSON array")
+    validate_intentional_changes(value)
+    return value
+
+
+INTENTIONAL_CHANGES = _load_intentional_changes()
 
 
 def _garden_cli() -> Path:
@@ -109,24 +126,27 @@ def _tree_hashes(root: Path, *, exclude_config: bool = False) -> dict[str, str]:
 
 def _normalized_report(
     result: CommandResult,
-) -> tuple[list[dict[str, Any]] | None, list[str]]:
+) -> list[dict[str, str]] | None:
     try:
         payload = json.loads(result.stdout)
     except json.JSONDecodeError:
-        return None, []
+        return None
     if not isinstance(payload, dict):
-        return None, []
-    findings = [
-        finding
-        for finding in payload.get("findings", [])
-        if isinstance(finding, dict)
-        and finding.get("rule") != "N-LEGACY-NAMING-REGISTRY"
-    ]
-    rules = sorted(
-        str(finding["rule"])
-        for finding in findings
-        if isinstance(finding.get("rule"), str)
-    )
+        return None
+    raw_findings = payload.get("findings", [])
+    if not isinstance(raw_findings, list):
+        return None
+    findings = []
+    for finding in raw_findings:
+        if not isinstance(finding, dict):
+            continue
+        values = {
+            field: finding.get(field)
+            for field in ("severity", "rule", "path", "message")
+        }
+        if not all(isinstance(value, str) for value in values.values()):
+            return None
+        findings.append(values)
     normalized = sorted(
         findings,
         key=lambda finding: (
@@ -136,7 +156,18 @@ def _normalized_report(
             str(finding.get("message")),
         ),
     )
-    return normalized, rules
+    return normalized
+
+
+def _unregistered_difference_id(difference: FindingDifference) -> str:
+    # finding ids use unregistered:<direction>:<compact finding json>.
+    finding = json.dumps(
+        difference.as_dict(),
+        ensure_ascii=False,
+        separators=(",", ":"),
+        sort_keys=True,
+    )
+    return f"unregistered:{difference.direction}:{finding}"
 
 
 def _outcome(**values: object) -> str:
@@ -282,27 +313,36 @@ def _valid_fixture_records(
         )
 
         configured_inspect = _run("inspect", str(first))
-        legacy_normalized, legacy_rules = _normalized_report(legacy_inspect)
-        configured_normalized, configured_rules = _normalized_report(configured_inspect)
-        parity_pass = (
-            legacy_normalized is not None
-            and configured_normalized is not None
-            and legacy_normalized == configured_normalized
-        )
-        parity_command = _combine((legacy_inspect, configured_inspect))
+        legacy_normalized = _normalized_report(legacy_inspect)
+        configured_normalized = _normalized_report(configured_inspect)
+        if legacy_normalized is None or configured_normalized is None:
+            semantic_pass = False
+            unregistered_ids = []
+        else:
+            semantic_result = evaluate_migration_invariant(
+                legacy_normalized,
+                configured_normalized,
+                INTENTIONAL_CHANGES,
+            )
+            semantic_pass = semantic_result.passed
+            unregistered_ids = [
+                _unregistered_difference_id(difference)
+                for difference in semantic_result.unregistered
+            ]
+        semantic_command = _combine((legacy_inspect, configured_inspect))
         yield (
             VALID_PROPERTIES[4],
             _record(
                 case_id=f"{fixture.name}:{VALID_PROPERTIES[4]}",
                 condition="valid",
-                passed=parity_pass,
-                command=parity_command,
-                finding_ids=sorted(set(legacy_rules) ^ set(configured_rules)),
+                passed=semantic_pass,
+                command=semantic_command,
+                finding_ids=unregistered_ids,
                 toolchain=toolchain,
                 commit=commit,
                 version=version,
             ),
-            parity_pass,
+            semantic_pass,
         )
 
 

@@ -1,0 +1,20 @@
+[
+  {
+    "rule": "N-LEGACY-NAMING-REGISTRY",
+    "direction": "removed-in-configured",
+    "reason": "the legacy activation naming-registry marker is structurally inert once a project is configured",
+    "source": "plugins/garden/tools/garden_rules.py:inspect_file structural guard; docs/evidence/benchmark-v1.md negative result"
+  },
+  {
+    "rule": "R-component-contract",
+    "direction": "either",
+    "reason": "configured mode corrects legacy source and test path misclassification, which can remove false positives and add corrected instances",
+    "source": "docs/evidence/benchmark-v1.md negative result"
+  },
+  {
+    "rule": "A-colocated-tests",
+    "direction": "either",
+    "reason": "configured mode corrects legacy source and test classification and detects missing colocation that legacy mode missed",
+    "source": "docs/evidence/benchmark-v1.md negative result"
+  }
+]
