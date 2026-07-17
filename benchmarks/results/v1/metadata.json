@@ -1,13 +1,13 @@
 {
   "benchmark_version": "1.1",
-  "garden_commit": "662db7507a3039dc529ba3a4a4be8f99fd704139",
-  "generated_at": "2026-07-17T07:46:24.861287Z",
+  "garden_commit": "363c08235952498164d3f0ec6f3503d054a29aa9",
+  "generated_at": "2026-07-17T08:51:01.757262Z",
   "platform": "macos",
   "plugin_version": "0.9.0",
   "producers": {
     "detection": {
       "path": "benchmarks/run_detection.py",
-      "sha256": "4205aa1238035e43fba4a768762f156f300c46cdb5c3b62e7b0f1386d5d85bb4"
+      "sha256": "cc2c7987572c77fbdac16c254251f836ab6a244145225d164b32edae358481b6"
     },
     "evidence": {
       "path": "benchmarks/run_evidence.py",
