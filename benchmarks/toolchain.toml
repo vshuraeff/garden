@@ -3,8 +3,8 @@ benchmark_version = "1.1"
 protocol_file = "protocol-v1.1.toml"
 repository_commit = "e8d5bc838ae40ba5c76fbe79c895c55da748e896"
 # git tree for the release plugins/ subtree; used by the runtime identity gate
-plugin_tree_commit = "817bdf4b195bf93b421f43dca9836215f5c42eaf"
-plugin_version = "0.7.2"
+plugin_tree_commit = "7f799052d9164560dd06873b8e530af90836ecb3"
+plugin_version = "0.9.0"
 seed = 20260714
 python_versions = ["3.11", "3.14"]
 platforms = ["ubuntu", "macos"]

@@ -138,9 +138,18 @@ arguments to assert cross-matrix identity.
 | detection | pass | 288 | 181 | 107 | 0 |
 | evidence | pass | 48 | 48 | 0 | 0 |
 | mutations | pass | 68 | 68 | 0 | 0 |
-| migration | fail | 64 | 52 | 12 | 0 |
+| migration | pass | 64 | 64 | 0 | 0 |
 
-Top-level result: **fail**.
+Top-level result: **pass**.
+
+### Matrix identity
+
+| Property | Value |
+| --- | --- |
+| `required_combinations` | 4 |
+| `observed_combinations` | 1 |
+| `identical` | not applicable |
+| `enforced_in` | ci-matrix-comparison |
 
 ### Thresholds and actual values
 
@@ -185,12 +194,11 @@ Top-level result: **fail**.
 
 | Protocol key | Preregistered value | Actual metric | Actual value |
 | --- | ---: | --- | ---: |
-| `cases_required_per_property` | 12 | `minimum_property_pass_count` | 0 |
+| `cases_required_per_property` | 12 | `minimum_property_pass_count` | 12 |
 | `case_total` | 12 | `valid_fixture_count` | 12 |
 | `property_count` | 5 | `property_count` | 5 |
 | `failure_atomicity_required` | 4 | `failure_atomicity_passed` | 4 |
 | `failure_atomicity_total` | 4 | `failure_atomicity_total` | 4 |
-| `normalized_output_identical_across_matrix` | true | `normalized_output_identical_across_matrix` | false |
 
 ### Gate-family ablation accounting
 
@@ -216,7 +224,7 @@ Families without observed mapped rules: G, E.
 
 ### Result integrity and reproduction
 
-`summary.json` SHA-256: `ed8b77e59426c4ef2b9b52d0326bb8327b1185aac08341d1c44c2f4190dd9c12`
+`summary.json` SHA-256: `25a31e6ded2e319582e4a96c240e7038f96c3a064a0f1e6e9f61e93ba2796333`
 
 ```sh
 uv run --no-project benchmarks/run.py

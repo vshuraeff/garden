@@ -31,6 +31,17 @@
         "src/orders/test_handler.py": "def test_handler() -> None:\n    pass\n"
       }
     },
+    "inspect-boundary-semver": {
+      "files": {
+        ".garden.toml": "schema_version = 2\n\n[project]\ntype = \"service\"\ncontext_files = { any_of = [\"CONTEXT.md\"] }\n\n[scan]\nroots = [\"src\"]\ninclude = [\"**/*.py\"]\nexclude = []\n\n[capabilities]\nstrategy = \"explicit\"\n\n[capabilities.map]\n\"src/orders\" = \"orders\"\n\n[tests]\npatterns = [\"src/**/test_*.py\"]\nassociation = \"same-capability\"\n\n[naming]\nregistry = \"naming-registry.txt\"\nrequired = true\n\n[documentation]\nroot_context_required = true\nmax_context_lines = 200\n\n[[boundaries]]\npath = \"src\"\nkind = \"public-api\"\nowner = \"benchmark\"\nversioning = \"semver\"\n",
+        "CONTEXT.md": "# Context\n\nSynthetic fixture context.\n",
+        "naming-registry.txt": "orders: orders\n",
+        "src/orders/handler.py": "STATE = \"ready\"\n",
+        "src/orders/test_handler.py": "def test_handler() -> None:\n    pass\n",
+        "src/orders/CONTRACT.md": "Version: 1.0.0\n",
+        "src/CONTRACT.md": "Version: 1.0.0\n"
+      }
+    },
     "legacy": {
       "files": {
         "naming-registry.txt": "orders: orders\n",
@@ -50,7 +61,7 @@
   },
   "mutations": {
     "cfg-01-unknown-key": {"base":"config","operation":{"kind":"append","path":".garden.toml","content":"\nunknown = true\n"}},
-    "cfg-02-schema-version": {"base":"config","operation":{"kind":"replace","path":".garden.toml","old":"schema_version = 1","new":"schema_version = 2"}},
+    "cfg-02-schema-version": {"base":"config","operation":{"kind":"replace","path":".garden.toml","old":"schema_version = 1","new":"schema_version = 3"}},
     "cfg-03-absolute-path": {"base":"config","operation":{"kind":"replace","path":".garden.toml","old":"roots = [\"src\"]","new":"roots = [\"/tmp/escape\"]"}},
     "cfg-04-parent-path": {"base":"config","operation":{"kind":"replace","path":".garden.toml","old":"roots = [\"src\"]","new":"roots = [\"../escape\"]"}},
     "cfg-05-drive-path": {"base":"config","operation":{"kind":"replace","path":".garden.toml","old":"roots = [\"src\"]","new":"roots = [\"C:/escape\"]"}},
@@ -61,8 +72,8 @@
     "scan-01-inactive": {"base":"legacy","operation":{"kind":"delete","path":"naming-registry.txt"}},
     "scan-02-context-budget": {"base":"inspect","operation":{"kind":"repeat","path":"CONTEXT.md","content":"line\n","count":201}},
     "scan-03-context-file-limit": {"base":"inspect","operation":{"kind":"repeat","path":"CONTEXT.md","content":"x","count":1048577}},
-    "scan-04-contract-file-limit": {"base":"inspect","operation":{"kind":"repeat","path":"src/CONTRACT.md","content":"x","count":1048577}},
-    "scan-05-project-entry-limit": {"base":"inspect","operation":{"kind":"generate-files","path":"bulk","count":10001,"prefix":"entry","content":""}},
+    "scan-04-contract-file-limit": {"base":"inspect-boundary-semver","operation":{"kind":"repeat","path":"src/CONTRACT.md","content":"x","count":1048577}},
+    "scan-05-project-entry-limit": {"base":"inspect","operation":{"kind":"generate-files","path":"src/bulk","count":10001,"prefix":"entry","content":""}},
     "scan-06-required-context": {"base":"inspect","operation":{"kind":"delete","path":"CONTEXT.md"}},
 
     "inv-01-naming-missing": {"base":"inspect","operation":{"kind":"delete","path":"naming-registry.txt"}},
@@ -72,7 +83,7 @@
     "inv-05-duplicate-canonical": {"base":"inspect","operation":{"kind":"write","path":"naming-registry.txt","content":"orders: shared\nbilling: shared\n"}},
     "inv-06-context-missing": {"base":"inspect","operation":{"kind":"delete","path":"CONTEXT.md"}},
     "inv-07-context-budget": {"base":"inspect","operation":{"kind":"repeat","path":"CONTEXT.md","content":"line\n","count":201}},
-    "inv-08-contract-version": {"base":"inspect","operation":{"kind":"write","path":"src/CONTRACT.md","content":"Contract without a version.\n"}},
+    "inv-08-contract-version": {"base":"inspect-boundary-semver","operation":{"kind":"write","path":"src/CONTRACT.md","content":"Contract without a version.\n"}},
 
     "ev-01-missing-section": {"base":"evidence","operation":{"kind":"replace","path":"docs/evidence/evidence-registry.md","old":"### Statement","new":"### Omitted statement"}},
     "ev-02-invalid-verdict": {"base":"evidence","operation":{"kind":"replace","path":"docs/evidence/evidence-registry.md","old":"Verdict: confirmed","new":"Verdict: unsupported"}},
@@ -91,7 +102,7 @@
     "doc-06-front-matter": {"base":"repository","operation":{"kind":"replace","path":"docs/how-to/apply-to-new-project.md","old":"owner: vshuraeff","new":"owner: "}},
 
     "pkg-01-manifest-name": {"base":"repository","operation":{"kind":"replace","path":"plugins/garden/.codex-plugin/plugin.json","old":"\"name\": \"garden\"","new":"\"name\": \"garden-mutated\""}},
-    "pkg-02-manifest-version": {"base":"repository","operation":{"kind":"replace","path":"plugins/garden/.codex-plugin/plugin.json","old":"\"version\": \"0.7.2\"","new":"\"version\": \"0.7.3\""}},
+    "pkg-02-manifest-version": {"base":"repository","operation":{"kind":"replace","path":"plugins/garden/.codex-plugin/plugin.json","old":"\"version\": \"0.9.0\"","new":"\"version\": \"0.9.1\""}},
     "pkg-03-required-field": {"base":"repository","operation":{"kind":"replace","path":"plugins/garden/.codex-plugin/plugin.json","old":"\"description\": \"Apply and check the GARDEN agent-first software design principles in Codex and Claude Code.\"","new":"\"description\": \"\""}},
     "pkg-04-skills-path": {"base":"repository","operation":{"kind":"replace","path":"plugins/garden/.codex-plugin/plugin.json","old":"\"skills\": \"./skills/\"","new":"\"skills\": \"./other-skills/\""}},
     "pkg-05-mcp-server": {"base":"repository","operation":{"kind":"write","path":"plugins/garden/.mcp.json","content":"{\n  \"mcpServers\": {}\n}\n"}},

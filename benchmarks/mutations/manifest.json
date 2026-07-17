@@ -14,9 +14,11 @@
     "category": "config-schema-or-path-confinement",
     "target_path": ".garden.toml",
     "owning_gate": "garden-config-validate",
-    "expected_rule_id_or_signature": "expected 1",
+    "expected_rule_id_or_signature": "expected one of 1, 2",
     "classification": "must_block",
-    "description": "replace schema version one with version two",
+    "description": "replace schema version one with version three (still unsupported)",
+    "reauthored_reason": "schema_version=2 became valid in PR 3 (commit f720b39, structured boundary configuration); schema_version=3 remains unsupported, and the expected signature was updated to match the current validator message",
+    "changed_in_pr": "PR 3 (f720b39: feat: add structured boundary configuration)",
     "gap_probe_kind": null
   },
   {
@@ -117,16 +119,20 @@
     "expected_rule_id_or_signature": "R-contract-scan-limit",
     "classification": "must_block",
     "description": "exceed the checked contract file byte limit",
+    "reauthored_reason": "R-contract-scan-limit is emitted inside the same check_contract_version gate that PR 4 (dd7e506) scoped to semver-versioned boundaries; base switched to inspect-boundary-semver for the same reason as inv-08-contract-version, so the byte-limit check inside that gate still executes",
+    "changed_in_pr": "PR 4 (dd7e506: fix: enforce scoped contracts, versions, and exceptions)",
     "gap_probe_kind": null
   },
   {
     "mutation_id": "scan-05-project-entry-limit",
     "category": "activation-file-limits-incomplete-scan",
-    "target_path": "bulk",
+    "target_path": "src/bulk",
     "owning_gate": "garden-inspect-strict",
     "expected_rule_id_or_signature": "D-project-scan-limit",
     "classification": "must_block",
     "description": "exceed the bounded project entry count",
+    "reauthored_reason": "PR 5 (6123d80) confined the project walk to configured scan.roots (src); the generated entries moved from the unscanned repo-root bulk/ directory into src/bulk so they are actually counted toward the entries budget and D-project-scan-limit still fires",
+    "changed_in_pr": "PR 5 (6123d80: refactor: build one project index and enforce scan roots)",
     "gap_probe_kind": null
   },
   {
@@ -217,6 +223,8 @@
     "expected_rule_id_or_signature": "R-contract-version",
     "classification": "must_block",
     "description": "remove the required contract version header",
+    "reauthored_reason": "PR 4 (dd7e506) scoped R-contract-version to files under a boundary with versioning=semver (or unconfigured legacy projects); base switched to inspect-boundary-semver, which declares a [[boundaries]] entry over src with versioning=semver, so the guarantee is exercised for a configured, schema-v2 project",
+    "changed_in_pr": "PR 4 (dd7e506: fix: enforce scoped contracts, versions, and exceptions)",
     "gap_probe_kind": null
   },
   {
