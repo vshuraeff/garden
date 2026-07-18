@@ -1,6 +1,6 @@
 {
   "benchmark_version": "1.1",
-  "generated_at": "2026-07-18T19:34:42.768469Z",
+  "generated_at": "2026-07-18T19:52:19.044488Z",
   "matrix_identity": {
     "enforced_in": "ci-matrix-comparison",
     "identical": null,
@@ -136,9 +136,9 @@
     }
   },
   "toolchain": {
-    "garden_commit": "9b4c260b83652395765a8a194ec7c005aa306514",
+    "garden_commit": "b3c11a8e9bb1e0c5bc68aaf531a0249e88eab027",
     "platform": "macos",
-    "plugin_version": "0.10.1",
+    "plugin_version": "0.10.2",
     "python_version": "3.14.0",
     "repository_commit": "e8d5bc838ae40ba5c76fbe79c895c55da748e896",
     "seed": 20260714
