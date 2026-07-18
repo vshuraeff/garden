@@ -18,6 +18,7 @@ NORMATIVE_DOCUMENTS = (
     Path("docs/reference/glossary.md"),
     Path("docs/reference/principles.md"),
     Path("docs/reference/report-schema.md"),
+    Path("docs/reference/rule-registry.md"),
     Path("docs/explanation/relation-to-classic-principles.md"),
     Path("docs/explanation/the-garden-model.md"),
     Path("docs/explanation/why-agent-first-principles.md"),

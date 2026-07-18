@@ -8,11 +8,11 @@ from datetime import date
 from pathlib import PurePosixPath
 from typing import Callable, Generic, TypeVar
 
+from garden_registry import load_registry
 from garden_rule_metadata import (
     RUNTIME_ALIAS_TABLE,
     canonical_for,
     is_exception_eligible,
-    parse_checklist_mechanization,
 )
 
 
@@ -773,7 +773,7 @@ def _parse_exception(
                 validator.error(
                     rule_id_path,
                     f"rule '{canonical_rule_id}' does not permit configuration "
-                    "exceptions per docs/reference/checklist.md",
+                    "exceptions per the rule registry",
                 )
 
     reason = None
@@ -868,7 +868,7 @@ def validate_config(value: object) -> ValidationResult:
         else:
             known_canonical_rule_ids = frozenset(
                 rule_id for rule_id, _level in RUNTIME_ALIAS_TABLE.values()
-            ) | frozenset(parse_checklist_mechanization())
+            ) | frozenset(entry.id for entry in load_registry().rules)
             parsed_exceptions = []
             for index, item in enumerate(raw_exceptions):
                 parsed = _parse_exception(

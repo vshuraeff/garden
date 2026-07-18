@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import re
 import sys
 import tempfile
 import unittest
@@ -9,12 +8,12 @@ from unittest.mock import patch
 
 
 TOOLS_DIR = Path(__file__).resolve().parent
-REPO_ROOT = TOOLS_DIR.parents[2]
 sys.path.insert(0, str(TOOLS_DIR))
 
 from garden_core import inspect_file, inspect_project  # noqa: E402
+from garden_registry import load_registry  # noqa: E402
 from garden_report import Finding, build_project_report  # noqa: E402
-from garden_rule_metadata import COVERAGE  # noqa: E402
+from garden_rule_metadata import COVERAGE, EXCEPTION_ELIGIBLE_RULES  # noqa: E402
 from garden_scanner import ScanLimitExceeded  # noqa: E402
 
 
@@ -358,39 +357,47 @@ class GardenReportTests(unittest.TestCase):
 
         self.assertEqual(1, len(report["findings"]))
 
-    def test_checklist_mechanization_matches_static_coverage(self) -> None:
-        checklist = (REPO_ROOT / "docs" / "reference" / "checklist.md").read_text(
-            encoding="utf-8"
-        )
-        pattern = re.compile(
-            r"^- \[ \] `(?P<rule_id>[^`]+)`.*?"
-            r"Mechanization: (?P<mechanization>.*?)\. Configuration key:",
-            re.MULTILINE,
-        )
-        mechanization = {
-            match.group("rule_id"): match.group("mechanization")
-            for match in pattern.finditer(checklist)
+    def test_coverage_matches_registry_implementation_status(self) -> None:
+        registry = load_registry()
+        partial_rules = {
+            entry.id for entry in registry.rules if entry.implementation == "partial"
         }
-        manual = {
-            rule_id
-            for rule_id, value in mechanization.items()
-            if value.startswith("manual-with-owner")
-        }
-        planned = {
-            rule_id
-            for rule_id, value in mechanization.items()
-            if value.startswith("planned")
-        }
-        unexpected = {
-            rule_id: value
-            for rule_id, value in mechanization.items()
-            if not value.startswith(("manual-with-owner", "planned", "automated"))
-        }
+        implemented_rules = set(COVERAGE.implemented_rules)
+        manual_rules = set(COVERAGE.manual_rules)
+        planned_rules = set(COVERAGE.planned_rules)
 
-        self.assertTrue(mechanization)
-        self.assertEqual({}, unexpected)
-        self.assertEqual(manual, set(COVERAGE.manual_rules))
-        self.assertEqual(planned, set(COVERAGE.planned_rules))
+        self.assertEqual(
+            manual_rules,
+            {
+                entry.id
+                for entry in registry.rules
+                if entry.implementation in ("manual-with-owner", "experimental")
+            },
+        )
+        self.assertEqual(
+            planned_rules,
+            {entry.id for entry in registry.rules if entry.implementation == "planned"},
+        )
+        self.assertEqual(
+            {"A-LOC-004", "N-KNOW-005", "R-REPL-001", "R-REPL-002"},
+            partial_rules,
+        )
+        self.assertTrue(partial_rules <= implemented_rules)
+        self.assertTrue(partial_rules.isdisjoint(manual_rules | planned_rules))
+        self.assertTrue(manual_rules.isdisjoint(planned_rules))
+        self.assertTrue((manual_rules | planned_rules).isdisjoint(implemented_rules))
+
+    def test_exception_eligible_rules_match_registry(self) -> None:
+        registry = load_registry()
+
+        self.assertEqual(
+            frozenset({"A-LOC-004", "N-KNOW-005", "R-REPL-001", "R-REPL-002"}),
+            EXCEPTION_ELIGIBLE_RULES,
+        )
+        self.assertEqual(
+            frozenset(entry.id for entry in registry.rules if entry.exception_allowed),
+            EXCEPTION_ELIGIBLE_RULES,
+        )
 
 
 if __name__ == "__main__":

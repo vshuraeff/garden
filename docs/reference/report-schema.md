@@ -136,15 +136,14 @@ fields are `null`. The assembler preserves values supplied by a rule.
 | `planned_rules` | Rules intended for future mechanization. |
 | `not_applicable_rules` | Rules the tool declares categorically inapplicable; this list is currently empty. |
 
-`implemented_rules` and `manual_rules`/`planned_rules` are not disjoint.
-`R-REPL-001`, `R-REPL-002`, `A-LOC-004`, and `N-KNOW-005` appear in both:
-[checklist.md](checklist.md) still records their full mechanization as manual
-or planned, while `RUNTIME_ALIAS_TABLE` already runs an approximate legacy
-heuristic check for them (contract presence, contract version, colocated
-tests, context budget) that predates and does not satisfy the checklist's
-mechanization criteria. The overlap signals partial mechanization, not a
-data error. A canonical machine-readable rule registry with an explicit
-"partial" implementation status is planned to remove the overlap.
+The four arrays are derived from the canonical registry at
+`plugins/garden/rules/garden-rules.toml` through
+`garden_registry.load_registry()`. `manual_rules` and `planned_rules` are
+disjoint. A rule with `implementation = "partial"` in the registry, currently
+`R-REPL-001`, `R-REPL-002`, `A-LOC-004`, or `N-KNOW-005`, appears only in
+`implemented_rules` because it has a working approximate or legacy runtime
+check. Its full mechanization status remains in the registry instead of being
+duplicated in `manual_rules` or `planned_rules`.
 
 A rule absent from `implemented_rules` is not evaluated by this tool. That is
 different from finding state `not-applicable`, which is a project-specific

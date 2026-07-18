@@ -22,6 +22,8 @@ from garden_config import (
 )
 from garden_core import inspect_file, inspect_project
 from garden_project import install, remove
+from garden_registry import load_registry
+from garden_rule_metadata import RUNTIME_ALIAS_TABLE, resolve_alias
 
 
 def _print_config_errors(errors: Iterable[ConfigError]) -> None:
@@ -69,6 +71,11 @@ def main(argv: list[str] | None = None) -> int:
     for command in ("validate", "show"):
         parser_for_command = config_subparsers.add_parser(command)
         parser_for_command.add_argument("root", nargs="?", default=".")
+
+    explain_parser = subparsers.add_parser(
+        "explain", help="explain one rule or runtime check id"
+    )
+    explain_parser.add_argument("rule_id")
 
     init_parser = subparsers.add_parser("init", help="initialize .garden.toml")
     init_parser.add_argument("root", nargs="?", default=".")
@@ -129,6 +136,63 @@ def main(argv: list[str] | None = None) -> int:
                 print(f"valid: no .garden.toml at {result.root}")
         else:
             print(render_effective(resolve_effective(result.config)), end="")
+        return 0
+
+    elif args.command == "explain":
+        registry = load_registry()
+        rule = registry.rule(args.rule_id)
+        if rule is not None:
+            value = {
+                "id": rule.id,
+                "principle": rule.principle,
+                "title": rule.title,
+                "level": rule.level,
+                "scope": rule.scope,
+                "implementation": rule.implementation,
+                "runtime_aliases": rule.runtime_aliases,
+                "configuration_keys": rule.configuration_keys,
+                "exception_policy": rule.exception_policy,
+                "exception_allowed": rule.exception_allowed,
+            }
+            if rule.digest is not None:
+                value["digest"] = rule.digest
+        elif args.rule_id in RUNTIME_ALIAS_TABLE:
+            canonical_id, runtime_alias, _level = resolve_alias(args.rule_id)
+            if runtime_alias is not None:
+                canonical_rule = registry.rule(canonical_id)
+                if canonical_rule is None:
+                    print(
+                        f"unknown rule or runtime id: {args.rule_id}",
+                        file=sys.stderr,
+                    )
+                    return 1
+                value = {
+                    "id": args.rule_id,
+                    "principle": canonical_rule.principle,
+                    "level": canonical_rule.level,
+                    "title": canonical_rule.title,
+                    "kind": "runtime-check",
+                    "canonical": canonical_rule.id,
+                }
+            else:
+                runtime_check = registry.runtime_check(args.rule_id)
+                if runtime_check is None:
+                    print(
+                        f"unknown rule or runtime id: {args.rule_id}",
+                        file=sys.stderr,
+                    )
+                    return 1
+                value = {
+                    "id": runtime_check.id,
+                    "principle": runtime_check.principle,
+                    "level": runtime_check.level,
+                    "title": runtime_check.title,
+                    "kind": "runtime-check",
+                }
+        else:
+            print(f"unknown rule or runtime id: {args.rule_id}", file=sys.stderr)
+            return 1
+        print(json.dumps(value, ensure_ascii=False, indent=2))
         return 0
 
     else:

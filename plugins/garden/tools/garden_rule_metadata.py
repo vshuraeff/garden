@@ -1,4 +1,4 @@
-"""Rule aliases, normative levels, and report coverage metadata."""
+"""Rule aliases, exception policy, and coverage derived from the registry."""
 
 from __future__ import annotations
 
@@ -6,42 +6,40 @@ import re
 from dataclasses import dataclass
 from pathlib import Path
 
+from garden_registry import Registry, RegistryError, load_registry
+
+
+def _register_runtime_id(
+    table: dict[str, tuple[str, str]],
+    runtime_id: str,
+    target: tuple[str, str],
+) -> None:
+    existing = table.get(runtime_id)
+    if existing is not None and existing != target:
+        raise RegistryError(
+            f"runtime ID {runtime_id!r} maps to both {existing!r} and {target!r}"
+        )
+    table[runtime_id] = target
+
+
+def _build_runtime_alias_table(registry: Registry) -> dict[str, tuple[str, str]]:
+    table: dict[str, tuple[str, str]] = {}
+    for entry in registry.rules:
+        for alias in entry.runtime_aliases:
+            _register_runtime_id(table, alias, (entry.id, entry.level))
+    for entry in registry.runtime_checks:
+        _register_runtime_id(table, entry.id, (entry.id, entry.level))
+    return table
+
+
+_REGISTRY = load_registry()
 
 # unmapped hard failures are required; unmapped advisories are default.
-RUNTIME_ALIAS_TABLE: dict[str, tuple[str, str]] = {
-    "A-colocated-tests": ("A-LOC-004", "DEFAULT"),
-    "D-project-scan-limit": ("D-project-scan-limit", "REQUIRED"),
-    # missing roots are operator signals, not structural violations, but stay visible.
-    "D-scan-root-missing": ("D-scan-root-missing", "DEFAULT"),
-    "N-CONFIG-INVALID": ("N-CONFIG-INVALID", "REQUIRED"),
-    "N-CONTEXT-MISSING": ("N-CONTEXT-MISSING", "REQUIRED"),
-    "N-LEGACY-NAMING-REGISTRY": ("N-LEGACY-NAMING-REGISTRY", "DEFAULT"),
-    "N-NAMING-DUPLICATE-CANONICAL": (
-        "N-NAMING-DUPLICATE-CANONICAL",
-        "REQUIRED",
-    ),
-    "N-NAMING-DUPLICATE-CONCEPT": (
-        "N-NAMING-DUPLICATE-CONCEPT",
-        "REQUIRED",
-    ),
-    "N-NAMING-EMPTY-REGISTRY": ("N-NAMING-EMPTY-REGISTRY", "REQUIRED"),
-    "N-NAMING-INVALID-ENTRY": ("N-NAMING-INVALID-ENTRY", "REQUIRED"),
-    "N-NAMING-MISSING": ("N-NAMING-MISSING", "REQUIRED"),
-    "N-context-budget": ("N-KNOW-005", "DEFAULT"),
-    "N-context-scan-limit": ("N-context-scan-limit", "REQUIRED"),
-    "R-boundary-contract-missing": ("R-REPL-001", "REQUIRED"),
-    "R-boundary-evidence-review": ("R-REPL-001", "REQUIRED"),
-    "R-component-contract": ("R-REPL-001", "REQUIRED"),
-    "R-contract-scan-limit": ("R-contract-scan-limit", "REQUIRED"),
-    "R-contract-version": ("R-REPL-002", "REQUIRED"),
-}
+RUNTIME_ALIAS_TABLE: dict[str, tuple[str, str]] = _build_runtime_alias_table(_REGISTRY)
 
-# sourced from docs/reference/checklist.md exception clauses for exactly these
-# canonical rule ids. rules whose checklist text says exceptions are "not allowed"
-# (G-DISC-001..003, A-LOC-001, A-LOC-002, R-REPL-006, D-VER-004, D-VER-005,
-# N-KNOW-003) must never be added here.
+# sourced from the registry's exception_allowed field.
 EXCEPTION_ELIGIBLE_RULES: frozenset[str] = frozenset(
-    {"R-REPL-001", "R-REPL-002", "A-LOC-004", "N-KNOW-005"}
+    entry.id for entry in _REGISTRY.rules if entry.exception_allowed
 )
 
 
@@ -93,64 +91,24 @@ class Coverage:
     not_applicable_rules: tuple[str, ...]
 
 
-# doc-declared automated checks may live outside garden_rules.py and are excluded.
-#
-# implemented_rules and manual_rules/planned_rules are not disjoint sets.
-# R-REPL-001, R-REPL-002, A-LOC-004, and N-KNOW-005 appear in both: the
-# checklist still records their full mechanization as manual or planned,
-# while RUNTIME_ALIAS_TABLE already runs an approximate legacy heuristic
-# check for them (contract presence, contract version, colocated tests,
-# context budget) that predates and does not satisfy the checklist's
-# mechanization criteria. The overlap marks partial mechanization, not a
-# duplicate or an error. A canonical machine-readable rule registry with
-# an explicit "partial" implementation status is planned to replace this
-# derived-from-two-sources approximation.
+# coverage is registry-derived and disjoint. automated rules without runtime aliases
+# may live outside garden_rules.py and remain excluded; partial runtime checks count as
+# implemented instead of also appearing in the manual or planned lists.
 COVERAGE = Coverage(
     implemented_rules=tuple(
         sorted({rule_id for rule_id, _level in RUNTIME_ALIAS_TABLE.values()})
     ),
-    manual_rules=(
-        "A-LOC-001",
-        "A-LOC-005",
-        "A-LOC-006",
-        "D-VER-001",
-        "D-VER-004",
-        "D-VER-005",
-        "D-VER-007",
-        "D-VER-008",
-        "E-EXPL-002",
-        "E-EXPL-004",
-        "E-EXPL-006",
-        "G-DISC-002",
-        "G-DISC-005",
-        "G-DISC-006",
-        "N-KNOW-001",
-        "N-KNOW-002",
-        "N-KNOW-004",
-        "N-KNOW-007",
-        "N-KNOW-008",
-        "R-REPL-001",
-        "R-REPL-003",
-        "R-REPL-004",
-        "R-REPL-005",
-        "R-REPL-006",
-        "R-REPL-007",
-        "R-REPL-008",
+    manual_rules=tuple(
+        sorted(
+            entry.id
+            for entry in _REGISTRY.rules
+            if entry.implementation in ("manual-with-owner", "experimental")
+        )
     ),
-    planned_rules=(
-        "A-LOC-002",
-        "A-LOC-003",
-        "A-LOC-004",
-        "D-VER-003",
-        "D-VER-006",
-        "E-EXPL-001",
-        "E-EXPL-003",
-        "E-EXPL-005",
-        "G-DISC-001",
-        "G-DISC-003",
-        "G-DISC-004",
-        "N-KNOW-005",
-        "R-REPL-002",
+    planned_rules=tuple(
+        sorted(
+            entry.id for entry in _REGISTRY.rules if entry.implementation == "planned"
+        )
     ),
     not_applicable_rules=(),
 )

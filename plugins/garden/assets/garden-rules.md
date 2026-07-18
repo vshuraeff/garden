@@ -1,3 +1,4 @@
+<!-- Generated from plugins/garden/rules/garden-rules.toml. Do not edit directly. Run generate_rules_digest.py --write to update. -->
 # GARDEN project rules
 
 Use `REQUIRED` for rules whose violation creates a demonstrable correctness,

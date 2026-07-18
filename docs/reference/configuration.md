@@ -230,11 +230,13 @@ Each `[[exceptions]]` entry accepts only these keys:
 
 Validation accepts only known canonical rule IDs or runtime aliases for
 exception-eligible rules; schema v2 requires the canonical ID rather than a runtime
-alias. `reason` and `owner` must be non-empty, and `review_after` must be an ISO
-`YYYY-MM-DD` date or `on-rule-change` or `on-major-release`. Inspection suppresses
-matching `fail` findings by canonical rule ID and path glob unless an ISO-date
-`review_after` is in the past; review markers do not expire. It never suppresses
-`unknown` findings.
+alias. The accepted canonical IDs and eligible runtime aliases originate in
+`plugins/garden/rules/garden-rules.toml`: `garden_rule_metadata.py` derives
+`EXCEPTION_ELIGIBLE_RULES` and `RUNTIME_ALIAS_TABLE` from it. `reason` and `owner`
+must be non-empty, and `review_after` must be an ISO `YYYY-MM-DD` date or
+`on-rule-change` or `on-major-release`. Inspection suppresses matching `fail` findings
+by canonical rule ID and path glob unless an ISO-date `review_after` is in the past;
+review markers do not expire. It never suppresses `unknown` findings.
 
 ## Commands
 
