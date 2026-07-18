@@ -1,5 +1,23 @@
 # Changelog
 
+## 0.10.1
+
+- Added `SECURITY.md`, documenting the `garden-check.sh` and `garden-prompt.sh`
+  hooks, their fail-open status contract, and `garden_mcp.py`'s two read-only
+  stdio tools with client-root and symlink confinement.
+- Documented bounded walk and file-read limits, POSIX-only scope with Windows
+  unsupported, and runtime supply-chain constraints: hooks use `uv run
+  --no-project` with standard-library and local modules, without dependency
+  resolution, installation, or third-party fetch; `plugin_version.py` remains
+  maintainer-only tooling.
+- Recorded that `test_garden_security.py` exercises capability-directory
+  symlink escapes, TOCTOU file swaps, pathological glob matching, malformed
+  UTF-8, and interrupted atomic writes.
+- Recorded a grep-based tools scan with no `eval(`, `exec(`, `os.system`,
+  `socket.`, or `urllib.request` occurrences.
+- Added GitHub Security-tab reporting through **Report a vulnerability** rather
+  than public issues.
+
 ## 0.9.1
 
 - Added installed-harness smoke tests that install the packaged plugin into
