@@ -283,7 +283,7 @@ class GardenReportTests(unittest.TestCase):
                 self.assertEqual(budget, report["scan"]["exceeded_budget"])
                 self.assertEqual(["forced project limit"], report["scan"]["errors"])
 
-    def test_missing_configured_scan_root_is_one_advisory_finding(self) -> None:
+    def test_missing_configured_scan_root_is_one_error_finding(self) -> None:
         (self.root / ".garden.toml").write_text(
             "schema_version = 1\n"
             '[scan]\nroots = ["src", "missing"]\n'
@@ -298,12 +298,12 @@ class GardenReportTests(unittest.TestCase):
             item for item in report["findings"] if item["rule"] == "D-scan-root-missing"
         ]
         self.assertEqual(1, len(findings))
-        self.assertEqual("advisory", findings[0]["severity"])
+        self.assertEqual("error", findings[0]["severity"])
         self.assertEqual("unknown", findings[0]["state"])
         self.assertEqual("missing", findings[0]["path"])
         self.assertEqual("D-scan-root-missing", findings[0]["rule_id"])
         self.assertIsNone(findings[0]["runtime_alias"])
-        self.assertEqual("DEFAULT", findings[0]["level"])
+        self.assertEqual("REQUIRED", findings[0]["level"])
         self.assertEqual(["missing"], report["scan"]["missing_roots"])
 
     def test_project_and_file_findings_agree_for_nested_contract(self) -> None:

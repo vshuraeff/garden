@@ -30,6 +30,67 @@ class GardenBoundaryTests(unittest.TestCase):
             encoding="utf-8",
         )
 
+    def write_public_import_project(self, imported_module: str) -> Path:
+        (self.root / ".garden.toml").write_text(
+            "schema_version = 1\n"
+            "[scan]\n"
+            'roots = ["src"]\n'
+            'include = ["**/*.py"]\n'
+            "[capabilities]\n"
+            'strategy = "explicit"\n'
+            "[capabilities.map]\n"
+            '"src/orders" = "orders"\n'
+            '"src/billing" = "billing"\n'
+            "[boundaries]\n"
+            'public = ["src/orders/api.py"]\n'
+            "[documentation]\n"
+            "root_context_required = false\n",
+            encoding="utf-8",
+        )
+        orders = self.root / "src" / "orders"
+        billing = self.root / "src" / "billing"
+        orders.mkdir(parents=True)
+        billing.mkdir(parents=True)
+        for capability in (orders, billing):
+            (capability / "CONTRACT.md").write_text(
+                "Version: 1.0.0\n", encoding="utf-8"
+            )
+        (orders / "api.py").write_text("VALUE = 1\n", encoding="utf-8")
+        (orders / "private.py").write_text("VALUE = 2\n", encoding="utf-8")
+        source = billing / "handler.py"
+        source.write_text(f"from {imported_module} import VALUE\n", encoding="utf-8")
+        return source
+
+    def test_cross_capability_private_import_is_an_error(self) -> None:
+        source = self.write_public_import_project("src.orders.private")
+
+        file_finding = next(
+            finding
+            for finding in inspect_file(source, self.root)
+            if finding.rule == "A-private-boundary-import"
+        )
+        project_findings = [
+            finding
+            for finding in inspect_project(self.root)["findings"]
+            if finding["rule"] == "A-private-boundary-import"
+        ]
+
+        self.assertEqual("error", file_finding.severity)
+        self.assertEqual("REQUIRED", file_finding.level)
+        self.assertEqual("src/billing/handler.py", file_finding.path)
+        self.assertEqual(1, len(project_findings))
+
+    def test_cross_capability_public_import_has_no_error(self) -> None:
+        source = self.write_public_import_project("src.orders.api")
+
+        file_rules = [finding.rule for finding in inspect_file(source, self.root)]
+        project_rules = [
+            finding["rule"] for finding in inspect_project(self.root)["findings"]
+        ]
+
+        self.assertNotIn("A-private-boundary-import", file_rules)
+        self.assertNotIn("A-private-boundary-import", project_rules)
+
     def test_private_contract_without_version_is_not_checked(self) -> None:
         self.write_config(
             """

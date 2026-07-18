@@ -2,12 +2,13 @@
 
 from __future__ import annotations
 
+import ast
 import re
 from dataclasses import replace
 from datetime import date
 from fnmatch import fnmatchcase
 from pathlib import Path, PurePosixPath
-from typing import TYPE_CHECKING, Callable
+from typing import TYPE_CHECKING, Callable, Iterable
 
 from config_schema import EffectiveBoundaryConfig, REVIEW_MARKERS
 from garden_config import (
@@ -469,6 +470,194 @@ def _naming_findings(
     return findings
 
 
+def _required_contract_findings(
+    root: Path, config: EffectiveConfig, source_paths: Iterable[Path]
+) -> list[Finding]:
+    patterns = config.contracts.required_for.value
+    if not patterns:
+        return []
+
+    findings: list[Finding] = []
+    checked_capabilities: set[str] = set()
+    for source_path in sorted(source_paths):
+        try:
+            relative = source_path.relative_to(root)
+        except ValueError:
+            continue
+        if not _is_configured_source_file(relative, config):
+            continue
+        if _matches_path_pattern(relative, config.tests.patterns.value):
+            continue
+        resolution = resolve_capability(relative.as_posix(), config)
+        if resolution.status != "capability" or resolution.capability is None:
+            continue
+        capability = _capability_directory(relative, root, config)
+        if capability is None or not capability.is_dir() or capability.is_symlink():
+            continue
+        capability_relative = capability.relative_to(root)
+        identity = Path(*_relative_parts(resolution.capability))
+        if not any(
+            _matches_path_pattern(candidate, patterns)
+            for candidate in (relative, capability_relative, identity)
+        ):
+            continue
+        if resolution.capability in checked_capabilities:
+            continue
+        checked_capabilities.add(resolution.capability)
+        accepted_names = config.contracts.accepted_names.value
+        if any((capability / name).is_file() for name in accepted_names):
+            continue
+        expected = ", ".join(repr(name) for name in accepted_names)
+        findings.append(
+            make_finding(
+                "R-required-contract-missing",
+                "error",
+                capability_relative.as_posix(),
+                f"contracts.required_for matches capability "
+                f"{resolution.capability!r}, but it has none of the accepted "
+                f"contract files: {expected}",
+            )
+        )
+    return findings
+
+
+def _resolve_python_module(
+    root: Path, config: EffectiveConfig, module_parts: tuple[str, ...]
+) -> Path | None:
+    if not module_parts:
+        return None
+    prefixes = (".", *config.scan.roots.value, *config.capabilities.roots.value)
+    checked: set[Path] = set()
+    for prefix in prefixes:
+        relative = Path(*_relative_parts(prefix), *module_parts)
+        if relative in checked:
+            continue
+        checked.add(relative)
+        module_file = relative.with_suffix(".py")
+        if (root / module_file).is_file():
+            return module_file
+        package_file = relative / "__init__.py"
+        if (root / package_file).is_file():
+            return package_file
+        if (root / relative).is_dir():
+            return relative
+    return None
+
+
+def _python_import_targets(
+    root: Path, config: EffectiveConfig, source_path: Path, relative: Path
+) -> tuple[tuple[str, Path], ...]:
+    if source_path.suffix != ".py" or not source_path.is_file():
+        return ()
+    try:
+        content = b"".join(_bounded_binary_lines(source_path)).decode(
+            "utf-8-sig", errors="replace"
+        )
+        tree = ast.parse(content, filename=relative.as_posix())
+    except (OSError, ScanLimitExceeded, SyntaxError):
+        return ()
+
+    targets: list[tuple[str, Path]] = []
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Import):
+            for alias in node.names:
+                parts = tuple(alias.name.split("."))
+                target = _resolve_python_module(root, config, parts)
+                if target is not None:
+                    targets.append((alias.name, target))
+            continue
+        if not isinstance(node, ast.ImportFrom):
+            continue
+        if node.level:
+            package_parts = relative.with_suffix("").parts[:-1]
+            keep = len(package_parts) - node.level + 1
+            if keep < 0:
+                continue
+            base_parts = package_parts[:keep]
+        else:
+            base_parts = ()
+        if node.module:
+            base_parts = (*base_parts, *node.module.split("."))
+
+        alias_targets = []
+        for alias in node.names:
+            if alias.name == "*":
+                continue
+            alias_parts = (*base_parts, *alias.name.split("."))
+            target = _resolve_python_module(root, config, alias_parts)
+            if target is not None:
+                alias_targets.append((".".join(alias_parts), target))
+        if alias_targets:
+            targets.extend(alias_targets)
+            continue
+        target = _resolve_python_module(root, config, base_parts)
+        if target is not None:
+            targets.append((".".join(base_parts), target))
+    return tuple(targets)
+
+
+def _is_public_boundary(relative: Path, config: EffectiveConfig) -> bool:
+    for public_path in config.boundaries.public.value:
+        if _under(relative, public_path) is not None:
+            return True
+        configured = Path(*_relative_parts(public_path))
+        if relative.suffix == ".py" and relative.with_suffix("") == configured:
+            return True
+    return False
+
+
+def _boundary_findings(
+    root: Path, config: EffectiveConfig, source_paths: Iterable[Path]
+) -> list[Finding]:
+    if not config.boundaries.public.value:
+        return []
+
+    findings: list[Finding] = []
+    reported: set[tuple[str, str]] = set()
+    for source_path in sorted(source_paths):
+        try:
+            relative = source_path.relative_to(root)
+        except ValueError:
+            continue
+        if not _is_configured_source_file(relative, config):
+            continue
+        if _matches_path_pattern(relative, config.tests.patterns.value):
+            continue
+        source_resolution = resolve_capability(relative.as_posix(), config)
+        if (
+            source_resolution.status != "capability"
+            or source_resolution.capability is None
+        ):
+            continue
+        for imported_name, target in _python_import_targets(
+            root, config, source_path, relative
+        ):
+            target_resolution = resolve_capability(target.as_posix(), config)
+            if (
+                target_resolution.status != "capability"
+                or target_resolution.capability is None
+                or target_resolution.capability == source_resolution.capability
+                or _is_public_boundary(target, config)
+            ):
+                continue
+            key = (relative.as_posix(), target.as_posix())
+            if key in reported:
+                continue
+            reported.add(key)
+            findings.append(
+                make_finding(
+                    "A-private-boundary-import",
+                    "error",
+                    relative.as_posix(),
+                    f"capability {source_resolution.capability!r} imports private "
+                    f"module {imported_name!r} owned by capability "
+                    f"{target_resolution.capability!r}; import a path declared in "
+                    "boundaries.public instead",
+                )
+            )
+    return findings
+
+
 def _context_missing(root: Path, config: EffectiveConfig) -> Finding | None:
     documentation = config.documentation
     if not documentation.root_context_required.value:
@@ -663,7 +852,12 @@ def inspect_file(
     if capability is None or not capability.is_dir() or capability.is_symlink():
         return _apply_exceptions(findings, effective)
 
-    if not any(
+    required_contract_findings = _required_contract_findings(
+        project_root, effective, (resolved,)
+    )
+    findings.extend(required_contract_findings)
+    findings.extend(_boundary_findings(project_root, effective, (resolved,)))
+    if not required_contract_findings and not any(
         (capability / name).is_file()
         for name in effective.contracts.accepted_names.value
     ):
@@ -841,6 +1035,11 @@ def inspect_project(root: Path) -> dict[str, object]:
         if missing:
             findings.append(missing)
         findings.extend(_naming_findings(resolved, loaded, effective))
+        assert index is not None
+        findings.extend(
+            _required_contract_findings(resolved, effective, index.source_files)
+        )
+        findings.extend(_boundary_findings(resolved, effective, index.source_files))
     if effective:
         findings.extend(
             finding
@@ -851,7 +1050,7 @@ def inspect_project(root: Path) -> dict[str, object]:
         findings.extend(
             make_finding(
                 "D-scan-root-missing",
-                "advisory",
+                "error",
                 missing_root,
                 f"configured scan root {missing_root!r} does not exist or is unsafe to scan",
                 state="unknown",

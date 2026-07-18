@@ -94,6 +94,26 @@ class GardenCliIntegrationTests(unittest.TestCase):
         self.assertNotEqual(0, completed.returncode)
         self.assertFalse(json.loads(completed.stdout)["active"])
 
+    def test_strict_inspect_rejects_missing_scan_root(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / ".garden.toml").write_text(
+                "schema_version = 1\n"
+                '[scan]\nroots = ["missing"]\n'
+                "[documentation]\nroot_context_required = false\n",
+                encoding="utf-8",
+            )
+
+            completed = self.run_garden("inspect", "--strict", str(root))
+
+        self.assertEqual(1, completed.returncode, completed.stderr)
+        report = json.loads(completed.stdout)
+        finding = next(
+            item for item in report["findings"] if item["rule"] == "D-scan-root-missing"
+        )
+        self.assertEqual("error", finding["severity"])
+        self.assertEqual("unknown", finding["state"])
+
     def test_strict_inspect_rejects_expired_exception(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)

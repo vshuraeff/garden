@@ -22,12 +22,12 @@ false_blocks_allowed = 0
 clean_total = 16
 
 [mutations]
-killed_required = 48
-mutation_total = 48
+killed_required = 51
+mutation_total = 51
 clean_blocked_allowed = 0
-clean_total = 12
-gap_probes_required = 8
-gap_probe_total = 8
+clean_total = 13
+gap_probes_required = 4
+gap_probe_total = 4
 
 [migration]
 cases_required_per_property = 12

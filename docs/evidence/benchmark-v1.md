@@ -183,12 +183,12 @@ Top-level result: **pass**.
 
 | Protocol key | Preregistered value | Actual metric | Actual value |
 | --- | ---: | --- | ---: |
-| `killed_required` | 48 | `must_block_killed` | 48 |
-| `mutation_total` | 48 | `must_block_total` | 48 |
+| `killed_required` | 51 | `must_block_killed` | 51 |
+| `mutation_total` | 51 | `must_block_total` | 51 |
 | `clean_blocked_allowed` | 0 | `clean_blocked` | 0 |
-| `clean_total` | 12 | `clean_total` | 12 |
-| `gap_probes_required` | 8 | `gap_probe_total` | 8 |
-| `gap_probe_total` | 8 | `gap_probe_total` | 8 |
+| `clean_total` | 13 | `clean_total` | 13 |
+| `gap_probes_required` | 4 | `gap_probe_total` | 4 |
+| `gap_probe_total` | 4 | `gap_probe_total` | 4 |
 
 #### Migration
 
@@ -215,16 +215,16 @@ Ablations use only the checked-in must-block mutation rows and mapped, observed 
 
 | Family | Targeted killed / total | Targeted recall | Standalone coverage | Leave-one-out loss |
 | --- | ---: | ---: | ---: | ---: |
-| A | 0 / 0 | not applicable | 0 / 48 | 0 |
-| D | 1 / 1 | 1 | 1 / 48 | 1 |
-| N | 10 / 10 | 1 | 10 / 48 | 10 |
-| R | 2 / 2 | 1 | 2 / 48 | 2 |
+| A | 0 / 0 | not applicable | 0 / 51 | 0 |
+| D | 1 / 1 | 1 | 1 / 51 | 1 |
+| N | 10 / 10 | 1 | 10 / 51 | 10 |
+| R | 2 / 2 | 1 | 2 / 51 | 2 |
 
 Families without observed mapped rules: G, E.
 
 ### Result integrity and reproduction
 
-`summary.json` SHA-256: `01eab7cafb75490e82d04871214c9ee4e3c2c23ca43437d2028b7ec275cba940`
+`summary.json` SHA-256: `f79f263912ce4f021a3d12c47cee28cedc0cc0753f01b9f72c5b2bf9b2537b20`
 
 ```sh
 uv run --no-project benchmarks/run.py

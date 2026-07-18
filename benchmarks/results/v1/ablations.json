@@ -8,7 +8,7 @@
     "A": {
       "leave_one_out_loss": 0,
       "leave_one_out_loss_rate": 0.0,
-      "leave_one_out_remaining_killed": 48,
+      "leave_one_out_remaining_killed": 51,
       "represented_rules": [
         "A-colocated-tests"
       ],
@@ -20,12 +20,12 @@
     },
     "D": {
       "leave_one_out_loss": 1,
-      "leave_one_out_loss_rate": 0.020833333333333332,
-      "leave_one_out_remaining_killed": 47,
+      "leave_one_out_loss_rate": 0.0196078431372549,
+      "leave_one_out_remaining_killed": 50,
       "represented_rules": [
         "D-project-scan-limit"
       ],
-      "standalone_coverage": 0.020833333333333332,
+      "standalone_coverage": 0.0196078431372549,
       "standalone_covered_mutations": 1,
       "targeted_killed": 1,
       "targeted_mutations": 1,
@@ -33,8 +33,8 @@
     },
     "N": {
       "leave_one_out_loss": 10,
-      "leave_one_out_loss_rate": 0.20833333333333334,
-      "leave_one_out_remaining_killed": 38,
+      "leave_one_out_loss_rate": 0.19607843137254902,
+      "leave_one_out_remaining_killed": 41,
       "represented_rules": [
         "N-CONTEXT-MISSING",
         "N-NAMING-DUPLICATE-CANONICAL",
@@ -45,7 +45,7 @@
         "N-context-budget",
         "N-context-scan-limit"
       ],
-      "standalone_coverage": 0.20833333333333334,
+      "standalone_coverage": 0.19607843137254902,
       "standalone_covered_mutations": 10,
       "targeted_killed": 10,
       "targeted_mutations": 10,
@@ -53,14 +53,14 @@
     },
     "R": {
       "leave_one_out_loss": 2,
-      "leave_one_out_loss_rate": 0.041666666666666664,
-      "leave_one_out_remaining_killed": 46,
+      "leave_one_out_loss_rate": 0.0392156862745098,
+      "leave_one_out_remaining_killed": 49,
       "represented_rules": [
         "R-component-contract",
         "R-contract-scan-limit",
         "R-contract-version"
       ],
-      "standalone_coverage": 0.041666666666666664,
+      "standalone_coverage": 0.0392156862745098,
       "standalone_covered_mutations": 2,
       "targeted_killed": 2,
       "targeted_mutations": 2,
@@ -152,8 +152,8 @@
       ]
     }
   },
-  "must_block_killed": 48,
-  "must_block_total": 48,
+  "must_block_killed": 51,
+  "must_block_total": 51,
   "population": "must_block mutation rows",
   "repository_commit": "e8d5bc838ae40ba5c76fbe79c895c55da748e896",
   "schema_version": "1"

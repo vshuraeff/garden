@@ -119,6 +119,50 @@ class GardenHookTests(ActiveProjectTestCase):
         self.assertIn(b"R-contract-version", result.stderr)
         self.assertNotIn(b"Traceback", result.stderr)
 
+    def test_required_contract_error_blocks_hook(self) -> None:
+        source, _, contract = self.configured_capabilities()
+        with (self.root / ".garden.toml").open("a", encoding="utf-8") as stream:
+            stream.write('[contracts]\nrequired_for = ["src/orders"]\n')
+        contract.unlink()
+        event = {
+            "cwd": str(self.root),
+            "tool_input": {"file_path": str(source)},
+        }
+
+        result = self.run_hook("garden_hook.py", json.dumps(event).encode())
+
+        self.assertEqual(2, result.returncode)
+        self.assertIn(b"R-required-contract-missing", result.stderr)
+
+    def test_private_boundary_import_blocks_hook(self) -> None:
+        (self.root / ".garden.toml").write_text(
+            "schema_version = 1\n"
+            '[scan]\nroots = ["src"]\ninclude = ["**/*.py"]\n'
+            '[capabilities]\nstrategy = "explicit"\n'
+            "[capabilities.map]\n"
+            '"src/orders" = "orders"\n'
+            '"src/billing" = "billing"\n'
+            '[boundaries]\npublic = ["src/orders/api.py"]\n'
+            "[documentation]\nroot_context_required = false\n",
+            encoding="utf-8",
+        )
+        orders = self.root / "src" / "orders"
+        billing = self.root / "src" / "billing"
+        orders.mkdir(parents=True)
+        billing.mkdir(parents=True)
+        (orders / "private.py").write_text("VALUE = 1\n", encoding="utf-8")
+        source = billing / "handler.py"
+        source.write_text("from src.orders.private import VALUE\n", encoding="utf-8")
+        event = {
+            "cwd": str(self.root),
+            "tool_input": {"file_path": str(source)},
+        }
+
+        result = self.run_hook("garden_hook.py", json.dumps(event).encode())
+
+        self.assertEqual(2, result.returncode)
+        self.assertIn(b"A-private-boundary-import", result.stderr)
+
     def test_one_index_walk_covers_three_files_and_two_capabilities(self) -> None:
         affected = self.configured_capabilities()
         event = {
