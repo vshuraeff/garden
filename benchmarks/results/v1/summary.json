@@ -1,6 +1,6 @@
 {
   "benchmark_version": "1.1",
-  "generated_at": "2026-07-17T09:27:24.769751Z",
+  "generated_at": "2026-07-18T08:33:55.237721Z",
   "matrix_identity": {
     "enforced_in": "ci-matrix-comparison",
     "identical": null,
@@ -112,33 +112,33 @@
       "metrics": {
         "clean_blocked": 0,
         "clean_false_block_rate": 0.0,
-        "clean_total": 12,
+        "clean_total": 13,
         "gap_detect_only_detected": 2,
         "gap_detect_only_total": 2,
-        "gap_known_unenforced_detected": 1,
-        "gap_known_unenforced_total": 6,
+        "gap_known_unenforced_detected": 0,
+        "gap_known_unenforced_total": 2,
         "gap_probe_blocked": 0,
-        "gap_probe_detected": 3,
-        "gap_probe_total": 8,
+        "gap_probe_detected": 2,
+        "gap_probe_total": 4,
         "kill_rate": 1.0,
-        "must_block_killed": 48,
-        "must_block_total": 48
+        "must_block_killed": 51,
+        "must_block_total": 51
       },
       "passed": true,
       "thresholds": {
         "clean_blocked_allowed": 0,
-        "clean_total": 12,
-        "gap_probe_total": 8,
-        "gap_probes_required": 8,
-        "killed_required": 48,
-        "mutation_total": 48
+        "clean_total": 13,
+        "gap_probe_total": 4,
+        "gap_probes_required": 4,
+        "killed_required": 51,
+        "mutation_total": 51
       }
     }
   },
   "toolchain": {
-    "garden_commit": "d5b1a8faffdb6e91e0adf2183232af4961559c00",
+    "garden_commit": "444c60ca41f377a1b1f91c77a20b62e2ce0d3bff",
     "platform": "macos",
-    "plugin_version": "0.9.1",
+    "plugin_version": "0.10.0",
     "python_version": "3.14.0",
     "repository_commit": "e8d5bc838ae40ba5c76fbe79c895c55da748e896",
     "seed": 20260714

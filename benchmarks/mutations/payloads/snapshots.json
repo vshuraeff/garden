@@ -23,6 +23,30 @@
         "src/CONTRACT.md": "Version: 1.0.0\n"
       }
     },
+    "inspect-required-contract": {
+      "files": {
+        ".garden.toml": "schema_version = 1\n\n[project]\ntype = \"service\"\ncontext_files = { any_of = [\"CONTEXT.md\"] }\n\n[scan]\nroots = [\"src\"]\ninclude = [\"**/*.py\"]\nexclude = []\n\n[capabilities]\nstrategy = \"explicit\"\n\n[capabilities.map]\n\"src/orders\" = \"orders\"\n\n[tests]\npatterns = [\"src/**/test_*.py\"]\nassociation = \"same-capability\"\n\n[contracts]\nrequired_for = [\"src/orders\"]\naccepted_names = [\"CONTRACT.md\"]\n\n[naming]\nregistry = \"naming-registry.txt\"\nrequired = true\n\n[documentation]\nroot_context_required = true\nmax_context_lines = 200\n",
+        "CONTEXT.md": "# Context\n\nSynthetic fixture context.\n",
+        "naming-registry.txt": "orders: orders\n",
+        "src/orders/handler.py": "STATE = \"ready\"\n",
+        "src/orders/test_handler.py": "def test_handler() -> None:\n    pass\n",
+        "src/orders/CONTRACT.md": "Version: 1.0.0\n"
+      }
+    },
+    "inspect-boundary-import": {
+      "files": {
+        ".garden.toml": "schema_version = 1\n\n[project]\ntype = \"service\"\ncontext_files = { any_of = [\"CONTEXT.md\"] }\n\n[scan]\nroots = [\"src\"]\ninclude = [\"**/*.py\"]\nexclude = []\n\n[capabilities]\nstrategy = \"explicit\"\n\n[capabilities.map]\n\"src/orders\" = \"orders\"\n\"src/billing\" = \"billing\"\n\n[tests]\npatterns = [\"src/**/test_*.py\"]\nassociation = \"same-capability\"\n\n[boundaries]\npublic = [\"src/orders/api.py\"]\n\n[naming]\nregistry = \"naming-registry.txt\"\nrequired = true\n\n[documentation]\nroot_context_required = true\nmax_context_lines = 200\n",
+        "CONTEXT.md": "# Context\n\nSynthetic fixture context.\n",
+        "naming-registry.txt": "orders: orders\nbilling: billing\n",
+        "src/orders/api.py": "VALUE = \"public\"\n",
+        "src/orders/private.py": "VALUE = \"private\"\n",
+        "src/orders/test_handler.py": "def test_handler() -> None:\n    pass\n",
+        "src/orders/CONTRACT.md": "Version: 1.0.0\n",
+        "src/billing/handler.py": "from src.orders.api import VALUE\n",
+        "src/billing/test_handler.py": "def test_handler() -> None:\n    pass\n",
+        "src/billing/CONTRACT.md": "Version: 1.0.0\n"
+      }
+    },
     "inspect-exception": {
       "files": {
         ".garden.toml": "schema_version = 1\n\n[project]\ncontext_files = { any_of = [\"CONTEXT.md\"] }\n\n[scan]\ninclude = [\"**/*.py\"]\n\n[capabilities]\nstrategy = \"explicit\"\n\n[capabilities.map]\n\"src/orders\" = \"orders\"\n\n[tests]\npatterns = [\"src/**/test_*.py\"]\nassociation = \"same-capability\"\n\n[documentation]\nroot_context_required = true\n\n[[exceptions]]\nrule_id = \"R-component-contract\"\npaths = [\"src/orders/**\"]\nreason = \"synthetic exception probe\"\nowner = \"benchmark\"\nreview_after = \"2027-01-01\"\n",
@@ -102,7 +126,7 @@
     "doc-06-front-matter": {"base":"repository","operation":{"kind":"replace","path":"docs/how-to/apply-to-new-project.md","old":"owner: vshuraeff","new":"owner: "}},
 
     "pkg-01-manifest-name": {"base":"repository","operation":{"kind":"replace","path":"plugins/garden/.codex-plugin/plugin.json","old":"\"name\": \"garden\"","new":"\"name\": \"garden-mutated\""}},
-    "pkg-02-manifest-version": {"base":"repository","operation":{"kind":"replace","path":"plugins/garden/.codex-plugin/plugin.json","old":"\"version\": \"0.9.1\"","new":"\"version\": \"0.9.2\""}},
+    "pkg-02-manifest-version": {"base":"repository","operation":{"kind":"replace","path":"plugins/garden/.codex-plugin/plugin.json","old":"\"version\": \"0.10.0\"","new":"\"version\": \"0.10.1\""}},
     "pkg-03-required-field": {"base":"repository","operation":{"kind":"replace","path":"plugins/garden/.codex-plugin/plugin.json","old":"\"description\": \"Apply and check the GARDEN agent-first software design principles in Codex and Claude Code.\"","new":"\"description\": \"\""}},
     "pkg-04-skills-path": {"base":"repository","operation":{"kind":"replace","path":"plugins/garden/.codex-plugin/plugin.json","old":"\"skills\": \"./skills/\"","new":"\"skills\": \"./other-skills/\""}},
     "pkg-05-mcp-server": {"base":"repository","operation":{"kind":"write","path":"plugins/garden/.mcp.json","content":"{\n  \"mcpServers\": {}\n}\n"}},
@@ -117,9 +141,9 @@
 
     "gap-01-missing-contract": {"base":"inspect","operation":{"kind":"delete","path":"src/orders/CONTRACT.md"}},
     "gap-02-missing-mapped-test": {"base":"inspect","operation":{"kind":"delete","path":"src/orders/test_handler.py"}},
-    "gap-03-scan-roots": {"base":"inspect","operation":{"kind":"write","path":"outside/tool.py","content":"VALUE = \"outside configured roots\"\n"}},
-    "gap-04-contracts-required-for": {"base":"inspect","operation":{"kind":"append","path":".garden.toml","content":"\n[contracts]\nrequired_for = [\"orders\"]\n"}},
-    "gap-05-boundaries-public": {"base":"inspect","operation":{"kind":"append","path":".garden.toml","content":"\n[boundaries]\npublic = [\"src/orders\"]\n"}},
+    "gap-03-scan-roots": {"base":"inspect","operation":{"kind":"replace","path":".garden.toml","old":"roots = [\"src\"]","new":"roots = [\"missing\"]"}},
+    "gap-04-contracts-required-for": {"base":"inspect-required-contract","operation":{"kind":"delete","path":"src/orders/CONTRACT.md"}},
+    "gap-05-boundaries-public": {"base":"inspect-boundary-import","operation":{"kind":"replace","path":"src/billing/handler.py","old":"src.orders.api","new":"src.orders.private"}},
     "gap-06-structured-exception": {"base":"inspect-exception","operation":{"kind":"replace","path":"src/orders/handler.py","old":"ready","new":"changed"}},
     "gap-07-markers-resolution": {"base":"inspect","operation":{"kind":"replace","path":".garden.toml","old":"strategy = \"explicit\"","new":"strategy = \"markers\""}},
     "gap-08-explicit-state-policy": {"base":"inspect","operation":{"kind":"append","path":".garden.toml","content":"\n[boundaries]\npublic = [\"src/orders\"]\n"}},

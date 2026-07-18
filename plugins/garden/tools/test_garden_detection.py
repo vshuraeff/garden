@@ -197,6 +197,72 @@ shared_roots = ["packages/shared"]
         self.assertNotIn("A-colocated-tests", rules)
 
 
+class RequiredContractDetectionTests(unittest.TestCase):
+    def write_project(self, *, contract: bool) -> tuple[Path, Path]:
+        root = Path(self.temp.name)
+        _write_config(
+            root,
+            """
+[scan]
+roots = ["src"]
+include = ["**/*.py"]
+[capabilities]
+strategy = "explicit"
+map = { "src/orders" = "orders" }
+[contracts]
+required_for = ["orders"]
+accepted_names = ["CONTRACT.md"]
+""",
+        )
+        capability = root / "src" / "orders"
+        capability.mkdir(parents=True)
+        source = capability / "handler.py"
+        source.write_text("pass\n", encoding="utf-8")
+        (capability / "service.py").write_text("pass\n", encoding="utf-8")
+        if contract:
+            (capability / "CONTRACT.md").write_text(
+                "Version: 1.0.0\n", encoding="utf-8"
+            )
+        return root, source
+
+    def setUp(self) -> None:
+        self.temp = tempfile.TemporaryDirectory()
+
+    def tearDown(self) -> None:
+        self.temp.cleanup()
+
+    def test_required_capability_without_contract_is_an_error(self) -> None:
+        root, source = self.write_project(contract=False)
+
+        file_finding = next(
+            finding
+            for finding in inspect_file(source, root)
+            if finding.rule == "R-required-contract-missing"
+        )
+        report_findings = [
+            finding
+            for finding in inspect_project(root)["findings"]
+            if finding["rule"] == "R-required-contract-missing"
+        ]
+
+        self.assertEqual("error", file_finding.severity)
+        self.assertEqual("REQUIRED", file_finding.level)
+        self.assertEqual("src/orders", file_finding.path)
+        self.assertEqual(1, len(report_findings))
+        self.assertEqual("src/orders", report_findings[0]["path"])
+
+    def test_required_capability_with_contract_has_no_error(self) -> None:
+        root, source = self.write_project(contract=True)
+
+        file_rules = _rules(inspect_file(source, root))
+        project_rules = [
+            finding["rule"] for finding in inspect_project(root)["findings"]
+        ]
+
+        self.assertNotIn("R-required-contract-missing", file_rules)
+        self.assertNotIn("R-required-contract-missing", project_rules)
+
+
 class SourceAndTestDetectionTests(unittest.TestCase):
     def test_scan_include_and_exclude_control_configured_sources(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

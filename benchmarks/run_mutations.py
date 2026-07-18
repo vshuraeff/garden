@@ -76,7 +76,7 @@ def _load_inputs() -> tuple[list[dict[str, Any]], dict[str, Any]]:
         raise ValueError(f"mutation category counts differ: {dict(counts)}")
     classifications = Counter(str(row["classification"]) for row in manifest)
     if classifications != Counter(
-        {"must_block": 48, "gap_probe": 8, "clean_control": 12}
+        {"must_block": 51, "gap_probe": 4, "clean_control": 13}
     ):
         raise ValueError(f"mutation classifications differ: {dict(classifications)}")
     mutations = payloads.get("mutations")

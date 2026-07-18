@@ -590,9 +590,15 @@ level = "REQUIRED"
 title = "project scan could not complete within configured safety limits"
 
 [[runtime_checks]]
+id = "A-private-boundary-import"
+principle = "A"
+level = "REQUIRED"
+title = "capability imports a private module owned by another capability"
+
+[[runtime_checks]]
 id = "D-scan-root-missing"
 principle = "D"
-level = "DEFAULT"
+level = "REQUIRED"
 title = "configured scan root does not exist or is unsafe to scan"
 
 [[runtime_checks]]
@@ -654,3 +660,9 @@ id = "R-contract-scan-limit"
 principle = "R"
 level = "REQUIRED"
 title = "contract file scan exceeded configured safety limits"
+
+[[runtime_checks]]
+id = "R-required-contract-missing"
+principle = "R"
+level = "REQUIRED"
+title = "configured contract requirement has no accepted contract artifact"

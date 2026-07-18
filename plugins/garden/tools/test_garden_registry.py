@@ -12,6 +12,7 @@ TOOLS_DIR = Path(__file__).resolve().parent
 sys.path.insert(0, str(TOOLS_DIR))
 
 from garden_registry import DEFAULT_REGISTRY_PATH, load_registry  # noqa: E402
+from garden_rule_metadata import RUNTIME_ALIAS_TABLE  # noqa: E402
 from validate_registry import (  # noqa: E402
     _benchmark_map_findings,
     main as validate_registry_main,
@@ -74,7 +75,7 @@ class GardenRegistryTests(unittest.TestCase):
         registry = load_registry()
 
         self.assertEqual(42, len(registry.rules))
-        self.assertEqual(12, len(registry.runtime_checks))
+        self.assertEqual(14, len(registry.runtime_checks))
         self.assertEqual(6, len(registry.principles))
         self.assertEqual("Recoverable relationships", registry.rule("G-DISC-001").title)
         self.assertEqual(
@@ -86,6 +87,14 @@ class GardenRegistryTests(unittest.TestCase):
         self.assertEqual(
             "required naming registry file was not found",
             registry.runtime_check("N-NAMING-MISSING").title,
+        )
+        self.assertEqual(
+            ("A-private-boundary-import", "REQUIRED"),
+            RUNTIME_ALIAS_TABLE["A-private-boundary-import"],
+        )
+        self.assertEqual(
+            ("R-required-contract-missing", "REQUIRED"),
+            RUNTIME_ALIAS_TABLE["R-required-contract-missing"],
         )
 
     def test_required_rule_digest_must_be_non_empty(self) -> None:

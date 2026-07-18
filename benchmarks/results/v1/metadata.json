@@ -1,9 +1,9 @@
 {
   "benchmark_version": "1.1",
-  "garden_commit": "d5b1a8faffdb6e91e0adf2183232af4961559c00",
-  "generated_at": "2026-07-17T09:27:24.769751Z",
+  "garden_commit": "444c60ca41f377a1b1f91c77a20b62e2ce0d3bff",
+  "generated_at": "2026-07-18T08:33:55.237721Z",
   "platform": "macos",
-  "plugin_version": "0.9.1",
+  "plugin_version": "0.10.0",
   "producers": {
     "detection": {
       "path": "benchmarks/run_detection.py",
@@ -19,7 +19,7 @@
     },
     "mutations": {
       "path": "benchmarks/run_mutations.py",
-      "sha256": "f74b2f6ca0d3e66cd327a645ae44b73c165b9bad44a5e08b60f61edf9e08e8d5"
+      "sha256": "00cfe802ecfb1a4eabe84ca7b0fa6c84af5b8240120d48342a8b5ee63442b4dd"
     },
     "orchestration": {
       "path": "benchmarks/run.py",

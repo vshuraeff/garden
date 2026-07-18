@@ -510,32 +510,29 @@
   {
     "mutation_id": "gap-03-scan-roots",
     "category": "gap-probe",
-    "target_path": "outside/tool.py",
+    "target_path": ".garden.toml",
     "owning_gate": "garden-inspect-strict",
-    "expected_rule_id_or_signature": "none",
-    "classification": "gap_probe",
-    "gap_probe_kind": "known_unenforced",
-    "description": "scan.roots does not restrict the project walk"
+    "expected_rule_id_or_signature": "D-scan-root-missing",
+    "classification": "must_block",
+    "description": "configure a scan root that does not exist"
   },
   {
     "mutation_id": "gap-04-contracts-required-for",
     "category": "gap-probe",
-    "target_path": ".garden.toml",
+    "target_path": "src/orders/CONTRACT.md",
     "owning_gate": "garden-inspect-strict",
-    "expected_rule_id_or_signature": "none",
-    "classification": "gap_probe",
-    "gap_probe_kind": "known_unenforced",
-    "description": "contracts.required_for has no dedicated enforcement"
+    "expected_rule_id_or_signature": "R-required-contract-missing",
+    "classification": "must_block",
+    "description": "delete a contract required by contracts.required_for"
   },
   {
     "mutation_id": "gap-05-boundaries-public",
     "category": "gap-probe",
-    "target_path": ".garden.toml",
+    "target_path": "src/billing/handler.py",
     "owning_gate": "garden-inspect-strict",
-    "expected_rule_id_or_signature": "none",
-    "classification": "gap_probe",
-    "gap_probe_kind": "known_unenforced",
-    "description": "boundaries.public has no dedicated enforcement"
+    "expected_rule_id_or_signature": "A-private-boundary-import",
+    "classification": "must_block",
+    "description": "import a private module from outside its owning capability"
   },
   {
     "mutation_id": "gap-06-structured-exception",
@@ -543,9 +540,8 @@
     "target_path": "src/orders/handler.py",
     "owning_gate": "garden-inspect-strict",
     "expected_rule_id_or_signature": "R-component-contract",
-    "classification": "gap_probe",
-    "gap_probe_kind": "known_unenforced",
-    "description": "structured exceptions do not suppress runtime findings"
+    "classification": "clean_control",
+    "description": "structural exception suppresses the matched contract advisory"
   },
   {
     "mutation_id": "gap-07-markers-resolution",
