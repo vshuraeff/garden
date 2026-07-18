@@ -1,22 +1,111 @@
 {
+  "schema_version": 2,
+  "scope": "deterministic-structural-inspection",
   "active": true,
+  "complete": true,
   "root": "<FIXTURE_ROOT>",
+  "configuration": {
+    "path": null,
+    "schema_version": null,
+    "valid": true
+  },
+  "coverage": {
+    "implemented_rules": [
+      "A-LOC-004",
+      "D-project-scan-limit",
+      "N-CONFIG-INVALID",
+      "N-CONTEXT-MISSING",
+      "N-KNOW-005",
+      "N-LEGACY-NAMING-REGISTRY",
+      "N-NAMING-DUPLICATE-CANONICAL",
+      "N-NAMING-DUPLICATE-CONCEPT",
+      "N-NAMING-EMPTY-REGISTRY",
+      "N-NAMING-INVALID-ENTRY",
+      "N-NAMING-MISSING",
+      "N-context-scan-limit",
+      "R-REPL-001",
+      "R-REPL-002",
+      "R-contract-scan-limit"
+    ],
+    "manual_rules": [
+      "A-LOC-001",
+      "A-LOC-005",
+      "A-LOC-006",
+      "D-VER-001",
+      "D-VER-004",
+      "D-VER-005",
+      "D-VER-007",
+      "D-VER-008",
+      "E-EXPL-002",
+      "E-EXPL-004",
+      "E-EXPL-006",
+      "G-DISC-002",
+      "G-DISC-005",
+      "G-DISC-006",
+      "N-KNOW-001",
+      "N-KNOW-002",
+      "N-KNOW-004",
+      "N-KNOW-007",
+      "N-KNOW-008",
+      "R-REPL-001",
+      "R-REPL-003",
+      "R-REPL-004",
+      "R-REPL-005",
+      "R-REPL-006",
+      "R-REPL-007",
+      "R-REPL-008"
+    ],
+    "planned_rules": [
+      "A-LOC-002",
+      "A-LOC-003",
+      "A-LOC-004",
+      "D-VER-003",
+      "D-VER-006",
+      "E-EXPL-001",
+      "E-EXPL-003",
+      "E-EXPL-005",
+      "G-DISC-001",
+      "G-DISC-003",
+      "G-DISC-004",
+      "N-KNOW-005",
+      "R-REPL-002"
+    ],
+    "not_applicable_rules": []
+  },
+  "exceptions": [],
   "findings": [
     {
+      "rule_id": "R-REPL-001",
+      "runtime_alias": "R-component-contract",
+      "level": "REQUIRED",
       "severity": "advisory",
-      "rule": "R-component-contract",
+      "state": "fail",
       "path": "packages/a/handler.py",
-      "message": "capability has no CONTRACT.md"
+      "message": "capability has no CONTRACT.md",
+      "evidence": [],
+      "remediation": null,
+      "confidence": null,
+      "rule": "R-component-contract"
     },
     {
+      "rule_id": "A-LOC-004",
+      "runtime_alias": "A-colocated-tests",
+      "level": "DEFAULT",
       "severity": "advisory",
-      "rule": "A-colocated-tests",
+      "state": "fail",
       "path": "packages/a/handler.py",
-      "message": "capability has no colocated tests"
+      "message": "capability has no colocated tests",
+      "evidence": [],
+      "remediation": null,
+      "confidence": null,
+      "rule": "A-colocated-tests"
     }
   ],
   "summary": {
     "errors": 0,
-    "advisories": 2
+    "warnings": 0,
+    "advisories": 2,
+    "unknown": 0,
+    "suppressed": 0
   }
 }

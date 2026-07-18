@@ -37,6 +37,7 @@ class GardenModuleTests(unittest.TestCase):
     def test_internal_modules_import_cleanly(self) -> None:
         for module_name in (
             "garden_report",
+            "garden_rule_metadata",
             "garden_paths",
             "garden_scanner",
             "garden_rules",
@@ -48,6 +49,7 @@ class GardenModuleTests(unittest.TestCase):
         for module_name in (
             "garden_core",
             "garden_report",
+            "garden_rule_metadata",
             "garden_paths",
             "garden_scanner",
             "garden_rules",
@@ -120,9 +122,17 @@ class GardenCoreTests(ActiveProjectTestCase):
             (capability / f"empty-{index}").mkdir()
         with patch("garden_core.MAX_SCAN_ENTRIES", 2):
             report = inspect_project(self.root)
-        self.assertIn(
-            "D-project-scan-limit", [item["rule"] for item in report["findings"]]
+        finding = next(
+            item
+            for item in report["findings"]
+            if item["rule"] == "D-project-scan-limit"
         )
+        self.assertEqual("D-project-scan-limit", finding["rule_id"])
+        self.assertIsNone(finding["runtime_alias"])
+        self.assertEqual("REQUIRED", finding["level"])
+        self.assertEqual("unknown", finding["state"])
+        self.assertFalse(report["complete"])
+        self.assertGreaterEqual(report["summary"]["unknown"], 1)
 
     def test_project_scan_reads_patched_facade_budget(self) -> None:
         garden_scanner = importlib.import_module("garden_scanner")

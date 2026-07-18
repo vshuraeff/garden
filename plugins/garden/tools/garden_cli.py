@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import json
 import sys
+from datetime import date
 from pathlib import Path
 from typing import Iterable
 
@@ -25,6 +26,20 @@ from garden_project import install, remove
 def _print_config_errors(errors: Iterable[ConfigError]) -> None:
     for error in errors:
         print(error, file=sys.stderr)
+
+
+def _has_expired_exception(exceptions: list[dict[str, object]]) -> bool:
+    for exception in exceptions:
+        review_after = exception.get("review_after")
+        if not isinstance(review_after, str) or not review_after:
+            continue
+        try:
+            review_date = date.fromisoformat(review_after)
+        except ValueError:
+            continue
+        if review_date < date.today():
+            return True
+    return False
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -75,8 +90,12 @@ def main(argv: list[str] | None = None) -> int:
     if args.command == "inspect":
         value = inspect_project(Path(args.root))
         has_errors = bool(value.get("summary", {}).get("errors", 0))
-        # strict prevents inactive roots from passing a certified audit.
-        if args.strict and not value.get("active", False):
+        if args.strict and (
+            not value.get("active", False)
+            or not value.get("configuration", {}).get("valid", False)
+            or not value.get("complete", False)
+            or _has_expired_exception(value.get("exceptions", []))
+        ):
             has_errors = True
     elif args.command == "check-file":
         findings = [finding.__dict__ for finding in inspect_file(Path(args.path))]

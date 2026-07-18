@@ -38,8 +38,12 @@ jobs:
         run: uv run --no-project benchmarks/validate_results.py
       - name: Validate this repository's own GARDEN activation
         run: uv run --no-project plugins/garden/tools/garden_cli.py config validate .
-      - name: Run the blocking GARDEN self-audit
+      - name: Run the blocking deterministic structural inspection
         run: uv run --no-project plugins/garden/tools/garden_cli.py inspect --strict .
+      - name: Write the deterministic structural inspection report
+        run: uv run --no-project plugins/garden/tools/garden_cli.py inspect --strict . > ${{ runner.temp }}/garden-report.json
+      - name: Validate the deterministic structural inspection report
+        run: uv run --no-project plugins/garden/tools/validate_report.py ${{ runner.temp }}/garden-report.json
       - name: Require a plugin SemVer bump
         if: github.event_name == 'pull_request' && matrix.os == 'ubuntu-latest' && matrix.python-version == '3.14'
         run: uv run --no-project plugins/garden/tools/plugin_version.py check --base ${{ github.event.pull_request.base.sha }}

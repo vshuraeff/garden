@@ -22,6 +22,7 @@ from garden_paths import (
     is_within,
 )
 from garden_report import Finding, build_project_report
+from garden_rule_metadata import resolve_alias
 from garden_scanner import (
     IGNORED_PARTS,
     ScanLimitExceeded,
@@ -57,6 +58,42 @@ NON_SOURCE_SUFFIXES = {
 }
 
 
+def make_finding(
+    runtime_id: str,
+    severity: str,
+    path: str,
+    message: str,
+    *,
+    state: str = "fail",
+) -> Finding:
+    rule_id, runtime_alias, level = resolve_alias(runtime_id)
+    return Finding(
+        severity=severity,
+        rule=runtime_id,
+        path=path,
+        message=message,
+        rule_id=rule_id,
+        runtime_alias=runtime_alias,
+        level=level,
+        state=state,
+    )
+
+
+def _serialized_exceptions(config: EffectiveConfig | None) -> list[dict[str, object]]:
+    if config is None:
+        return []
+    return [
+        {
+            "rule_id": item.rule_id.value,
+            "paths": list(item.paths.value),
+            "reason": item.reason.value,
+            "owner": item.owner.value,
+            "review_after": item.review_after.value,
+        }
+        for item in config.exceptions.value
+    ]
+
+
 def _is_source_file(relative: Path) -> bool:
     if relative.name.startswith("."):
         return False
@@ -72,7 +109,7 @@ def _is_source_file(relative: Path) -> bool:
 
 def _config_findings(result: ConfigResult) -> list[Finding]:
     return [
-        Finding("error", "N-CONFIG-INVALID", ".garden.toml", str(error))
+        make_finding("N-CONFIG-INVALID", "error", ".garden.toml", str(error))
         for error in result.errors
     ]
 
@@ -254,9 +291,9 @@ def _naming_findings(
         if not required:
             return []
         return [
-            Finding(
-                "error",
+            make_finding(
                 "N-NAMING-MISSING",
+                "error",
                 registry_name,
                 f"required naming registry was not found; expected {registry_name}",
             )
@@ -274,9 +311,9 @@ def _naming_findings(
             entry_count += 1
             if ":" not in content:
                 findings.append(
-                    Finding(
-                        "error",
+                    make_finding(
                         "N-NAMING-INVALID-ENTRY",
+                        "error",
                         registry_name,
                         f"naming registry line {line_number} is invalid: "
                         f"{content!r}; expected 'concept: canonical_name'",
@@ -286,9 +323,9 @@ def _naming_findings(
             concept, canonical = (part.strip() for part in content.split(":", 1))
             if not concept or not canonical:
                 findings.append(
-                    Finding(
-                        "error",
+                    make_finding(
                         "N-NAMING-INVALID-ENTRY",
+                        "error",
                         registry_name,
                         f"naming registry line {line_number} is invalid: "
                         f"{content!r}; concept and canonical name must both be "
@@ -298,9 +335,9 @@ def _naming_findings(
                 continue
             if concept in concepts:
                 findings.append(
-                    Finding(
-                        "error",
+                    make_finding(
                         "N-NAMING-DUPLICATE-CONCEPT",
+                        "error",
                         registry_name,
                         f"naming registry repeats concept {concept!r}; each concept "
                         "must be unique",
@@ -310,9 +347,9 @@ def _naming_findings(
                 concepts.add(concept)
             if canonical in canonical_names:
                 findings.append(
-                    Finding(
-                        "error",
+                    make_finding(
                         "N-NAMING-DUPLICATE-CANONICAL",
+                        "error",
                         registry_name,
                         f"naming registry repeats canonical name {canonical!r}; "
                         "each canonical name must be unique",
@@ -322,9 +359,9 @@ def _naming_findings(
                 canonical_names.add(canonical)
     except (OSError, ScanLimitExceeded) as error:
         findings.append(
-            Finding(
-                "error",
+            make_finding(
                 "N-NAMING-INVALID-ENTRY",
+                "error",
                 registry_name,
                 f"naming registry could not be validated: {error}",
             )
@@ -333,9 +370,9 @@ def _naming_findings(
 
     if required and entry_count == 0:
         findings.append(
-            Finding(
-                "error",
+            make_finding(
                 "N-NAMING-EMPTY-REGISTRY",
+                "error",
                 registry_name,
                 "required naming registry has no entries; expected "
                 "'concept: canonical_name' on each non-comment line",
@@ -359,9 +396,9 @@ def _context_missing(root: Path, config: EffectiveConfig) -> Finding | None:
         return None
     required = sorted(set(any_of) | set(all_of))
     names = ", ".join(required) if required else "a configured root context file"
-    return Finding(
-        "error",
+    return make_finding(
         "N-CONTEXT-MISSING",
+        "error",
         ".",
         f"required root context is missing; expected {names}",
     )
@@ -398,9 +435,9 @@ def inspect_file(
 
     if not configured and relative == Path("naming-registry.txt"):
         findings.append(
-            Finding(
-                "advisory",
+            make_finding(
                 "N-LEGACY-NAMING-REGISTRY",
+                "advisory",
                 display_path,
                 "legacy project activation is deprecated; run garden migrate-config",
             )
@@ -429,9 +466,9 @@ def inspect_file(
                         else f"CONTEXT.md exceeds {CONTEXT_LINE_BUDGET} lines; trim it or move detail into capability READMEs"
                     )
                     findings.append(
-                        Finding(
-                            "error",
+                        make_finding(
                             "N-context-budget",
+                            "error",
                             display_path,
                             message,
                         )
@@ -439,7 +476,13 @@ def inspect_file(
                     break
         except ScanLimitExceeded as error:
             findings.append(
-                Finding("error", "N-context-scan-limit", display_path, str(error))
+                make_finding(
+                    "N-context-scan-limit",
+                    "error",
+                    display_path,
+                    str(error),
+                    state="unknown",
+                )
             )
 
     if relative.name == "CONTRACT.md":
@@ -453,13 +496,19 @@ def inspect_file(
                         break
         except ScanLimitExceeded as error:
             findings.append(
-                Finding("error", "R-contract-scan-limit", display_path, str(error))
+                make_finding(
+                    "R-contract-scan-limit",
+                    "error",
+                    display_path,
+                    str(error),
+                    state="unknown",
+                )
             )
         if re.fullmatch(r"Version: [0-9]+\.[0-9]+\.[0-9]+", first_nonempty) is None:
             findings.append(
-                Finding(
-                    "error",
+                make_finding(
                     "R-contract-version",
+                    "error",
                     display_path,
                     "CONTRACT.md must start with 'Version: MAJOR.MINOR.PATCH'",
                 )
@@ -475,9 +524,9 @@ def inspect_file(
 
         if not (capability / "CONTRACT.md").is_file():
             findings.append(
-                Finding(
-                    "advisory",
+                make_finding(
                     "R-component-contract",
+                    "advisory",
                     display_path,
                     "capability has no CONTRACT.md",
                 )
@@ -490,9 +539,9 @@ def inspect_file(
         has_test = cache[capability_key]
         if has_test is False:
             findings.append(
-                Finding(
-                    "advisory",
+                make_finding(
                     "A-colocated-tests",
+                    "advisory",
                     display_path,
                     "capability has no colocated tests",
                 )
@@ -512,9 +561,9 @@ def inspect_file(
 
     if not (capability / "CONTRACT.md").is_file():
         findings.append(
-            Finding(
-                "advisory",
+            make_finding(
                 "R-component-contract",
+                "advisory",
                 display_path,
                 "capability has no CONTRACT.md",
             )
@@ -532,15 +581,23 @@ def inspect_file(
         )
     if cache[capability_key] is False:
         findings.append(
-            Finding(
-                "advisory",
+            make_finding(
                 "A-colocated-tests",
+                "advisory",
                 display_path,
                 "capability has no colocated tests",
             )
         )
     if scan_error:
-        findings.append(Finding("error", "D-project-scan-limit", ".", scan_error))
+        findings.append(
+            make_finding(
+                "D-project-scan-limit",
+                "error",
+                ".",
+                scan_error,
+                state="unknown",
+            )
+        )
     return findings
 
 
@@ -550,11 +607,18 @@ def inspect_project(root: Path) -> dict[str, object]:
     resolved = root.resolve()
     activation = find_project_activation(resolved)
     if activation is None or activation.root != resolved:
-        return build_project_report(resolved, False, [])
+        return build_project_report(resolved, False, [], complete=False)
 
     loaded = load_config(resolved)
     if loaded.present and loaded.errors:
-        return build_project_report(resolved, True, _config_findings(loaded))
+        return build_project_report(
+            resolved,
+            True,
+            _config_findings(loaded),
+            complete=False,
+            config_path=loaded.path.relative_to(resolved).as_posix(),
+            config_valid=loaded.valid,
+        )
     configured = loaded.present and loaded.config is not None
     effective = resolve_effective(loaded.config) if configured else None
 
@@ -621,5 +685,23 @@ def inspect_project(root: Path) -> dict[str, object]:
         for finding in inspect_file(path, resolved, test_cache, loaded)
     )
     if scan_error:
-        findings.append(Finding("error", "D-project-scan-limit", ".", scan_error))
-    return build_project_report(resolved, True, findings)
+        findings.append(
+            make_finding(
+                "D-project-scan-limit",
+                "error",
+                ".",
+                scan_error,
+                state="unknown",
+            )
+        )
+    return build_project_report(
+        resolved,
+        True,
+        findings,
+        config_path=(
+            loaded.path.relative_to(resolved).as_posix() if loaded.present else None
+        ),
+        config_schema_version=(effective.schema_version.value if effective else None),
+        config_valid=loaded.valid,
+        exceptions=_serialized_exceptions(effective),
+    )

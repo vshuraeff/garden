@@ -64,6 +64,8 @@ you need instead of searching a single sprawling document.
   principles: definitions, rules, anti-patterns, examples.
 - [Checklist](docs/reference/checklist.md) — a machine-friendly compliance checklist for
   agent reviewers and CI scripts.
+- [Report schema](docs/reference/report-schema.md) — JSON contract for deterministic
+  structural inspection results.
 - [Glossary](docs/reference/glossary.md) — canonical meanings of GARDEN terms.
 
 ### Explanation

@@ -134,12 +134,23 @@ def classify_path(root: Path, relative_path: str) -> Classification:
     return Classification(candidate and not is_test, is_test, capability)
 
 
+def _finding_identifier(finding: dict[str, Any]) -> str | None:
+    """Return a schema-v2 finding ID with legacy report compatibility."""
+
+    rule_id = finding.get("rule_id")
+    if isinstance(rule_id, str) and rule_id:
+        return rule_id
+    legacy_rule = finding.get("rule")
+    return legacy_rule if isinstance(legacy_rule, str) and legacy_rule else None
+
+
 def scan_complete(result: CliResult) -> bool:
     """Return whether inspection was active and avoided bounded-scan errors."""
 
     findings = result.payload.get("findings", [])
     return result.payload.get("active") is True and not any(
-        isinstance(finding, dict) and finding.get("rule") == "D-project-scan-limit"
+        isinstance(finding, dict)
+        and _finding_identifier(finding) == "D-project-scan-limit"
         for finding in findings
     )
 
@@ -151,9 +162,9 @@ def finding_ids_for_path(result: CliResult, relative_path: str) -> list[str]:
     for finding in result.payload.get("findings", []):
         if not isinstance(finding, dict):
             continue
-        rule = finding.get("rule")
+        rule = _finding_identifier(finding)
         path = finding.get("path")
-        if isinstance(rule, str) and (
+        if rule is not None and (
             path == relative_path or rule == "D-project-scan-limit"
         ):
             values.add(rule)

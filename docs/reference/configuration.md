@@ -12,6 +12,9 @@ GARDEN reads `.garden.toml` from the project root. The file uses schema v1 and i
 parsed with strict key and type validation. Unknown keys are errors at every level.
 Every key is optional; omitted keys take the defaults listed below.
 
+For how deterministic inspection reports a configuration's location, schema version,
+and validation result, see [report-schema.md](report-schema.md).
+
 Relative paths and globs are evaluated from the directory containing `.garden.toml`.
 GARDEN normalizes `\` separators to `/` and rejects absolute paths, drive-letter
 paths, UNC paths, and `..` segments. Existing symlinks must also resolve inside the

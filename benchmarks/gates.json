@@ -41,7 +41,7 @@
         "--strict",
         "<root>"
       ],
-      "output": "JSON object with active, root, findings, and summary fields",
+      "output": "JSON object with schema_version 2, scope, active, complete, coverage, exceptions, findings (rule_id/runtime_alias/level/severity/state/path/message plus a legacy rule alias), and summary fields",
       "success": "exit 0, active true, and zero error-severity findings",
       "rule_ids": [
         "A-colocated-tests",
@@ -61,9 +61,11 @@
         "R-contract-version"
       ],
       "signature_families": [
-        "Finding(severity, rule, path, message)",
+        "schema_version",
         "summary.errors",
-        "summary.advisories"
+        "summary.advisories",
+        "findings[].rule_id",
+        "findings[].state"
       ]
     },
     {
