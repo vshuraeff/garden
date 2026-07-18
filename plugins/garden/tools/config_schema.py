@@ -1,4 +1,4 @@
-"""Pure types and validation for GARDEN project configuration schema v1."""
+"""Pure types and validation for GARDEN project configuration schemas."""
 
 from __future__ import annotations
 
@@ -9,11 +9,31 @@ from typing import Callable, Generic, TypeVar
 
 
 SCHEMA_VERSION = 1
+SUPPORTED_SCHEMA_VERSIONS = (1, 2)
 MAX_PATTERNS = 200
 MAX_PATTERN_LENGTH = 4096
 PROJECT_TYPES = ("service", "library", "cli", "monorepo", "infra", "other")
+BOUNDARY_KINDS = (
+    "public-api",
+    "external-integration",
+    "independently-deployed",
+    "persisted-schema",
+    "trust-boundary",
+    "internal-versioned",
+    "private",
+)
 CAPABILITY_STRATEGIES = ("none", "explicit", "children", "markers")
 TEST_ASSOCIATIONS = ("same-capability", "test-roots")
+VERSIONING_POLICIES = ("none", "semver", "calendar", "schema-specific", "custom")
+# this list is intentionally closed and extended only via a code change.
+EVIDENCE_CATEGORIES = (
+    "contract-tests",
+    "compatibility-tests",
+    "rollback-plan",
+    "observability",
+    "migration-plan",
+    "security-review",
+)
 ORIGINS = ("default", "file")
 T = TypeVar("T")
 
@@ -74,6 +94,16 @@ class BoundariesConfig:
 
 
 @dataclass(frozen=True)
+class BoundaryConfig:
+    path: str | None = None
+    kind: str | None = None
+    owner: str | None = None
+    versioning: str | None = None
+    contracts: tuple[str, ...] | None = None
+    required_evidence: tuple[str, ...] | None = None
+
+
+@dataclass(frozen=True)
 class NamingConfig:
     registry: str | None = None
     required: bool | None = None
@@ -103,6 +133,7 @@ class GardenConfig:
     tests: TestsConfig | None = None
     contracts: ContractsConfig | None = None
     boundaries: BoundariesConfig | None = None
+    boundary_entries: tuple[BoundaryConfig, ...] | None = None
     naming: NamingConfig | None = None
     documentation: DocumentationConfig | None = None
     exceptions: tuple[ExceptionConfig, ...] | None = None
@@ -165,6 +196,16 @@ class EffectiveBoundariesConfig:
 
 
 @dataclass(frozen=True)
+class EffectiveBoundaryConfig:
+    path: ResolvedValue[str]
+    kind: ResolvedValue[str]
+    owner: ResolvedValue[str]
+    versioning: ResolvedValue[str]
+    contracts: ResolvedValue[tuple[str, ...]]
+    required_evidence: ResolvedValue[tuple[str, ...]]
+
+
+@dataclass(frozen=True)
 class EffectiveNamingConfig:
     registry: ResolvedValue[str]
     required: ResolvedValue[bool]
@@ -194,6 +235,7 @@ class EffectiveConfig:
     tests: EffectiveTestsConfig
     contracts: EffectiveContractsConfig
     boundaries: EffectiveBoundariesConfig
+    boundary_entries: ResolvedValue[tuple[EffectiveBoundaryConfig, ...]]
     naming: EffectiveNamingConfig
     documentation: EffectiveDocumentationConfig
     exceptions: ResolvedValue[tuple[EffectiveExceptionConfig, ...]]
@@ -568,6 +610,75 @@ def _parse_boundaries(
     )
 
 
+def _parse_boundary_v2(
+    validator: _Validator, value: object, path: str
+) -> BoundaryConfig | None:
+    table = validator.table(value, path)
+    if table is None:
+        return None
+    validator.known_keys(
+        table,
+        path,
+        frozenset(
+            {"contracts", "kind", "owner", "path", "required_evidence", "versioning"}
+        ),
+    )
+
+    boundary_path = None
+    if "path" not in table:
+        validator.error(f"{path}.path", "required key is missing")
+    else:
+        raw_path = validator.string(table["path"], f"{path}.path")
+        if raw_path is not None:
+            boundary_path = _path_validator(validator)(raw_path, f"{path}.path")
+
+    kind = None
+    if "kind" not in table:
+        validator.error(f"{path}.kind", "required key is missing")
+    else:
+        kind = validator.choice(table["kind"], f"{path}.kind", BOUNDARY_KINDS)
+
+    owner = None
+    if "owner" in table:
+        owner = validator.string(table["owner"], f"{path}.owner")
+    elif kind is not None and kind != "private":
+        validator.error(f"{path}.owner", "required key is missing")
+
+    versioning = (
+        validator.choice(table["versioning"], f"{path}.versioning", VERSIONING_POLICIES)
+        if "versioning" in table
+        else None
+    )
+    contracts = (
+        validator.string_list(
+            table["contracts"], f"{path}.contracts", _path_validator(validator)
+        )
+        if "contracts" in table
+        else None
+    )
+
+    def evidence_category(value: str, item_path: str) -> str | None:
+        return validator.choice(value, item_path, EVIDENCE_CATEGORIES)
+
+    required_evidence = (
+        validator.string_list(
+            table["required_evidence"],
+            f"{path}.required_evidence",
+            evidence_category,
+        )
+        if "required_evidence" in table
+        else None
+    )
+    return BoundaryConfig(
+        path=boundary_path,
+        kind=kind,
+        owner=owner,
+        versioning=versioning,
+        contracts=contracts,
+        required_evidence=required_evidence,
+    )
+
+
 def _parse_naming(
     validator: _Validator, value: object, path: str
 ) -> NamingConfig | None:
@@ -687,10 +798,17 @@ def validate_config(value: object) -> ValidationResult:
     )
 
     schema_version = None
+    effective_schema_version = SCHEMA_VERSION
     if "schema_version" in table:
         schema_version = validator.integer(table["schema_version"], "schema_version")
-        if schema_version is not None and schema_version != SCHEMA_VERSION:
-            validator.error("schema_version", f"expected {SCHEMA_VERSION}")
+        if schema_version is not None:
+            if schema_version in SUPPORTED_SCHEMA_VERSIONS:
+                effective_schema_version = schema_version
+            else:
+                supported = ", ".join(
+                    str(version) for version in SUPPORTED_SCHEMA_VERSIONS
+                )
+                validator.error("schema_version", f"expected one of {supported}")
 
     exceptions = None
     if "exceptions" in table:
@@ -705,46 +823,111 @@ def validate_config(value: object) -> ValidationResult:
                     parsed_exceptions.append(parsed)
             exceptions = tuple(parsed_exceptions)
 
+    project = (
+        _parse_project(validator, table["project"], "project")
+        if "project" in table
+        else None
+    )
+    scan = _parse_scan(validator, table["scan"], "scan") if "scan" in table else None
+    capabilities = (
+        _parse_capabilities(validator, table["capabilities"], "capabilities")
+        if "capabilities" in table
+        else None
+    )
+    tests = (
+        _parse_tests(validator, table["tests"], "tests") if "tests" in table else None
+    )
+    contracts = (
+        _parse_contracts(validator, table["contracts"], "contracts")
+        if "contracts" in table
+        else None
+    )
+
+    boundaries = None
+    boundary_entries = None
+    if "boundaries" in table:
+        raw_boundaries = table["boundaries"]
+        if effective_schema_version == 2:
+            if type(raw_boundaries) is not list:
+                message = "expected array of tables"
+                if type(raw_boundaries) is dict:
+                    message = (
+                        "schema v2 uses [[boundaries]] array of tables, not a "
+                        "[boundaries] table"
+                    )
+                validator.error("boundaries", message)
+            else:
+                parsed_boundary_entries = []
+                seen_boundary_paths: set[str] = set()
+                for index, item in enumerate(raw_boundaries):
+                    path = f"boundaries[{index}]"
+                    parsed = _parse_boundary_v2(validator, item, path)
+                    if parsed is None:
+                        continue
+                    if parsed.kind == "private":
+                        if parsed.versioning not in (None, "none"):
+                            validator.error(
+                                f"{path}.versioning",
+                                "private boundaries must not declare a versioning "
+                                "policy other than none",
+                            )
+                        if parsed.contracts:
+                            validator.error(
+                                f"{path}.contracts",
+                                "private boundaries must not declare contracts",
+                            )
+                        if parsed.required_evidence:
+                            validator.error(
+                                f"{path}.required_evidence",
+                                "private boundaries must not declare required evidence",
+                            )
+                    elif parsed.kind == "internal-versioned" and (
+                        parsed.versioning == "none"
+                        or (parsed.versioning is None and "versioning" not in item)
+                    ):
+                        validator.error(
+                            f"{path}.versioning",
+                            "internal-versioned boundaries require a non-none "
+                            "versioning policy",
+                        )
+                    if parsed.path is not None:
+                        if parsed.path in seen_boundary_paths:
+                            validator.error(
+                                f"{path}.path", "duplicates another normalized path"
+                            )
+                        else:
+                            seen_boundary_paths.add(parsed.path)
+                    parsed_boundary_entries.append(parsed)
+                boundary_entries = tuple(parsed_boundary_entries)
+        elif type(raw_boundaries) is list:
+            validator.error(
+                "boundaries",
+                "schema v1 uses a [boundaries] table with a 'public' key",
+            )
+        else:
+            boundaries = _parse_boundaries(validator, raw_boundaries, "boundaries")
+
+    naming = (
+        _parse_naming(validator, table["naming"], "naming")
+        if "naming" in table
+        else None
+    )
+    documentation = (
+        _parse_documentation(validator, table["documentation"], "documentation")
+        if "documentation" in table
+        else None
+    )
     config = GardenConfig(
         schema_version=schema_version,
-        project=(
-            _parse_project(validator, table["project"], "project")
-            if "project" in table
-            else None
-        ),
-        scan=(
-            _parse_scan(validator, table["scan"], "scan") if "scan" in table else None
-        ),
-        capabilities=(
-            _parse_capabilities(validator, table["capabilities"], "capabilities")
-            if "capabilities" in table
-            else None
-        ),
-        tests=(
-            _parse_tests(validator, table["tests"], "tests")
-            if "tests" in table
-            else None
-        ),
-        contracts=(
-            _parse_contracts(validator, table["contracts"], "contracts")
-            if "contracts" in table
-            else None
-        ),
-        boundaries=(
-            _parse_boundaries(validator, table["boundaries"], "boundaries")
-            if "boundaries" in table
-            else None
-        ),
-        naming=(
-            _parse_naming(validator, table["naming"], "naming")
-            if "naming" in table
-            else None
-        ),
-        documentation=(
-            _parse_documentation(validator, table["documentation"], "documentation")
-            if "documentation" in table
-            else None
-        ),
+        project=project,
+        scan=scan,
+        capabilities=capabilities,
+        tests=tests,
+        contracts=contracts,
+        boundaries=boundaries,
+        boundary_entries=boundary_entries,
+        naming=naming,
+        documentation=documentation,
         exceptions=exceptions,
     )
     if validator.errors:
