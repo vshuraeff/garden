@@ -37,6 +37,7 @@ def _has_expired_exception(exceptions: list[dict[str, object]]) -> bool:
         try:
             review_date = date.fromisoformat(review_after)
         except ValueError:
+            # valid configs use non-iso review markers here; they never expire.
             continue
         if review_date < date.today():
             return True

@@ -4,8 +4,16 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass
+from datetime import date
 from pathlib import PurePosixPath
 from typing import Callable, Generic, TypeVar
+
+from garden_rule_metadata import (
+    RUNTIME_ALIAS_TABLE,
+    canonical_for,
+    is_exception_eligible,
+    parse_checklist_mechanization,
+)
 
 
 SCHEMA_VERSION = 1
@@ -34,6 +42,7 @@ EVIDENCE_CATEGORIES = (
     "migration-plan",
     "security-review",
 )
+REVIEW_MARKERS = ("on-rule-change", "on-major-release")
 ORIGINS = ("default", "file")
 T = TypeVar("T")
 
@@ -727,7 +736,11 @@ def _parse_documentation(
 
 
 def _parse_exception(
-    validator: _Validator, value: object, path: str
+    validator: _Validator,
+    value: object,
+    path: str,
+    effective_schema_version: int,
+    known_canonical_rule_ids: frozenset[str],
 ) -> ExceptionConfig | None:
     table = validator.table(value, path)
     if table is None:
@@ -737,12 +750,61 @@ def _parse_exception(
         path,
         frozenset({"rule_id", "paths", "reason", "owner", "review_after"}),
     )
+
+    rule_id = None
+    if "rule_id" in table:
+        rule_id_path = f"{path}.rule_id"
+        rule_id = validator.string(table["rule_id"], rule_id_path)
+        if rule_id is not None:
+            canonical_rule_id = canonical_for(rule_id)
+            if rule_id in RUNTIME_ALIAS_TABLE and effective_schema_version == 2:
+                validator.error(
+                    rule_id_path,
+                    "alias "
+                    f"'{rule_id}' is not allowed in schema v2; use canonical rule "
+                    f"id '{canonical_rule_id}'",
+                )
+            elif (
+                rule_id not in RUNTIME_ALIAS_TABLE
+                and rule_id not in known_canonical_rule_ids
+            ):
+                validator.error(rule_id_path, f"unknown rule id '{rule_id}'")
+            elif not is_exception_eligible(canonical_rule_id):
+                validator.error(
+                    rule_id_path,
+                    f"rule '{canonical_rule_id}' does not permit configuration "
+                    "exceptions per docs/reference/checklist.md",
+                )
+
+    reason = None
+    if "reason" not in table:
+        validator.error(f"{path}.reason", "required key is missing")
+    else:
+        reason = validator.string(table["reason"], f"{path}.reason")
+
+    owner = None
+    if "owner" not in table:
+        validator.error(f"{path}.owner", "required key is missing")
+    else:
+        owner = validator.string(table["owner"], f"{path}.owner")
+
+    review_after = None
+    if "review_after" in table:
+        review_after_path = f"{path}.review_after"
+        review_after = validator.string(table["review_after"], review_after_path)
+        if review_after is not None and review_after not in REVIEW_MARKERS:
+            try:
+                date.fromisoformat(review_after)
+            except ValueError:
+                validator.error(
+                    review_after_path,
+                    "expected an ISO date (YYYY-MM-DD) or one of "
+                    f"{', '.join(REVIEW_MARKERS)}",
+                )
+                review_after = None
+
     return ExceptionConfig(
-        rule_id=(
-            validator.string(table["rule_id"], f"{path}.rule_id")
-            if "rule_id" in table
-            else None
-        ),
+        rule_id=rule_id,
         paths=(
             validator.string_list(
                 table["paths"],
@@ -753,21 +815,9 @@ def _parse_exception(
             if "paths" in table
             else None
         ),
-        reason=(
-            validator.string(table["reason"], f"{path}.reason")
-            if "reason" in table
-            else None
-        ),
-        owner=(
-            validator.string(table["owner"], f"{path}.owner")
-            if "owner" in table
-            else None
-        ),
-        review_after=(
-            validator.string(table["review_after"], f"{path}.review_after")
-            if "review_after" in table
-            else None
-        ),
+        reason=reason,
+        owner=owner,
+        review_after=review_after,
     )
 
 
@@ -816,9 +866,18 @@ def validate_config(value: object) -> ValidationResult:
         if type(raw_exceptions) is not list:
             validator.error("exceptions", "expected array of tables")
         else:
+            known_canonical_rule_ids = frozenset(
+                rule_id for rule_id, _level in RUNTIME_ALIAS_TABLE.values()
+            ) | frozenset(parse_checklist_mechanization())
             parsed_exceptions = []
             for index, item in enumerate(raw_exceptions):
-                parsed = _parse_exception(validator, item, f"exceptions[{index}]")
+                parsed = _parse_exception(
+                    validator,
+                    item,
+                    f"exceptions[{index}]",
+                    effective_schema_version,
+                    known_canonical_rule_ids,
+                )
                 if parsed is not None:
                     parsed_exceptions.append(parsed)
             exceptions = tuple(parsed_exceptions)

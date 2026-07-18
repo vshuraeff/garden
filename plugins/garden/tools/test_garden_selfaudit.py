@@ -64,6 +64,8 @@ class GardenSelfAuditTests(unittest.TestCase):
         self.assertIs(report["active"], True)
         self.assertIs(report["complete"], True)
         self.assertEqual(0, report["summary"]["errors"])
+        self.assertEqual(0, report["summary"]["advisories"])
+        self.assertGreater(report["summary"]["suppressed"], 0)
 
         today = date.today()
         expired_exceptions = []
@@ -152,10 +154,19 @@ class GardenSelfAuditTests(unittest.TestCase):
 
         self.assertEqual((0, ""), (code, error))
 
-    def test_strict_inspect_ignores_invalid_exception_date(self) -> None:
+    def test_strict_inspect_rejects_invalid_review_after_date(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             self.write_exception_config(root, "not-a-date")
+            code, output, error = self.run_cli(["inspect", "--strict", str(root)])
+
+        self.assertEqual((1, ""), (code, error))
+        self.assertIn('"valid": false', output)
+
+    def test_strict_inspect_accepts_review_marker_exception(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            self.write_exception_config(root, "on-rule-change")
             code, _, error = self.run_cli(["inspect", "--strict", str(root)])
 
         self.assertEqual((0, ""), (code, error))

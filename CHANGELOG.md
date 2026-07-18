@@ -1,5 +1,25 @@
 # Changelog
 
+## 0.8.2
+
+- Runtime boundary enforcement resolves the most specific (longest-path)
+  configured boundary per file. SemVer format is required only at boundaries
+  with `versioning = "semver"`; private boundaries and contracts are never
+  version-checked in configured projects. Declared contract artifacts are
+  checked for presence at any depth, `accepted_names` are honored in capability
+  checks, and unrecognized or uncovered evidence categories are surfaced as
+  unknown manual findings.
+- Exception validation requires known rule IDs that are eligible for
+  suppression. Only canonical schema-v2 exceptions are accepted; `owner` and
+  `reason` must be non-empty, and `review_after` must be ISO-8601 or an accepted
+  marker value.
+- Exception application suppresses matching findings while preserving their
+  original finding data, and tracks them with a separate `suppressed` counter
+  distinct from the existing five-counter summary. Expired exceptions never
+  suppress and cause `--strict` to fail.
+- Legacy behavior for unconfigured projects is unchanged and remains
+  deprecated.
+
 ## 0.8.1
 
 - Added `.garden.toml` configuration schema v2 with structured `[[boundaries]]`

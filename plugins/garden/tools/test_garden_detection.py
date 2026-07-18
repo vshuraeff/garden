@@ -22,6 +22,7 @@ from garden_core import Finding, inspect_file, inspect_project  # noqa: E402
 
 
 CONFIGURED_FIXTURES = (
+    "boundaries-configured",
     "src-layout-configured",
     "monorepo-configured",
     "library-configured",
