@@ -49,8 +49,17 @@ def _generated_at() -> str:
     return datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
 
 
-def _load_protocol() -> dict[str, Any]:
-    with (benchmark_root() / "protocol-v1.toml").open("rb") as handle:
+def _load_protocol(
+    path: Path | None = None,
+    toolchain: Mapping[str, Any] | None = None,
+) -> dict[str, Any]:
+    selected = path
+    if selected is None:
+        values = toolchain if toolchain is not None else load_toolchain()
+        selected = Path(str(values.get("protocol_file", "protocol-v1.1.toml")))
+    if not selected.is_absolute():
+        selected = benchmark_root() / selected
+    with selected.open("rb") as handle:
         return tomllib.load(handle)
 
 
@@ -268,22 +277,9 @@ def _mutation_summary(
     }
 
 
-def _migration_summary(
-    records: list[dict[str, Any]],
-    thresholds: Mapping[str, Any],
-    toolchain: Mapping[str, Any],
-) -> dict[str, Any]:
-    valid = [record for record in records if record["condition"] == "valid"]
-    invalid = [record for record in records if record["condition"] == "invalid"]
-    property_passes: dict[str, int] = defaultdict(int)
-    for record in valid:
-        property_name = str(record["case_id"]).rsplit(":", 1)[-1]
-        property_passes[property_name] += (
-            _outcome(record, "actual_outcome").get("passed") is True
-        )
-    invalid_passes = sum(
-        _outcome(record, "actual_outcome").get("passed") is True for record in invalid
-    )
+def _matrix_comparison(
+    records: list[dict[str, Any]], toolchain: Mapping[str, Any]
+) -> tuple[int, int, bool]:
     combinations = {
         (
             str(record["platform"]),
@@ -308,9 +304,62 @@ def _migration_summary(
         matrix_groups[(str(record["case_id"]), str(record["condition"]))][
             combination
         ] = json.dumps(normalized, sort_keys=True)
-    matrix_identical = combinations == expected_combinations and all(
+    identical = combinations == expected_combinations and all(
         set(group) == expected_combinations and len(set(group.values())) == 1
         for group in matrix_groups.values()
+    )
+    return len(combinations), len(expected_combinations), identical
+
+
+def _matrix_identity_summary(
+    records: list[dict[str, Any]],
+    settings: Mapping[str, Any],
+    toolchain: Mapping[str, Any],
+) -> dict[str, Any]:
+    observed, _expected, identical = _matrix_comparison(records, toolchain)
+    required = int(settings["required_combinations"])
+    enforced_in = str(settings["enforced_in"])
+    if required < 0:
+        raise ValueError("matrix identity required combinations must be non-negative")
+    if not enforced_in:
+        raise ValueError("matrix identity enforcement location must be non-empty")
+    return {
+        "required_combinations": required,
+        "observed_combinations": observed,
+        "identical": None if observed < required else identical,
+        "enforced_in": enforced_in,
+    }
+
+
+def _migration_summary(
+    records: list[dict[str, Any]],
+    thresholds: Mapping[str, Any],
+    toolchain: Mapping[str, Any],
+) -> dict[str, Any]:
+    valid = [record for record in records if record["condition"] == "valid"]
+    invalid = [record for record in records if record["condition"] == "invalid"]
+    property_passes: dict[str, int] = defaultdict(int)
+    for record in valid:
+        property_name = str(record["case_id"]).rsplit(":", 1)[-1]
+        property_passes[property_name] += (
+            _outcome(record, "actual_outcome").get("passed") is True
+        )
+    invalid_passes = sum(
+        _outcome(record, "actual_outcome").get("passed") is True for record in invalid
+    )
+    legacy_invariant = "normalized_output_identical_across_matrix" in thresholds
+    semantic_invariant = "semantic_migration_invariant_required" in thresholds
+    if legacy_invariant == semantic_invariant:
+        raise ValueError("migration protocol must select exactly one invariant")
+    invariant_property = (
+        "normalized-inspect-parity"
+        if legacy_invariant
+        else "semantic-migration-invariant"
+    )
+    invariant_metric = (
+        "normalized_inspect_parity_passed"
+        if legacy_invariant
+        else "semantic_migration_invariant_passed"
     )
     valid_fixtures = {str(record["case_id"]).rsplit(":", 1)[0] for record in valid}
     invalid_fixtures = {str(record["case_id"]).rsplit(":", 1)[0] for record in invalid}
@@ -321,17 +370,12 @@ def _migration_summary(
         "config_validation_passed": property_passes["config-validation"],
         "force_idempotence_passed": property_passes["force-idempotence"],
         "tree_atomicity_passed": property_passes["tree-atomicity"],
-        "normalized_inspect_parity_passed": property_passes[
-            "normalized-inspect-parity"
-        ],
+        invariant_metric: property_passes[invariant_property],
         "failure_atomicity_passed": invalid_passes,
         "failure_atomicity_total": len(invalid_fixtures),
         "valid_fixture_count": len(valid_fixtures),
         "property_count": len(property_passes),
         "minimum_property_pass_count": min(property_passes.values(), default=0),
-        "observed_platform_python_combinations": len(combinations),
-        "required_platform_python_combinations": len(expected_combinations),
-        "normalized_output_identical_across_matrix": matrix_identical,
     }
     required = int(thresholds["cases_required_per_property"])
     valid_properties = (
@@ -339,7 +383,7 @@ def _migration_summary(
         "config-validation",
         "force-idempotence",
         "tree-atomicity",
-        "normalized-inspect-parity",
+        invariant_property,
     )
     passed = (
         len(valid_properties) == int(thresholds["property_count"])
@@ -347,9 +391,21 @@ def _migration_summary(
         and all(property_passes[name] >= required for name in valid_properties)
         and invalid_passes >= int(thresholds["failure_atomicity_required"])
         and len(invalid_fixtures) == int(thresholds["failure_atomicity_total"])
-        and matrix_identical
-        == bool(thresholds["normalized_output_identical_across_matrix"])
     )
+    if legacy_invariant:
+        observed, expected, matrix_identical = _matrix_comparison(records, toolchain)
+        metrics.update(
+            {
+                "observed_platform_python_combinations": observed,
+                "required_platform_python_combinations": expected,
+                "normalized_output_identical_across_matrix": matrix_identical,
+            }
+        )
+        passed = passed and matrix_identical == bool(
+            thresholds["normalized_output_identical_across_matrix"]
+        )
+    else:
+        passed = passed and bool(thresholds["semantic_migration_invariant_required"])
     passed_records = sum(
         _outcome(record, "actual_outcome").get("passed") is True for record in records
     )
@@ -362,7 +418,9 @@ def _migration_summary(
 
 
 def _ablations(
-    records: list[dict[str, Any]], toolchain: Mapping[str, Any]
+    records: list[dict[str, Any]],
+    toolchain: Mapping[str, Any],
+    benchmark_version: str,
 ) -> dict[str, Any]:
     manifest = _load_json(benchmark_root() / "mutations" / "manifest.json")
     rule_map_payload = _load_json(benchmark_root() / "principle-rule-map.json")
@@ -437,7 +495,7 @@ def _ablations(
         }
     return {
         "schema_version": "1",
-        "benchmark_version": str(toolchain["benchmark_version"]),
+        "benchmark_version": benchmark_version,
         "repository_commit": toolchain["repository_commit"],
         "population": "must_block mutation rows",
         "must_block_total": len(must_records),
@@ -458,12 +516,12 @@ def _ablations(
 
 
 def build_summary(
-    results_dir: Path, generated_at: str
+    results_dir: Path, generated_at: str, protocol_path: Path | None = None
 ) -> tuple[dict[str, Any], dict[str, Any]]:
     """Build summary and ablation payloads from a result directory."""
 
-    protocol = _load_protocol()
     toolchain = load_toolchain()
+    protocol = _load_protocol(protocol_path, toolchain)
     records = {suite: _load_jsonl(results_dir / f"{suite}.jsonl") for suite in SUITES}
     summary_suites = {
         "detection": _detection_summary(records["detection"], protocol["detection"]),
@@ -473,7 +531,7 @@ def build_summary(
             records["migration"], protocol["migration"], toolchain
         ),
     }
-    summary = {
+    summary: dict[str, Any] = {
         "schema_version": str(protocol["schema_version"]),
         "benchmark_version": str(protocol["benchmark_version"]),
         "generated_at": generated_at,
@@ -488,20 +546,36 @@ def build_summary(
         "suites": summary_suites,
         "passed": all(suite["passed"] for suite in summary_suites.values()),
     }
-    return summary, _ablations(records["mutations"], toolchain)
+    matrix_settings = protocol.get("matrix_identity")
+    if matrix_settings is not None:
+        if not isinstance(matrix_settings, dict):
+            raise TypeError("matrix identity protocol section must be a table")
+        summary["matrix_identity"] = _matrix_identity_summary(
+            records["migration"], matrix_settings, toolchain
+        )
+    return summary, _ablations(
+        records["mutations"], toolchain, str(protocol["benchmark_version"])
+    )
 
 
 def main(argv: Sequence[str] | None = None) -> int:
     """Write summary.json and ablations.json for existing raw results."""
 
-    parser = argparse.ArgumentParser(description="summarize Benchmark v1 results")
+    parser = argparse.ArgumentParser(description="summarize benchmark results")
     parser.add_argument(
         "--results-dir", type=Path, default=benchmark_root() / "results" / "v1"
+    )
+    parser.add_argument(
+        "--protocol",
+        type=Path,
+        help="protocol filename or path relative to the benchmarks directory",
     )
     parser.add_argument("--generated-at")
     args = parser.parse_args(argv)
     generated_at = args.generated_at or _generated_at()
-    summary, ablations = build_summary(args.results_dir, generated_at)
+    summary, ablations = build_summary(
+        args.results_dir, generated_at, protocol_path=args.protocol
+    )
     args.results_dir.mkdir(parents=True, exist_ok=True)
     (args.results_dir / "summary.json").write_text(
         json.dumps(summary, indent=2, sort_keys=True) + "\n", encoding="utf-8"

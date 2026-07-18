@@ -1,7 +1,13 @@
 {
-  "benchmark_version": "1",
-  "generated_at": "2026-07-16T08:41:06.153133Z",
-  "passed": false,
+  "benchmark_version": "1.1",
+  "generated_at": "2026-07-17T08:51:01.757262Z",
+  "matrix_identity": {
+    "enforced_in": "ci-matrix-comparison",
+    "identical": null,
+    "observed_combinations": 1,
+    "required_combinations": 4
+  },
+  "passed": true,
   "schema_version": "1",
   "suites": {
     "detection": {
@@ -69,9 +75,9 @@
     },
     "migration": {
       "counts": {
-        "failed": 12,
+        "failed": 0,
         "incomplete": 0,
-        "passed": 52,
+        "passed": 64,
         "total": 64
       },
       "metrics": {
@@ -80,23 +86,20 @@
         "failure_atomicity_total": 4,
         "force_idempotence_passed": 12,
         "independent_output_parity_passed": 12,
-        "minimum_property_pass_count": 0,
-        "normalized_inspect_parity_passed": 0,
-        "normalized_output_identical_across_matrix": false,
-        "observed_platform_python_combinations": 1,
+        "minimum_property_pass_count": 12,
         "property_count": 5,
-        "required_platform_python_combinations": 4,
+        "semantic_migration_invariant_passed": 12,
         "tree_atomicity_passed": 12,
         "valid_fixture_count": 12
       },
-      "passed": false,
+      "passed": true,
       "thresholds": {
         "case_total": 12,
         "cases_required_per_property": 12,
         "failure_atomicity_required": 4,
         "failure_atomicity_total": 4,
-        "normalized_output_identical_across_matrix": true,
-        "property_count": 5
+        "property_count": 5,
+        "semantic_migration_invariant_required": true
       }
     },
     "mutations": {
@@ -133,9 +136,9 @@
     }
   },
   "toolchain": {
-    "garden_commit": "7822a59e40446729168445f12516101b0c198b9f",
+    "garden_commit": "363c08235952498164d3f0ec6f3503d054a29aa9",
     "platform": "macos",
-    "plugin_version": "0.7.2",
+    "plugin_version": "0.9.0",
     "python_version": "3.14.0",
     "repository_commit": "e8d5bc838ae40ba5c76fbe79c895c55da748e896",
     "seed": 20260714

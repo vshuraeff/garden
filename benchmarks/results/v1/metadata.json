@@ -1,13 +1,13 @@
 {
-  "benchmark_version": "1",
-  "garden_commit": "7822a59e40446729168445f12516101b0c198b9f",
-  "generated_at": "2026-07-16T08:41:06.153133Z",
+  "benchmark_version": "1.1",
+  "garden_commit": "363c08235952498164d3f0ec6f3503d054a29aa9",
+  "generated_at": "2026-07-17T08:51:01.757262Z",
   "platform": "macos",
-  "plugin_version": "0.7.2",
+  "plugin_version": "0.9.0",
   "producers": {
     "detection": {
       "path": "benchmarks/run_detection.py",
-      "sha256": "4205aa1238035e43fba4a768762f156f300c46cdb5c3b62e7b0f1386d5d85bb4"
+      "sha256": "cc2c7987572c77fbdac16c254251f836ab6a244145225d164b32edae358481b6"
     },
     "evidence": {
       "path": "benchmarks/run_evidence.py",
@@ -15,7 +15,7 @@
     },
     "migration": {
       "path": "benchmarks/run_migration.py",
-      "sha256": "102d5ddb0f7e240c03844e3590a8edc6ff5298a736afa37079cb6468070a1c65"
+      "sha256": "bbf70f8b15bcfbaf047c94a3ad83f992ad3416d545e575f85156419825a0542a"
     },
     "mutations": {
       "path": "benchmarks/run_mutations.py",
@@ -23,11 +23,11 @@
     },
     "orchestration": {
       "path": "benchmarks/run.py",
-      "sha256": "1fc6e6164d3df33939bc11f9abfd47e2a455ff014cdc6186380bc939bf657fcb"
+      "sha256": "acfde6cbb0e55f218156fe4f40b0411b652cab0655ce4a7b542a01593d2301fc"
     },
     "summary": {
       "path": "benchmarks/summarize.py",
-      "sha256": "c4d9f5f5e83e0c9a2edad8e28cc59b6bad32dda0f61f2ee1f5adfc10cb42dda6"
+      "sha256": "e7e468131e4d46b9aa002bda842e84984b4feb4873bf1647361474b3906950bf"
     }
   },
   "python_version": "3.14.0",
@@ -41,7 +41,7 @@
     "detection"
   ],
   "support_files": {
-    "benchmarks/lib/garden_adapter.py": "52a4d4865b09547a97ee59772fb4e48607d4f5ef3f167e9d52c04c0bd2c10982",
+    "benchmarks/lib/garden_adapter.py": "ba08b60488e927c1e0183ce4579ab9f98e3a0a5ed3f3df8c9c3cc60d05d5cbc7",
     "benchmarks/lib/metrics.py": "7e049a8d7b1e625860cedaf6b9778faf55630363dc0428d11f882cda4b3b2cd8",
     "benchmarks/lib/mutation_ops.py": "baef30da2c84c20dfcbe637e2d9e804de17ca09b6692790212054457cb286fe5",
     "benchmarks/lib/provenance.py": "fa452bb690618e720e255ddd1487353b8de3610015688b96fd012330c5b36584"

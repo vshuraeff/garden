@@ -52,10 +52,6 @@ COMPARISONS = {
         ("property_count", "property_count"),
         ("failure_atomicity_required", "failure_atomicity_passed"),
         ("failure_atomicity_total", "failure_atomicity_total"),
-        (
-            "normalized_output_identical_across_matrix",
-            "normalized_output_identical_across_matrix",
-        ),
     ),
 }
 
@@ -113,6 +109,25 @@ def _suite_table(summary: Mapping[str, Any]) -> list[str]:
             f"Top-level result: **{'pass' if summary['passed'] else 'fail'}**.",
         ]
     )
+    return lines
+
+
+def _matrix_identity_table(summary: Mapping[str, Any]) -> list[str]:
+    identity = summary["matrix_identity"]
+    lines = [
+        "",
+        "### Matrix identity",
+        "",
+        "| Property | Value |",
+        "| --- | --- |",
+    ]
+    for key in (
+        "required_combinations",
+        "observed_combinations",
+        "identical",
+        "enforced_in",
+    ):
+        lines.append(f"| `{key}` | {_render_scalar(identity[key])} |")
     return lines
 
 
@@ -186,6 +201,7 @@ def generated_region(
 
     lines = [BEGIN]
     lines.extend(_suite_table(summary))
+    lines.extend(_matrix_identity_table(summary))
     lines.extend(_comparison_tables(summary))
     lines.extend(_ablation_tables(ablations))
     lines.extend(

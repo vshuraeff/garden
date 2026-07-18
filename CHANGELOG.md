@@ -1,5 +1,23 @@
 # Changelog
 
+## 0.9.0
+
+- Replaced Benchmark v1.1's exact migration-parity invariant with a semantic
+  invariant checked against the curated intentional-changes registry at
+  `benchmarks/corpus/migration-intentional-changes.json`.
+- Added protocol v1.1 (`benchmarks/protocol-v1.1.toml`) alongside the preserved
+  historical v1 protocol (`benchmarks/protocol-v1.toml`).
+- Made `matrix_identity` a separate, CI-measured invariant distinct from the
+  migration suite, rather than an unmeasurable single-cell property.
+- CI now reruns the benchmark against the current plugin tree with
+  `benchmarks/run.py --check` on the authoritative cell.
+- CI now produces normalized per-cell artifacts across all four declared
+  platform/Python matrix cells, and the `benchmark-matrix-compare` job asserts
+  cross-matrix identity.
+- `benchmarks/lib` unit tests now run in CI.
+- Preserved Benchmark v1's negative migration result, the exact-parity failure,
+  as a historical record rather than retracting it.
+
 ## 0.8.5
 
 - Expanded `REFERENCE_PAIRS` to eight documents, including the evidence

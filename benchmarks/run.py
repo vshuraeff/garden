@@ -11,13 +11,13 @@ import tempfile
 from collections.abc import Callable, Sequence
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any
 
 import run_detection
 import run_evidence
 import run_migration
 import run_mutations
 import summarize
+from lib.normalized_artifacts import _normalized_artifact
 from lib.provenance import (
     git_commit,
     load_toolchain,
@@ -154,52 +154,6 @@ def _run_all(output_dir: Path) -> None:
         raise RuntimeError(f"summarizer exited {summarize_result}")
     _write_metadata(output_dir, generated_at, order)
     _write_checksums(output_dir)
-
-
-def _normalized_json(path: Path) -> Any:
-    value = json.loads(path.read_text(encoding="utf-8"))
-    if isinstance(value, dict):
-        value.pop("generated_at", None)
-        provenance_blocks = [value]
-        if isinstance(value.get("toolchain"), dict):
-            provenance_blocks.append(value["toolchain"])
-        for block in provenance_blocks:
-            block.pop("garden_commit", None)
-            block.pop("repository_commit", None)
-    return value
-
-
-def _normalized_jsonl(path: Path) -> list[dict[str, Any]]:
-    records = []
-    for line in path.read_text(encoding="utf-8").splitlines():
-        value = json.loads(line)
-        if not isinstance(value, dict):
-            raise TypeError(f"{path}: JSONL record is not an object")
-        value.pop("elapsed_ns", None)
-        value.pop("garden_commit", None)
-        value.pop("repository_commit", None)
-        records.append(value)
-    return records
-
-
-def _checksum_names(path: Path) -> list[str]:
-    names = []
-    for line in path.read_text(encoding="utf-8").splitlines():
-        _, separator, name = line.partition("  ")
-        if not separator:
-            raise ValueError(f"{path}: malformed checksum line")
-        names.append(name)
-    return names
-
-
-def _normalized_artifact(path: Path) -> Any:
-    if path.suffix == ".jsonl":
-        return _normalized_jsonl(path)
-    if path.name == "sha256sums.txt":
-        return _checksum_names(path)
-    if path.suffix == ".json":
-        return _normalized_json(path)
-    return path.read_bytes()
 
 
 def _check(reference_dir: Path) -> int:

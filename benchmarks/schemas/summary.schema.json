@@ -42,8 +42,8 @@
     "passed"
   ],
   "properties": {
-    "schema_version": { "const": "1" },
-    "benchmark_version": { "const": "1" },
+    "schema_version": { "enum": ["1", "1.1"] },
+    "benchmark_version": { "enum": ["1", "1.1"] },
     "generated_at": { "type": "string", "format": "date-time" },
     "toolchain": {
       "type": "object",
@@ -74,6 +74,22 @@
         "evidence": { "$ref": "#/$defs/suiteSummary" },
         "mutations": { "$ref": "#/$defs/suiteSummary" },
         "migration": { "$ref": "#/$defs/suiteSummary" }
+      }
+    },
+    "matrix_identity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "required_combinations",
+        "observed_combinations",
+        "identical",
+        "enforced_in"
+      ],
+      "properties": {
+        "required_combinations": { "type": "integer", "minimum": 0 },
+        "observed_combinations": { "type": "integer", "minimum": 0 },
+        "identical": { "type": ["boolean", "null"] },
+        "enforced_in": { "type": "string", "minLength": 1 }
       }
     },
     "passed": { "type": "boolean" }

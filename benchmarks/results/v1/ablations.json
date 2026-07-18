@@ -3,7 +3,7 @@
     "G",
     "E"
   ],
-  "benchmark_version": "1",
+  "benchmark_version": "1.1",
   "computed_families": {
     "A": {
       "leave_one_out_loss": 0,

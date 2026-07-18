@@ -19,6 +19,7 @@ from lib.garden_adapter import (
 from lib.provenance import (
     git_commit,
     load_toolchain,
+    normalize_path_bytes,
     platform_string,
     plugin_version,
     python_version_string,
@@ -143,8 +144,12 @@ def _records_for_fixture(
                 ),
                 "exit_code": cli_result.exit_code,
                 "finding_ids": finding_ids_for_path(cli_result, relative_path),
-                "stdout_sha256": sha256_bytes(cli_result.stdout),
-                "stderr_sha256": sha256_bytes(cli_result.stderr),
+                "stdout_sha256": sha256_bytes(
+                    normalize_path_bytes(cli_result.stdout, [condition_root])
+                ),
+                "stderr_sha256": sha256_bytes(
+                    normalize_path_bytes(cli_result.stderr, [condition_root])
+                ),
                 "elapsed_ns": cli_result.elapsed_ns,
                 "platform": platform_string(),
                 "python_version": python_version_string(),
