@@ -1,0 +1,2 @@
+"""Toy shop fixture tests."""
+

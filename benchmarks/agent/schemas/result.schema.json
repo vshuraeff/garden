@@ -1,0 +1,100 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://garden.local/benchmarks/agent/schemas/result.schema.json",
+  "title": "Agent benchmark v2 cell-run result",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "benchmark_version",
+    "harness",
+    "condition",
+    "task_id",
+    "repetition",
+    "models",
+    "pass",
+    "wall_clock_seconds",
+    "tokens",
+    "cost_usd",
+    "diff_size",
+    "provenance",
+    "raw_telemetry_ref"
+  ],
+  "properties": {
+    "schema_version": { "const": "2" },
+    "benchmark_version": { "const": "2" },
+    "harness": { "enum": ["claude_code", "codex"] },
+    "condition": { "enum": ["garden_on", "garden_off"] },
+    "task_id": { "enum": ["T1", "T2", "T3"] },
+    "repetition": { "type": "integer", "minimum": 1 },
+    "models": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["main", "subagents"],
+      "properties": {
+        "main": { "type": "string", "minLength": 1 },
+        "subagents": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 },
+          "minItems": 1,
+          "uniqueItems": true
+        }
+      }
+    },
+    "pass": { "type": "boolean" },
+    "wall_clock_seconds": { "type": "number", "minimum": 0 },
+    "tokens": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["input", "output", "cache"],
+      "properties": {
+        "input": { "type": "integer", "minimum": 0 },
+        "output": { "type": "integer", "minimum": 0 },
+        "cache": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "cost_usd": { "type": "number", "minimum": 0 },
+    "diff_size": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["lines_added", "lines_removed", "files_changed"],
+      "properties": {
+        "lines_added": { "type": "integer", "minimum": 0 },
+        "lines_removed": { "type": "integer", "minimum": 0 },
+        "files_changed": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "cli_version",
+        "model_ids",
+        "fixture_hash",
+        "prompt_hash",
+        "timestamp"
+      ],
+      "properties": {
+        "cli_version": { "type": "string", "minLength": 1 },
+        "model_ids": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "fixture_hash": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+        "prompt_hash": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+        "timestamp": { "type": "string", "format": "date-time" }
+      }
+    },
+    "raw_telemetry_ref": { "type": "string", "minLength": 1 },
+    "observations": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "garden_inspection": { "type": ["object", "null"] }
+      }
+    }
+  }
+}
+

@@ -1,0 +1,125 @@
+schema_version = 2
+benchmark_version = "2"
+title = "GARDEN agent-value benchmark v2"
+pricing_file = "pricing.toml"
+result_schema = "schemas/result.schema.json"
+
+[matrix]
+harnesses = ["claude_code", "codex"]
+conditions = ["garden_on", "garden_off"]
+tasks = ["T1", "T2", "T3"]
+harness_count = 2
+condition_count = 2
+task_count = 3
+repetitions_per_cell = 3
+cell_count = 12
+total_cell_runs = 36
+cell_definition = "one (harness, condition, task) triple"
+
+[fixture]
+source = "fixture"
+baseline = "fresh git commit after condition setup and task preconditions"
+task_isolation = "each cell-run receives a fresh copy"
+t1_regression_setup = "fixture/tests/test_t1_regression.py is injected before the cell baseline commit for T1 only"
+clean_baseline_tasks = ["T2", "T3"]
+
+[harnesses.claude_code]
+command = ["claude", "-p", "--output-format", "json"]
+telemetry_format = "single JSON result object"
+main_model = "opus-4.8"
+subagent_models = ["sonnet-5"]
+
+[harnesses.codex]
+command = ["codex", "exec", "--json"]
+telemetry_format = "JSONL event stream"
+main_model = "gpt-5.6-sol"
+model_reasoning_effort = "xhigh"
+subagent_models = ["gpt-5.6-terra", "gpt-5.6-luna"]
+
+[conditions.garden_on]
+garden_plugin_installed = true
+garden_config_present = true
+garden_hooks_wired = true
+setup = "copy the repository-local plugins/garden package into the ephemeral fixture and install its project surfaces"
+
+[conditions.garden_off]
+garden_plugin_installed = false
+garden_config_present = false
+garden_hooks_wired = false
+setup = "make no garden-related additions to the ephemeral fixture"
+
+[conditions.control]
+only_difference = "garden-on has the local garden plugin, .garden.toml, and project hook/instruction surfaces; garden-off does not"
+held_constant = ["task prompts", "fixture source", "task preconditions", "verifiers", "harness models", "repetition count"]
+
+[tasks.T1]
+difficulty = "easy"
+summary = "fix coupon-code normalization in the pricing capability"
+scope = "point bugfix within one capability"
+prompt = "fixture/prompts/T1.md"
+verifier = "fixture/verify/T1.py"
+precondition = "inject a failing regression test before the T1 baseline commit"
+
+[tasks.T2]
+difficulty = "medium"
+summary = "add reserved-order creation across orders and inventory"
+scope = "cross exactly one capability boundary"
+prompt = "fixture/prompts/T2.md"
+verifier = "fixture/verify/T2.py"
+precondition = "use the clean fixture baseline"
+
+[tasks.T3]
+difficulty = "hard"
+summary = "migrate checkout across orders, inventory, pricing, and notify while preserving its public contract"
+scope = "cross multiple capabilities while preserving a public function signature and CLI JSON format"
+prompt = "fixture/prompts/T3.md"
+verifier = "fixture/verify/T3.py"
+precondition = "use the clean fixture baseline"
+
+[repetitions]
+count = 3
+
+[metrics.pass_fail]
+field = "pass"
+source = "task verifier exit code"
+success = "exit code 0"
+garden_inspection_affects_pass = false
+
+[metrics.wall_clock_seconds]
+field = "wall_clock_seconds"
+source = "elapsed harness subprocess time; mock duration in dry-run telemetry"
+
+[metrics.tokens]
+fields = ["input", "output", "cache"]
+normalization = "input excludes cache when a CLI reports cached tokens as a subset of total input"
+
+[metrics.tokens.claude_code]
+source = "claude --output-format json result object"
+input_fields = ["usage.input_tokens", "modelUsage.<model>.inputTokens"]
+output_fields = ["usage.output_tokens", "modelUsage.<model>.outputTokens"]
+cache_fields = ["usage.cache_read_input_tokens", "usage.cache_creation_input_tokens", "modelUsage.<model>.cacheReadInputTokens", "modelUsage.<model>.cacheCreationInputTokens"]
+duration_fields = ["duration_ms", "duration_api_ms"]
+
+[metrics.tokens.codex]
+source = "codex exec --json event stream"
+event = "turn.completed"
+input_fields = ["usage.input_tokens"]
+output_fields = ["usage.output_tokens"]
+cache_fields = ["usage.cached_input_tokens"]
+duration_fields = ["duration_ms"]
+auxiliary_fields = ["usage.reasoning_output_tokens"]
+
+[metrics.diff_size]
+source = "git diff --numstat against the cell's initial fixture commit"
+fields = ["lines_added", "lines_removed", "files_changed"]
+
+[metrics.cost]
+field = "cost_usd"
+source = "parsed token counts multiplied by per-model input/output/cache rates"
+pricing_file = "pricing.toml"
+unit = "USD per million tokens"
+
+[observational_analysis.garden_inspection]
+part_of_success_criterion = false
+functional_verifiers_only = true
+statement = "deterministic garden inspection is not part of task pass/fail; garden-related fields may be recorded for observational analysis only"

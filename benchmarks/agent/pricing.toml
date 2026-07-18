@@ -1,0 +1,35 @@
+[meta]
+snapshot_date = 2026-07-18
+source = "estimated — no public pricing page exists for these forward model ids; extrapolated from current-generation flagship/mid/small tier ratios, see notes"
+notes = "Placeholder planning rates only. opus-4.8 uses a flagship tier and sonnet-5 a mid tier. gpt-5.6-sol uses a large reasoning tier, gpt-5.6-terra a mid tier, and gpt-5.6-luna a small tier. Cache rates are estimated at one tenth of input rates. Replace every rate from one dated source before a real benchmark run."
+
+[models."opus-4.8"]
+input_per_million_usd = 15.0
+output_per_million_usd = 75.0
+cache_per_million_usd = 1.5
+estimate_tier = "flagship"
+
+[models."sonnet-5"]
+input_per_million_usd = 3.0
+output_per_million_usd = 15.0
+cache_per_million_usd = 0.3
+estimate_tier = "mid"
+
+[models."gpt-5.6-sol"]
+input_per_million_usd = 10.0
+output_per_million_usd = 40.0
+cache_per_million_usd = 1.0
+estimate_tier = "large reasoning"
+
+[models."gpt-5.6-terra"]
+input_per_million_usd = 4.0
+output_per_million_usd = 16.0
+cache_per_million_usd = 0.4
+estimate_tier = "mid"
+
+[models."gpt-5.6-luna"]
+input_per_million_usd = 1.5
+output_per_million_usd = 6.0
+cache_per_million_usd = 0.15
+estimate_tier = "small"
+
