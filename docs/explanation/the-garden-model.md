@@ -1,6 +1,6 @@
 ---
 owner: vshuraeff
-last_reviewed: 2026-07-14
+last_reviewed: 2026-07-16
 review_on:
   - rule-change
   - evidence-change
@@ -11,114 +11,133 @@ review_on:
 ## A codebase as something tended, not built once
 
 The metaphor GARDEN takes its name from is deliberately unglamorous: a codebase is a
-garden that agents continuously tend, not a building that is constructed once and then
-occupied. A building, once erected, mostly just stands there; a garden left alone does
-not stand still — it grows wild. Paths close over, beds run into each other, one
-aggressive planting crowds out everything nearby. Tending is not a one-time setup cost;
-it is an ongoing practice that has to keep pace with how fast the garden grows.
+garden that people and agents continuously tend, not a building constructed once and
+then occupied. A building, once erected, mostly just stands there; a garden left alone
+does not stand still. Paths close over, beds run into each other, and one aggressive
+planting crowds out everything nearby. Tending is not a one-time setup cost; it has to
+keep pace with how fast the garden grows.
 
-This is not a comforting analogy chosen for effect. It is, as far as the available
-evidence goes, an observation about code churn under sustained agent-driven change. The
-GitClear AI Code Quality report examined 211 million changed lines from January 2020
-through December 2024 and observed copy-pasted code rising from 8.3% to 12.3% of changed
-lines, refactored or moved code falling from 24.1% to 9.5%, and blocks of duplicated code
-growing roughly eightfold. These observational metrics do not identify the cause of the
-trend or prove the effect of a particular architecture practice. GARDEN's six principles
-are a countervailing practice for the risks those metrics make visible: tending work that
-keeps a codebase navigable, extensible, and trustworthy as agents keep touching it, year
-over year, without a ground-up rewrite.
+This is not a comforting analogy chosen for effect. The available evidence includes
+observations about code churn under sustained agent-driven change. The GitClear AI Code
+Quality report examined 211 million changed lines from January 2020 through December
+2024 and observed copy-pasted code rising from 8.3% to 12.3% of changed lines,
+refactored or moved code falling from 24.1% to 9.5%, and blocks of duplicated code
+growing roughly eightfold. These observational metrics do not identify the cause of
+the trend or prove the effect of a particular architecture practice. GARDEN's six
+principles are a countervailing practice for the risks those metrics make visible:
+tending work that keeps a codebase navigable, changeable, and trustworthy as agents
+keep touching it without a ground-up rewrite.
 ([CLAIM-N004](../evidence/evidence-registry.md#claim-n004))
 
 ## The six principles as a system, not a checklist
 
-Each GARDEN principle addresses a specific mechanical constraint an agent works under
-(see [why-agent-first-principles.md](why-agent-first-principles.md) for the mechanics
-themselves), but none of the six functions well in isolation. They are load-bearing for
-each other:
+Each GARDEN principle addresses a mechanical constraint an agent works under (see
+[why-agent-first-principles.md](why-agent-first-principles.md) for those mechanics),
+but none of the six functions well in isolation. The principles form a chain of
+evidence rather than a prescribed repository shape or toolchain:
 
-- **G — Grep-first Discoverability** makes **A — Atomic Vertical Slices** findable: a
-  slice is only atomic in practice if an agent can locate it in the first place.
-- **A** makes **R — Regenerable Components** affordable: a small, self-contained slice
-  is cheap to specify precisely and cheap to rewrite from scratch, where a sprawling
-  module is neither.
-- **R** makes **D — Deterministic Verification** meaningful: a contract gives
-  deterministic gates something precise to check a component against, rather than
-  checking code against vague intent.
-- **D** makes **E — Explicit Everything** enforceable: explicitness is only durable once
-  it is captured as a lint rule or type, not left as a habit that erodes commit by
-  commit.
-- **E** makes **N — Navigable Knowledge** cheaper: the less that is implicit, the less
-  documentation has to work to explain the gaps.
-- **N** makes **G** work at the scale of a whole repository: naming conventions
-  documented once, and findable at the point of use, are what let grep-first search
-  stay reliable as the codebase grows past what any single session can hold.
+- **G — Graph-resolvable Discoverability** makes a capability's full change surface
+  findable through a stated relationship mechanism.
+- **A — Adaptive Capability Locality** keeps that surface proportionate to the change
+  by minimizing unnecessary modules, crossings, context, handoffs, and coupling.
+- **R — Replaceable Components** records the evidence that says what a replacement
+  must preserve at its boundary.
+- **D — Defense-in-depth Verification** exercises those claims at the verification
+  levels relevant to the change's risk.
+- **E — Explicit Boundaries and State** exposes the state, policies, and ownership
+  that those checks need to observe.
+- **N — Nearby, Maintained Knowledge** records the ownership, intent, and residual
+  risk that neither code nor generated facts can authoritatively supply.
 
-The loop closes: better navigability at repo scale (N) is exactly what keeps
-discoverability (G) working as the codebase grows, which is where the chain started.
-None of the six is optional scaffolding around the "real" principles; each is the
-precondition the next one needs. For the full statement of each principle's rules,
-rationale, and anti-patterns, see [../reference/principles.md](../reference/principles.md).
+The loop returns from N to G because maintained knowledge makes the declared graph
+mechanisms, boundary maps, and decision records available to the next change. A
+relationship that exists only in a previous conversation is not a usable discovery
+path. For the full rules, rationale, and anti-patterns behind the six principles, see
+[../reference/principles.md](../reference/principles.md).
+
+Graph-resolvable Discoverability does not make static search the canonical path.
+`G-DISC-001` requires an in-scope production relationship to be recoverable through at
+least one stated mechanism. Grep is one valid mechanism; an AST, LSP, symbol index,
+route map, plugin registry, schema registry, or generated wiring can also expose the
+same graph. Dynamic dispatch is compatible with the model when a machine-readable
+manifest, schema, registry, or generated map reveals its targets.
+
+Adaptive Capability Locality likewise does not impose a universal tree shape.
+`A-LOC-001` requires a stated location and ownership strategy that identifies the code,
+state, tests, and operational artifacts affecting a production capability.
+`.garden.toml` expresses that choice with `capabilities.strategy` set to `children`,
+`explicit`, `markers`, or `none`; `markers` currently records experimental intent.
+A vertical slice beneath a configured root is one valid use of `children`, alongside
+framework-standard layouts, explicit path maps, pipelines, and generated maps. The
+question is change-distance — modules touched, boundary crossings, requisite context,
+ownership clarity, and coupling — rather than whether a repository follows a prescribed
+layout.
 
 ## What optimizing for agents does not mean
 
-It is easy to hear "optimize for the agent as primary reader" and infer something
+It is easy to hear "optimize for the agent as a primary reader" and infer something
 GARDEN does not claim.
 
-**It does not mean lower quality.** Grep-first naming, small slices, explicit contracts,
-deterministic gates, explicit interfaces, and navigable documentation are not
-shortcuts — several of them require more upfront discipline than the looser conventions
-they replace. The evidence base for GARDEN is largely a record of what happens when that
-discipline is absent: search misses, duplicated blocks, spec drift, invariants that only
-exist in someone's head. Optimizing for the agent as reader is, in practice, optimizing
-for correctness and long-term maintainability, because those are exactly the properties
-an agent's mechanical limits punish first when they are missing.
+**It does not mean lower quality.** Recoverable relationship maps, proportionate
+capability boundaries, boundary evidence, verification at relevant levels, explicit
+state, and maintained decision records are not shortcuts. They make assumptions
+inspectable by people, tools, and agents. The model does not claim that a single
+directory layout, contract format, or review tool produces those properties; it asks a
+project to make its relevant relationships and evidence visible enough to check.
 
-**It does not mean removing humans.** Under GARDEN, humans set intent, define
-constraints, and own the "why." **Regenerable Components** treats code as expendable
-precisely so that the parts worth preserving carefully — the contract, the rationale,
-the trade-off record — are the parts a human authored or approved, not the
-implementation detail an agent can reproduce on request. **Navigable Knowledge**
-explicitly reserves the human-authored "why" as a MUST, distinct from documentation an
-agent may draft: agents may draft explanatory content, but humans approve it before it
-becomes the record other agents will trust. GARDEN redistributes labor; it does not
-eliminate the human role in the loop, and the principle most directly responsible for
-that boundary is Deterministic Verification's refusal to let an agent self-certify its
-own work.
+**It does not mean removing humans.** Humans own the boundary evidence and the record
+of intent and trade-offs. Under `R-REPL-001`, a component whose replacement can affect
+correctness, compatibility, or security records the applicable public interface or
+schema, behavioral examples, characterization and compatibility tests, migration and
+rollback plan, observability expectations, data ownership, and concurrency or ordering
+semantics. An agent replacing or rewriting that component works from the recorded
+evidence rather than guessing what must survive; any omitted category needs a
+boundary-specific reason. `N-KNOW-001` and `N-KNOW-002` keep the governing knowledge
+linked, owned, reviewed for staleness, and human-authored. `D-VER-005` then prevents the
+implementing agent from being the sole authority for its own change.
 
 ## Trade-offs, stated honestly
 
-GARDEN is not free. Adopting it costs something in specific, predictable places, and the
-model is more credible for naming them rather than glossing over them.
+GARDEN is not free. Adopting it costs something in specific, predictable places, and
+the model is more credible for naming those costs than for glossing over them.
 
-**Managed duplication has a real cost.** Tolerating duplicate code until a
-clone-detection signal justifies extracting an abstraction means living with more
-repeated logic than a strict-DRY codebase would carry at any given moment. That
-repetition is a deliberate trade: it avoids the cost of premature abstractions that
-entangle unrelated call sites, but it is still a cost, paid in the form of more surface
-area to eventually reconcile once the clone-detection threshold is crossed. A team that
-never runs the reconciliation step will accumulate genuine bit-rot, not just
-"managed" duplication.
+**Managed duplication has a real cost.** `A-LOC-005` delays sharing an abstraction
+until three concrete uses demonstrate a stable common shape, unless a known boundary,
+security control, or platform constraint justifies an earlier extraction. That can
+leave more repeated logic in the repository than a strict-DRY approach would accept.
+The trade avoids coupling unrelated callers to an abstraction whose shape is still
+unclear, but the repeated behavior still needs review and eventual reconciliation when
+the evidence justifies it. GitClear's observed changes in churn and clone-detection
+metrics are context for measuring that cost in a project, not proof that a particular
+layout causes it.
 
-**Explicit boundaries add ceremony.** Requiring dependencies to point at contracts
-rather than concrete implementations, requiring typed interfaces at every boundary, and
-requiring a spec precise enough to regenerate a component from scratch all add code and
-process that a smaller, more tightly coupled design would not need. For a genuinely
-small, short-lived script, this ceremony can cost more than it returns; GARDEN's target
-is systems that go to production, integrate with other systems, and need to survive
-years of extension, not every throwaway snippet an agent produces.
+**Explicit boundaries add ceremony.** Boundary contracts, typed interfaces where the
+boundary needs them, and replacement evidence add artifacts and review work that a
+smaller, tightly coupled design may avoid. The cost is justified only where omitted
+information could affect correctness, compatibility, security, or operations:
+`E-EXPL-001` defines the public, trust, and persistence boundaries that need contracts,
+while `R-REPL-001` defines the evidence a consequential replacement needs. A small,
+short-lived script can reasonably have a smaller boundary surface than a system that
+integrates with other systems and must absorb years of change.
 
-**Navigable knowledge requires upkeep discipline.** A README in every significant
-directory and a short root context file are only assets while someone keeps them
-accurate; an informal single-author practitioner report suggests that curated context
-files help while autogenerated, unmaintained ones hurt. Navigable Knowledge is not
-satisfied by writing the documentation once — it requires deleting documentation that
-has drifted from the code it describes, which is its own recurring cost.
+**Nearby, Maintained Knowledge requires upkeep discipline.** `N-KNOW-004` calls for
+nearby navigation or decision documentation when a directory is a public boundary, has
+a separate owner, contains non-obvious decisions, is edited independently of siblings,
+carries operational obligations, or serves as a navigation entry point. `N-KNOW-007`
+keeps that material from restating facts already clear from code or generated artifacts,
+and `N-KNOW-001` assigns its owner and staleness trigger. The recurring work is to keep
+those decisions current and remove drift, not to satisfy a directory-count convention.
+A practitioner report suggests curated context helps while autogenerated, unmaintained
+context hurts; its informal, single-author scope does not establish a universal
+documentation threshold.
 ([CLAIM-N001](../evidence/evidence-registry.md#claim-n001))
 
-These costs are the price of the properties GARDEN targets — findability, regenerable
-components, gates that do not depend on any one model's judgment, and knowledge reachable
-within one hop. None of them are amortized to zero; they are traded deliberately against
-the failure modes described in
+The costs buy evidence, not certainty: recoverable relationships, a proportionate
+change surface, recorded replacement constraints, verification beyond one model's
+judgment, and maintained decisions. They remain deliberate trade-offs against the
+failure modes described in
 [why-agent-first-principles.md](why-agent-first-principles.md), and against the classic
-principles GARDEN inherits from and diverges from, discussed in
-[relation-to-classic-principles.md](relation-to-classic-principles.md).
+principles GARDEN inherits from and diverges from in
+[relation-to-classic-principles.md](relation-to-classic-principles.md). Progressive
+disclosure keeps a typical change focused on its bounded requisite context rather than
+assuming that every governing fact belongs in the first document a reader opens.

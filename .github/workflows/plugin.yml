@@ -31,6 +31,8 @@ jobs:
         run: uv run --no-project plugins/garden/tools/validate_evidence.py
       - name: Validate documentation checks
         run: uv run --no-project plugins/garden/tools/validate_docs.py
+      - name: Validate migration language
+        run: uv run --no-project plugins/garden/tools/validate_migration_language.py
       - name: Validate committed benchmark v1 results
         if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.14'
         run: uv run --no-project benchmarks/validate_results.py
