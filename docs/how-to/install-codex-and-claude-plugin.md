@@ -1,6 +1,6 @@
 ---
 owner: vshuraeff
-last_reviewed: 2026-07-14
+last_reviewed: 2026-07-17
 review_on:
   - major-release
 ---
@@ -85,3 +85,25 @@ server should expose `garden_inspect_project` and `garden_check_file`.
 In Claude Code, use `/plugin` for package state, `/mcp` for the `garden` server, and
 `/agents` for `garden-reviewer`. In Codex, run `garden:start` once for the repository,
 start a new session, then use `/agent` to inspect reviewer threads.
+
+## Automated verification
+
+`.github/workflows/integration.yml` installs the packaged plugin into isolated Claude
+Code and Codex configurations and exercises marketplace discovery, plugin installation,
+hook execution, and the MCP handshake end to end with real, pinned CLI binaries instead
+of in-process test doubles.
+
+It is separate from the per-PR validation job in `.github/workflows/plugin.yml`: it runs
+on `workflow_dispatch`, a weekly schedule, and pull requests that modify plugin packaging
+paths, has `timeout-minutes: 15`, and makes no LLM or API calls.
+
+`HarnessSmokeTestCase.isolated_env` in `plugins/garden/tools/test_harness_smoke.py` uses
+`CLAUDE_CONFIG_DIR` for Claude Code and `CODEX_HOME` for Codex. Reproduce the suite from
+the repository root with:
+
+```sh
+uv run --no-project -m unittest plugins.garden.tools.test_harness_smoke -v
+```
+
+The suite skips cleanly through `unittest.skipTest` when `claude` or `codex` is not on
+`PATH`.
