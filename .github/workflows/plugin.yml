@@ -26,6 +26,8 @@ jobs:
         run: uv run --no-project -m unittest discover -s plugins/garden/tools -p "test_*.py" -v
       - name: Test benchmark lib unit tests
         run: uv run --no-project -m unittest discover -s benchmarks/lib -p 'test_*.py' -v
+      - name: Test agent benchmark v2 unit tests
+        run: uv run --no-project -m unittest discover -s benchmarks/agent -p 'test_*.py' -v
       - name: Validate both plugin packages and reference copies
         if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.14'
         run: uv run --no-project plugins/garden/tools/validate_package.py

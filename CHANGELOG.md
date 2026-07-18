@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.11.0
+
+- Added the agent-value benchmark v2 scaffold: preregistered
+  `benchmarks/agent/protocol-v2.toml`, `pricing.toml`, the synthetic shop fixture
+  with capabilities, tests, prompts, and T1-T3 verifiers, the result schema, and
+  the dry-run-only `run_agent_benchmark.py` runner; it makes no live agent or LLM
+  invocation and produces no agent-effectiveness results.
+- Added `docs/evidence/benchmark-v2-protocol.md` and CI coverage running
+  `unittest discover -s benchmarks/agent` for the dry-run scaffold.
+
 ## 0.10.2
 
 - Added `docs/development/enforcement-roadmap.md`, a design-only roadmap for
