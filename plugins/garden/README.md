@@ -68,9 +68,21 @@ an installed development copy.
 
 ## Maintenance
 
-Files in `references/` are verbatim copies of `docs/reference/principles.md`,
-`docs/reference/checklist.md`, `docs/reference/glossary.md`, and
-`docs/how-to/review-code-as-agent.md`. Re-sync them whenever those source files change.
+`sync_references.py` defines the canonical `REFERENCE_PAIRS` for `references/`:
+
+- `docs/reference/principles.md` -> `references/principles.md`
+- `docs/reference/checklist.md` -> `references/checklist.md`
+- `docs/reference/glossary.md` -> `references/glossary.md`
+- `docs/how-to/review-code-as-agent.md` -> `references/review-procedure.md`
+- `docs/evidence/evidence-registry.md` -> `references/evidence-registry.md`
+- `docs/how-to/set-up-verification-gates.md` -> `references/set-up-verification-gates.md`
+- `docs/reference/rule-registry.md` -> `references/rule-registry.md`
+- `docs/reference/configuration.md` -> `references/configuration.md`
+
+Re-sync these files whenever a source changes. Links between packaged sources are
+rewritten to packaged-relative targets; links to unpackaged docs use GitHub URLs.
+`validate_package.py` `validate_packaged_links()` enforces this self-containment, so
+the installed plugin needs no source-repository checkout to navigate its references.
 
 Run these checks before publishing:
 

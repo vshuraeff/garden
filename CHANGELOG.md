@@ -1,5 +1,22 @@
 # Changelog
 
+## 0.8.5
+
+- Expanded `REFERENCE_PAIRS` to eight documents, including the evidence
+  registry, verification-gates how-to, and rule-registry and configuration
+  references, so packaged references are self-contained.
+- Relative links now rewrite deterministically to their packaged equivalents at
+  render time.
+- Unresolved source-only links now fail the build instead of passing through
+  silently.
+- Documents explicitly outside packaging scope now use an explicit list of
+  canonical GitHub URLs instead of relative links.
+- Packaged links now validate from their packaged locations rather than the
+  source repository layout.
+- `validate_package.py` now checks that the plugin tree is self-contained.
+- Retargeted the bootstrap skill's documentation links to the packaged
+  references.
+
 ## 0.8.4
 
 - Added the canonical, hand-authored, machine-readable rule registry at

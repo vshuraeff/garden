@@ -31,7 +31,7 @@ Complete the steps in order. Do not begin the next step while its acceptance sig
 
 4. Choose a capability strategy.
 
-   Action: Propose a capability map that fits the project type and configure `capabilities.strategy` as `children`, `explicit`, `markers`, or `none`. A vertical slice is one allowed strategy, not a required root layout. Use the [service](../../../../docs/reference/configuration.md#service-example), [library](../../../../docs/reference/configuration.md#library-example), [monorepo](../../../../docs/reference/configuration.md#monorepo-example), and [infrastructure](../../../../docs/reference/configuration.md#infrastructure-example) examples as starting points instead of copying one structure across project types.
+   Action: Propose a capability map that fits the project type and configure `capabilities.strategy` as `children`, `explicit`, `markers`, or `none`. A vertical slice is one allowed strategy, not a required root layout. Use the [service](../../references/configuration.md#service-example), [library](../../references/configuration.md#library-example), [monorepo](../../references/configuration.md#monorepo-example), and [infrastructure](../../references/configuration.md#infrastructure-example) examples as starting points instead of copying one structure across project types.
 
    Acceptance signal: The config states how each capability resolves to its code, state, tests, operational artifacts, boundaries, and owner, including any shared roots or explicit mappings. A `markers` strategy is labeled EXPERIMENTAL and its unresolved capability results are not treated as passes.
 

@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import os
+import re
 import stat
 import sys
 import tempfile
@@ -26,7 +27,81 @@ REFERENCE_PAIRS = {
     REPOSITORY_ROOT / "docs" / "how-to" / "review-code-as-agent.md": PLUGIN_ROOT
     / "references"
     / "review-procedure.md",
+    REPOSITORY_ROOT / "docs" / "evidence" / "evidence-registry.md": PLUGIN_ROOT
+    / "references"
+    / "evidence-registry.md",
+    REPOSITORY_ROOT / "docs" / "how-to" / "set-up-verification-gates.md": PLUGIN_ROOT
+    / "references"
+    / "set-up-verification-gates.md",
+    REPOSITORY_ROOT / "docs" / "reference" / "rule-registry.md": PLUGIN_ROOT
+    / "references"
+    / "rule-registry.md",
+    REPOSITORY_ROOT / "docs" / "reference" / "configuration.md": PLUGIN_ROOT
+    / "references"
+    / "configuration.md",
 }
+# keep reference rendering independent from the documentation validator entry point.
+MARKDOWN_LINK = re.compile(
+    r"(?<!!)\[[^\]]+\]\(\s*(?:<(?P<angle>[^>]+)>|(?P<plain>[^\s)]+))"
+    r"(?:\s+(?:\"[^\"]*\"|'[^']*'|\([^)]*\)))?\s*\)"
+)
+SOURCE_TO_PACKAGE = {
+    source.relative_to(REPOSITORY_ROOT).as_posix(): copy.name
+    for source, copy in REFERENCE_PAIRS.items()
+}
+# these source docs are intentionally outside this plugin release.
+# rewrite their links to github so packaged references do not dangle.
+EXTERNAL_FALLBACK = frozenset(
+    {
+        "docs/how-to/apply-to-new-project.md",
+        "docs/how-to/retrofit-legacy-codebase.md",
+        "docs/explanation/why-agent-first-principles.md",
+        "docs/reference/report-schema.md",
+        "docs/reference/platform-support.md",
+    }
+)
+GITHUB_BLOB_BASE = "https://github.com/vshuraeff/garden/blob/master/"
+
+
+def rewrite_links(content: str, source_path: Path) -> str:
+    source_relative = source_path.relative_to(REPOSITORY_ROOT).as_posix()
+
+    def replace(match: re.Match[str]) -> str:
+        group = "angle" if match.group("angle") is not None else "plain"
+        raw_target = match.group(group)
+        target = raw_target.strip()
+        if target.lower().startswith(("http://", "https://", "mailto:")):
+            return match.group(0)
+        target_with_query, anchor_separator, anchor = target.partition("#")
+        target_path, query_separator, query = target_with_query.partition("?")
+        if not target_path or target_path.startswith("/"):
+            return match.group(0)
+
+        try:
+            resolved = (source_path.parent / target_path).resolve()
+            repository_target = resolved.relative_to(REPOSITORY_ROOT).as_posix()
+        except ValueError:
+            repository_target = ""
+
+        if repository_target in SOURCE_TO_PACKAGE:
+            rewritten = f"./{SOURCE_TO_PACKAGE[repository_target]}"
+        elif repository_target in EXTERNAL_FALLBACK:
+            rewritten = f"{GITHUB_BLOB_BASE}{repository_target}"
+        else:
+            raise ValueError(
+                f"{source_relative}: unresolved relative link '{raw_target}' has no "
+                "packaged target and is not in EXTERNAL_FALLBACK"
+            )
+        if query_separator:
+            rewritten = f"{rewritten}?{query}"
+        if anchor_separator:
+            rewritten = f"{rewritten}#{anchor}"
+
+        start = match.start(group) - match.start()
+        end = match.end(group) - match.start()
+        return f"{match.group(0)[:start]}{rewritten}{match.group(0)[end:]}"
+
+    return MARKDOWN_LINK.sub(replace, content)
 
 
 def render(source_path: Path) -> str:
@@ -41,10 +116,11 @@ def render(source_path: Path) -> str:
     if lines and lines[0].rstrip("\r\n") == "---":
         for index, line in enumerate(lines[1:], start=1):
             if line.rstrip("\r\n") == "---":
-                return (
+                content_with_marker = (
                     "".join(lines[: index + 1]) + header + "".join(lines[index + 1 :])
                 )
-    return header + content
+                return rewrite_links(content_with_marker, source_path)
+    return rewrite_links(header + content, source_path)
 
 
 def _atomic_write(path: Path, content: str) -> None:

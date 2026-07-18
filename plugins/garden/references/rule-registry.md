@@ -5,6 +5,7 @@ review_on:
   - rule-change
   - config-schema-change
 ---
+<!-- Generated from docs/reference/rule-registry.md. Do not edit directly. Run sync_references.py --write to update. -->
 
 # GARDEN rule registry
 
@@ -17,7 +18,7 @@ digest notes and the runtime-only checks that are not canonical rules.
 `implementation = "partial"` records a working approximate or legacy runtime check
 whose full mechanization remains tracked in the registry. Coverage reports it only as
 implemented; it is not duplicated in the manual or planned lists. See
-[report-schema.md](./report-schema.md#coverage).
+[report-schema.md](https://github.com/vshuraeff/garden/blob/master/docs/reference/report-schema.md#coverage).
 
 ## Derived artifacts
 
@@ -25,7 +26,7 @@ implemented; it is not duplicated in the manual or planned lists. See
 | --- | --- |
 | Runtime aliases, exception eligibility, and coverage | `garden_rule_metadata.py` loads the registry to build `RUNTIME_ALIAS_TABLE`, `EXCEPTION_ELIGIBLE_RULES`, and `COVERAGE`. |
 | Exception rule-ID validation | `config_schema.py` `_parse_exception` accepts registry-loaded canonical IDs and aliases from `RUNTIME_ALIAS_TABLE`, then checks registry-derived exception eligibility. Schema v2 requires canonical IDs. See [configuration.md](./configuration.md#exceptions). |
-| Inspection-report coverage | `garden_report.py` serializes `COVERAGE`; [report-schema.md](./report-schema.md#coverage) defines the report fields. |
+| Inspection-report coverage | `garden_report.py` serializes `COVERAGE`; [report-schema.md](https://github.com/vshuraeff/garden/blob/master/docs/reference/report-schema.md#coverage) defines the report fields. |
 | Compact rules digest | `generate_rules_digest.py --write` renders `plugins/garden/assets/garden-rules.md` from the registry. `garden_project.py` reads that asset when installing project rules. |
 | Rule inspection | `garden explain RULE_ID` loads the registry and prints a canonical rule or resolves a runtime alias. |
 

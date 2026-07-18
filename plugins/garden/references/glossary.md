@@ -51,7 +51,7 @@ filename or universal line limit. See
 **context rot** — Observed degradation of model performance as input context
 grows. GARDEN interprets some of the practical effect as a state-tracking
 problem, but that causal interpretation is GARDEN's reading, not a study
-finding. ([CLAIM-N002](../evidence/evidence-registry.md#claim-n002)) Motivates
+finding. ([CLAIM-N002](./evidence-registry.md#claim-n002)) Motivates
 [N — Nearby, Maintained Knowledge](./principles.md#n--nearby-maintained-knowledge).
 
 **context window** — The finite token budget a model can attend to at once. It

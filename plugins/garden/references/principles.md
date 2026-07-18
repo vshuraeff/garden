@@ -125,7 +125,7 @@ satisfaction is demonstrated by project artifacts and a successful graph
 traversal. The registry's observed increase in duplicated code is relevant
 context for finding existing behavior, but it does not establish that any
 discoverability structure prevents duplication.
-([CLAIM-N004](../evidence/evidence-registry.md#claim-n004))
+([CLAIM-N004](./evidence-registry.md#claim-n004))
 
 ### Good example
 
@@ -220,7 +220,7 @@ GitClear observed changes in churn and clone-detection metrics across its
 corpus, but did not establish that a particular directory structure caused
 them. That limitation supports measuring change locality in the target project
 instead of declaring a universal tree shape.
-([CLAIM-N004](../evidence/evidence-registry.md#claim-n004))
+([CLAIM-N004](./evidence-registry.md#claim-n004))
 
 ### Good example
 
@@ -331,7 +331,7 @@ The evidence registry does not establish that a specific contract file or
 version marker makes components replaceable. Its observed changes in duplicated
 and refactored code are context for preserving behavior before replacement, not
 proof of the `R-REPL-*` model.
-([CLAIM-N004](../evidence/evidence-registry.md#claim-n004))
+([CLAIM-N004](./evidence-registry.md#claim-n004))
 
 ### Good example
 
@@ -439,11 +439,11 @@ self-certification.
 
 One practitioner report found instruction-only rules less reliable than rules
 backed by runtime enforcement, but the report is informal and from one author.
-([CLAIM-N001](../evidence/evidence-registry.md#claim-n001)) One single-author
+([CLAIM-N001](./evidence-registry.md#claim-n001)) One single-author
 preprint reported better defect detection from its multi-agent system than from
 one agent while also reporting substantial false positives. It does not prove
 that multi-agent review generalizes or replaces executable checks.
-([CLAIM-N003](../evidence/evidence-registry.md#claim-n003))
+([CLAIM-N003](./evidence-registry.md#claim-n003))
 
 ### Good example
 
@@ -642,11 +642,11 @@ only in a chat transcript is not an accepted source for a governing decision.
 Chroma observed model-performance degradation as input context grew, including
 on simple retrieval tasks. The claim does not establish that state tracking is
 the cause; that causal interpretation remains GARDEN's own reading.
-([CLAIM-N002](../evidence/evidence-registry.md#claim-n002)) A practitioner report
+([CLAIM-N002](./evidence-registry.md#claim-n002)) A practitioner report
 found runtime-enforced instructions more reliable than instruction-only rules
 in one author's sessions. Its scope does not establish a universal context-file
 size or directory documentation threshold.
-([CLAIM-N001](../evidence/evidence-registry.md#claim-n001))
+([CLAIM-N001](./evidence-registry.md#claim-n001))
 
 ### Good example
 

@@ -11,10 +11,10 @@ review_on:
 
 This guide is written to be used directly as a review prompt for an agent conducting a
 GARDEN-lens code review. It assumes the deterministic gates described in
-[set-up-verification-gates.md](set-up-verification-gates.md) already ran. For the rule
+[set-up-verification-gates.md](./set-up-verification-gates.md) already ran. For the rule
 definitions referenced below, see
-[reference/principles.md](../reference/principles.md) and
-[reference/checklist.md](../reference/checklist.md).
+[reference/principles.md](./principles.md) and
+[reference/checklist.md](./checklist.md).
 
 ## 1. Check what the gates already covered
 
@@ -98,7 +98,7 @@ LLM review carries a real noise profile. One single-author preprint evaluated 99
 with the author's own four-agent system and reported a 50% false-positive rate for that
 system. Treat every finding from this review as a hypothesis a human or a deterministic
 check must confirm, not as a fact or verdict.
-([CLAIM-N003](../evidence/evidence-registry.md#claim-n003))
+([CLAIM-N003](./evidence-registry.md#claim-n003))
 
 Report missing evidence, ambiguous applicability, unavailable gates, and unresolved
 experimental capability markers as `unknown`, never as an implied pass.
@@ -125,7 +125,7 @@ is not independent evidence of correctness.
 ## Next steps
 
 - The gate pipeline this review sits downstream of:
-  [set-up-verification-gates.md](set-up-verification-gates.md).
+  [set-up-verification-gates.md](./set-up-verification-gates.md).
 - The full rule set behind each lens:
-  [reference/principles.md](../reference/principles.md).
-- Machine-checkable version of these lenses: [reference/checklist.md](../reference/checklist.md).
+  [reference/principles.md](./principles.md).
+- Machine-checkable version of these lenses: [reference/checklist.md](./checklist.md).
