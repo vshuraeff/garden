@@ -126,7 +126,7 @@
     "doc-06-front-matter": {"base":"repository","operation":{"kind":"replace","path":"docs/how-to/apply-to-new-project.md","old":"owner: vshuraeff","new":"owner: "}},
 
     "pkg-01-manifest-name": {"base":"repository","operation":{"kind":"replace","path":"plugins/garden/.codex-plugin/plugin.json","old":"\"name\": \"garden\"","new":"\"name\": \"garden-mutated\""}},
-    "pkg-02-manifest-version": {"base":"repository","operation":{"kind":"replace","path":"plugins/garden/.codex-plugin/plugin.json","old":"\"version\": \"0.10.1\"","new":"\"version\": \"0.10.2\""}},
+    "pkg-02-manifest-version": {"base":"repository","operation":{"kind":"replace","path":"plugins/garden/.codex-plugin/plugin.json","old":"\"version\": \"0.10.2\"","new":"\"version\": \"0.10.3\""}},
     "pkg-03-required-field": {"base":"repository","operation":{"kind":"replace","path":"plugins/garden/.codex-plugin/plugin.json","old":"\"description\": \"Apply and check the GARDEN agent-first software design principles in Codex and Claude Code.\"","new":"\"description\": \"\""}},
     "pkg-04-skills-path": {"base":"repository","operation":{"kind":"replace","path":"plugins/garden/.codex-plugin/plugin.json","old":"\"skills\": \"./skills/\"","new":"\"skills\": \"./other-skills/\""}},
     "pkg-05-mcp-server": {"base":"repository","operation":{"kind":"write","path":"plugins/garden/.mcp.json","content":"{\n  \"mcpServers\": {}\n}\n"}},

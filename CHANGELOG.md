@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.10.2
+
+- Added `docs/development/enforcement-roadmap.md`, a design-only roadmap for
+  markers-based capability resolution (`gap-07`) and explicit boundary/state-policy
+  enforcement (`gap-08`); this release changes neither runtime behavior nor the rule
+  registry.
+
 ## 0.10.1
 
 - Added `SECURITY.md`, documenting the `garden-check.sh` and `garden-prompt.sh`

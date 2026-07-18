@@ -224,7 +224,7 @@ Families without observed mapped rules: G, E.
 
 ### Result integrity and reproduction
 
-`summary.json` SHA-256: `982305e3cd195eedb0ea620b3733703cc1a1de3b9e33d0f66cd5ab8dbb621266`
+`summary.json` SHA-256: `5c6a2f9fcaffd0e29c83e717151691fd1d3d4c99e0221e12815ca10bc0c54bdb`
 
 ```sh
 uv run --no-project benchmarks/run.py
