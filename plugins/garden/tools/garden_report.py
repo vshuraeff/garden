@@ -34,6 +34,7 @@ def build_project_report(
     config_schema_version: int | None = None,
     config_valid: bool = True,
     exceptions: Iterable[dict[str, object]] = (),
+    scan: dict[str, object] | None = None,
 ) -> dict[str, object]:
     unique = list(
         {
@@ -44,6 +45,15 @@ def build_project_report(
     complete = complete and not any(
         item.state == "unknown" and item.severity == "error" for item in unique
     )
+    scan_metadata = {
+        "roots": list(scan.get("roots", [])) if scan is not None else [],
+        "exceeded_budget": scan.get("exceeded_budget") if scan is not None else None,
+        "missing_roots": (
+            list(scan.get("missing_roots", [])) if scan is not None else []
+        ),
+        "errors": list(scan.get("errors", [])) if scan is not None else [],
+    }
+    complete = complete and not bool(scan_metadata["exceeded_budget"])
     serialized_findings = [
         {
             "rule_id": item.rule_id or item.rule,
@@ -74,6 +84,7 @@ def build_project_report(
             "schema_version": config_schema_version,
             "valid": config_valid,
         },
+        "scan": scan_metadata,
         "coverage": {
             "implemented_rules": list(COVERAGE.implemented_rules),
             "manual_rules": list(COVERAGE.manual_rules),

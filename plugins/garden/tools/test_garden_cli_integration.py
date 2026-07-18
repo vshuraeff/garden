@@ -1,16 +1,23 @@
 from __future__ import annotations
 
+import io
 import json
 import os
 import subprocess
+import sys
 import tempfile
 import unittest
+from contextlib import redirect_stderr, redirect_stdout
 from pathlib import Path
+from unittest.mock import patch
 
 
 TOOLS_DIR = Path(__file__).resolve().parent
 PLUGIN_ROOT = TOOLS_DIR.parent
 FIXTURES_DIR = TOOLS_DIR / "fixtures"
+sys.path.insert(0, str(TOOLS_DIR))
+
+import garden_cli  # noqa: E402
 
 
 class GardenCliIntegrationTests(unittest.TestCase):
@@ -135,6 +142,155 @@ class GardenCliIntegrationTests(unittest.TestCase):
         report = json.loads(completed.stdout)
         self.assertIs(report["exceptions"][0]["applied"], True)
         self.assertIs(report["exceptions"][0]["expired"], False)
+
+    def test_inspect_ignores_findings_outside_configured_scan_roots(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory).resolve()
+            (root / ".garden.toml").write_text(
+                "schema_version = 2\n"
+                "[scan]\n"
+                'roots = ["src"]\n'
+                'include = ["**/*.py"]\n'
+                "[capabilities]\n"
+                'strategy = "children"\n'
+                'roots = ["lib"]\n'
+                "depth = 1\n"
+                "[documentation]\n"
+                "root_context_required = false\n",
+                encoding="utf-8",
+            )
+            source = root / "src" / "inside.py"
+            source.parent.mkdir()
+            source.write_text("pass\n", encoding="utf-8")
+            outside = root / "lib" / "orders" / "outside.py"
+            outside.parent.mkdir(parents=True)
+            outside.write_text("pass\n", encoding="utf-8")
+
+            completed = self.run_garden("inspect", str(root))
+
+        self.assertEqual(0, completed.returncode, completed.stderr)
+        report = json.loads(completed.stdout)
+        findings = report["findings"]
+        self.assertTrue(
+            all(not finding["path"].startswith("lib/") for finding in findings)
+        )
+        self.assertNotIn(
+            "R-component-contract",
+            {finding["rule"] for finding in findings},
+        )
+
+    def test_overlapping_scan_roots_do_not_duplicate_cli_findings(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory).resolve()
+            projects = (
+                (root / "single", '["src"]'),
+                (root / "overlapping", '["src", "src/orders"]'),
+            )
+            for project, scan_roots in projects:
+                project.mkdir()
+                (project / ".garden.toml").write_text(
+                    "schema_version = 2\n"
+                    "[scan]\n"
+                    f"roots = {scan_roots}\n"
+                    'include = ["**/*.py"]\n'
+                    "[capabilities]\n"
+                    'strategy = "children"\n'
+                    'roots = ["src"]\n'
+                    "depth = 1\n"
+                    "[documentation]\n"
+                    "root_context_required = false\n",
+                    encoding="utf-8",
+                )
+                source = project / "src" / "orders" / "handler.py"
+                source.parent.mkdir(parents=True)
+                source.write_text("pass\n", encoding="utf-8")
+
+            single = self.run_garden("inspect", str(projects[0][0]))
+            overlapping = self.run_garden("inspect", str(projects[1][0]))
+
+        self.assertEqual(0, single.returncode, single.stderr)
+        self.assertEqual(0, overlapping.returncode, overlapping.stderr)
+        single_pairs = sorted(
+            (finding["path"], finding["rule"])
+            for finding in json.loads(single.stdout)["findings"]
+        )
+        overlapping_pairs = [
+            (finding["path"], finding["rule"])
+            for finding in json.loads(overlapping.stdout)["findings"]
+        ]
+        self.assertEqual(len(overlapping_pairs), len(set(overlapping_pairs)))
+        self.assertEqual(single_pairs, sorted(overlapping_pairs))
+
+    def test_excluded_directory_does_not_exhaust_cli_entry_budget(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory).resolve()
+            (root / ".garden.toml").write_text(
+                "schema_version = 2\n"
+                "[scan]\n"
+                'include = ["**/*.py"]\n'
+                'exclude = ["big/**"]\n'
+                "[documentation]\n"
+                "root_context_required = false\n",
+                encoding="utf-8",
+            )
+            big = root / "big"
+            big.mkdir()
+            for number in range(50):
+                (big / f"ignored-{number}.py").write_text("pass\n", encoding="utf-8")
+            source = root / "src" / "kept.py"
+            source.parent.mkdir()
+            source.write_text("pass\n", encoding="utf-8")
+            stdout = io.StringIO()
+            stderr = io.StringIO()
+
+            with (
+                patch("garden_core.MAX_SCAN_ENTRIES", 5),
+                redirect_stdout(stdout),
+                redirect_stderr(stderr),
+            ):
+                code = garden_cli.main(["inspect", "--strict", str(root)])
+
+        self.assertEqual((0, ""), (code, stderr.getvalue()))
+        self.assertTrue(json.loads(stdout.getvalue())["complete"])
+
+    def test_strict_inspect_rejects_entry_budget_exhaustion(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory).resolve()
+            (root / ".garden.toml").write_text(
+                "schema_version = 2\n"
+                "[scan]\n"
+                'include = ["**/*.py"]\n'
+                "[documentation]\n"
+                "root_context_required = false\n",
+                encoding="utf-8",
+            )
+            big = root / "big"
+            big.mkdir()
+            for number in range(50):
+                (big / f"included-{number}.py").write_text("pass\n", encoding="utf-8")
+            source = root / "src" / "kept.py"
+            source.parent.mkdir()
+            source.write_text("pass\n", encoding="utf-8")
+            stdout = io.StringIO()
+            stderr = io.StringIO()
+
+            with (
+                patch("garden_core.MAX_SCAN_ENTRIES", 5),
+                redirect_stdout(stdout),
+                redirect_stderr(stderr),
+            ):
+                code = garden_cli.main(["inspect", "--strict", str(root)])
+
+        self.assertEqual((1, ""), (code, stderr.getvalue()))
+        report = json.loads(stdout.getvalue())
+        finding = next(
+            finding
+            for finding in report["findings"]
+            if finding["rule"] == "D-project-scan-limit"
+        )
+        self.assertFalse(report["complete"])
+        self.assertEqual("entries", report["scan"]["exceeded_budget"])
+        self.assertEqual("error", finding["severity"])
 
     def test_config_validate_and_show_configured_fixture(self) -> None:
         fixture = FIXTURES_DIR / "src-layout-configured"

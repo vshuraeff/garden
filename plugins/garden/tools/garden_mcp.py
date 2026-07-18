@@ -9,7 +9,9 @@ from pathlib import Path
 from typing import Any
 from urllib.parse import unquote, urlparse
 
+from garden_config import load_config, resolve_effective
 from garden_core import find_project_root, inspect_file, inspect_project, is_within
+from garden_index import build_project_index
 
 
 MAX_MCP_MESSAGE_BYTES = 1_048_576
@@ -124,7 +126,22 @@ class GardenServer:
                     {"error": "path escapes the registered workspace root"},
                     is_error=True,
                 )
-            findings = [finding.__dict__ for finding in inspect_file(path, root)]
+            loaded = load_config(root)
+            effective = (
+                resolve_effective(loaded.config) if loaded.config is not None else None
+            )
+            index = (
+                build_project_index(root, effective) if effective is not None else None
+            )
+            findings = [
+                finding.__dict__
+                for finding in inspect_file(
+                    path,
+                    root,
+                    config_result=loaded,
+                    index=index,
+                )
+            ]
             return result_text({"path": str(path), "findings": findings})
 
         return result_text({"error": f"unknown tool: {name}"}, is_error=True)

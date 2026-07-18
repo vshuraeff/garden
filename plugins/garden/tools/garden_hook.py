@@ -8,7 +8,10 @@ import re
 import sys
 from pathlib import Path
 
+from garden_config import load_config, resolve_effective
 from garden_core import find_project_root, inspect_file, is_within
+from garden_index import build_project_index
+from garden_rules import _project_scan_limit_finding
 
 
 MAX_HOOK_INPUT_BYTES = 1_048_576
@@ -64,13 +67,36 @@ def main() -> int:
         if project_root is None:
             return 0
 
+        loaded = load_config(project_root)
+        effective = (
+            resolve_effective(loaded.config) if loaded.config is not None else None
+        )
+        index = (
+            build_project_index(project_root, effective)
+            if effective is not None
+            else None
+        )
         test_cache: dict[Path | str, bool | None] = {}
         findings = [
             finding
             for path in affected_paths(event)
             if is_within(path, project_root)
-            for finding in inspect_file(path, project_root, test_cache)
+            for finding in inspect_file(
+                path,
+                project_root,
+                test_cache,
+                loaded,
+                index=index,
+            )
         ]
+        if (
+            index is not None
+            and index.scan_errors
+            and index.exceeded_budget is not None
+        ):
+            findings.append(
+                _project_scan_limit_finding(index.scan_errors[0], index.exceeded_budget)
+            )
         errors = list(
             dict.fromkeys(item.rule for item in findings if item.severity == "error")
         )

@@ -1,5 +1,23 @@
 # Changelog
 
+## 0.8.3
+
+- Inspection and hook processing build one `ProjectIndex` per inspection or hook
+  event, using a single filesystem walk regardless of how many files changed.
+  Traversal is restricted to configured `scan.roots`, overlapping roots are
+  deduplicated, and missing roots produce `D-scan-root-missing` advisories
+  instead of failing.
+- `scan.exclude` patterns are pruned from the walk before any budget counting
+  occurs, and nested contract artifacts are discovered at any depth rather than
+  only at the top level.
+- Scan budgets distinguish an elapsed-time budget, which is an operational
+  advisory deadline, from deterministic budgets such as file and entry counts,
+  which remain hard errors. Hook mode fails open when the elapsed-time budget is
+  exceeded, restoring prior hook behavior, while `--strict` fails closed on
+  incomplete analysis.
+- Reports gain a top-level scan report object describing roots, exclusions,
+  budgets, and completeness alongside the existing report fields.
+
 ## 0.8.2
 
 - Runtime boundary enforcement resolves the most specific (longest-path)

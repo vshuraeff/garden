@@ -11,6 +11,8 @@ from pathlib import Path
 RUNTIME_ALIAS_TABLE: dict[str, tuple[str, str]] = {
     "A-colocated-tests": ("A-LOC-004", "DEFAULT"),
     "D-project-scan-limit": ("D-project-scan-limit", "REQUIRED"),
+    # missing roots are operator signals, not structural violations, but stay visible.
+    "D-scan-root-missing": ("D-scan-root-missing", "DEFAULT"),
     "N-CONFIG-INVALID": ("N-CONFIG-INVALID", "REQUIRED"),
     "N-CONTEXT-MISSING": ("N-CONTEXT-MISSING", "REQUIRED"),
     "N-LEGACY-NAMING-REGISTRY": ("N-LEGACY-NAMING-REGISTRY", "DEFAULT"),

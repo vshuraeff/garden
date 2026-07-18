@@ -37,6 +37,12 @@ class ReportValidationTests(unittest.TestCase):
                 "schema_version": 1,
                 "valid": True,
             },
+            "scan": {
+                "roots": ["."],
+                "exceeded_budget": None,
+                "missing_roots": [],
+                "errors": [],
+            },
             "coverage": {
                 "implemented_rules": ["R-REPL-002"],
                 "manual_rules": ["D-VER-005"],
@@ -109,6 +115,37 @@ class ReportValidationTests(unittest.TestCase):
         del report["complete"]
 
         self.assert_invalid(report, "complete")
+
+    def test_missing_scan_is_rejected(self) -> None:
+        report = self.valid_report()
+        del report["scan"]
+
+        self.assert_invalid(report, "scan")
+
+    def test_invalid_scan_fields_are_rejected(self) -> None:
+        report = self.valid_report()
+        report["scan"] = {
+            "roots": ".",
+            "exceeded_budget": 1,
+            "missing_roots": [False],
+            "errors": [None],
+        }
+
+        findings = validate_report(self.write_report(report))
+        fields = {finding.field for finding in findings}
+
+        self.assertIn("scan.roots", fields)
+        self.assertIn("scan.exceeded_budget", fields)
+        self.assertIn("scan.missing_roots[0]", fields)
+        self.assertIn("scan.errors[0]", fields)
+
+    def test_scan_exceeded_budget_accepts_none_and_string(self) -> None:
+        for exceeded_budget in (None, "seconds"):
+            with self.subTest(exceeded_budget=exceeded_budget):
+                report = self.valid_report()
+                report["scan"]["exceeded_budget"] = exceeded_budget
+
+                self.assertEqual([], validate_report(self.write_report(report)))
 
     def test_invalid_finding_state_is_rejected(self) -> None:
         report = self.valid_report()

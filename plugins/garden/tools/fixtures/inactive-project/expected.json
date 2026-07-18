@@ -9,10 +9,17 @@
     "schema_version": null,
     "valid": true
   },
+  "scan": {
+    "roots": [],
+    "exceeded_budget": null,
+    "missing_roots": [],
+    "errors": []
+  },
   "coverage": {
     "implemented_rules": [
       "A-LOC-004",
       "D-project-scan-limit",
+      "D-scan-root-missing",
       "N-CONFIG-INVALID",
       "N-CONTEXT-MISSING",
       "N-KNOW-005",

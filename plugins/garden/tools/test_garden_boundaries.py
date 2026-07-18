@@ -173,6 +173,31 @@ contracts = ["CONTRACT.md"]
         )
         self.assertEqual("src/orders/CONTRACT.md", missing["path"])
 
+    def test_nested_valid_contract_passes_project_and_file_inspection(self) -> None:
+        self.write_config(
+            """
+[[boundaries]]
+path = "src/orders"
+kind = "public-api"
+owner = "team-orders"
+versioning = "semver"
+"""
+        )
+        contract = self.root / "src" / "orders" / "nested" / "CONTRACT.md"
+        contract.parent.mkdir(parents=True)
+        contract.write_text("Version: 1.0.0\n", encoding="utf-8")
+
+        file_rules = [finding.rule for finding in inspect_file(contract, self.root)]
+        report = inspect_project(self.root)
+        project_rules = [
+            finding["rule"]
+            for finding in report["findings"]
+            if finding["path"] == "src/orders/nested/CONTRACT.md"
+        ]
+
+        self.assertNotIn("R-contract-version", file_rules)
+        self.assertNotIn("R-contract-version", project_rules)
+
     def test_longest_boundary_path_wins(self) -> None:
         self.write_config(
             """

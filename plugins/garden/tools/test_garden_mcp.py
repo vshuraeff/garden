@@ -5,6 +5,7 @@ import subprocess
 import sys
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 
 TOOLS_DIR = Path(__file__).resolve().parent
@@ -15,6 +16,7 @@ from garden_mcp import (  # noqa: E402
     SUPPORTED_PROTOCOL_VERSIONS,
     GardenServer,
 )
+import garden_scanner  # noqa: E402
 from plugin_version import current_version  # noqa: E402
 from test_garden_core import ActiveProjectTestCase  # noqa: E402
 
@@ -147,6 +149,56 @@ class GardenMcpTests(ActiveProjectTestCase):
             ):
                 self.assertIn(key, finding)
             self.assertIsInstance(finding["evidence"], list)
+
+    def test_check_file_builds_one_project_index(self) -> None:
+        (self.root / ".garden.toml").write_text(
+            "schema_version = 1\n"
+            '[scan]\nroots = ["src"]\ninclude = ["**/*.py"]\n'
+            "[capabilities]\n"
+            'strategy = "children"\nroots = ["src"]\ndepth = 1\n'
+            "[documentation]\nroot_context_required = false\n",
+            encoding="utf-8",
+        )
+        capability = self.root / "src" / "orders"
+        capability.mkdir(parents=True)
+        source = capability / "handler.py"
+        source.write_text("pass\n", encoding="utf-8")
+        (capability / "CONTRACT.md").write_text("Version: 1.0.0\n", encoding="utf-8")
+
+        with patch.object(
+            garden_scanner,
+            "_walk_files",
+            wraps=garden_scanner._walk_files,
+        ) as walk:
+            result, _ = self.call_tool(
+                self.initialized_server(),
+                "garden_check_file",
+                {"root": str(self.root), "path": str(source)},
+                request_id=6,
+            )
+
+        self.assertNotIn("isError", result)
+        self.assertEqual(1, walk.call_count)
+
+    def test_legacy_check_file_does_not_build_project_index(self) -> None:
+        registry = self.root / "naming-registry.txt"
+
+        with patch.object(
+            garden_scanner,
+            "_walk_files",
+            side_effect=garden_scanner.ScanLimitExceeded(
+                "forced legacy project limit", budget="entries"
+            ),
+        ) as walk:
+            result, _ = self.call_tool(
+                self.initialized_server(),
+                "garden_check_file",
+                {"root": str(self.root), "path": str(registry)},
+                request_id=7,
+            )
+
+        self.assertNotIn("isError", result)
+        walk.assert_not_called()
 
     def test_unregistered_root_is_a_tool_error(self) -> None:
         result, _ = self.call_tool(

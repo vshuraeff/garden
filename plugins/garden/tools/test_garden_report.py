@@ -5,6 +5,7 @@ import sys
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 
 TOOLS_DIR = Path(__file__).resolve().parent
@@ -14,6 +15,7 @@ sys.path.insert(0, str(TOOLS_DIR))
 from garden_core import inspect_file, inspect_project  # noqa: E402
 from garden_report import Finding, build_project_report  # noqa: E402
 from garden_rule_metadata import COVERAGE  # noqa: E402
+from garden_scanner import ScanLimitExceeded  # noqa: E402
 
 
 class GardenReportTests(unittest.TestCase):
@@ -60,6 +62,10 @@ class GardenReportTests(unittest.TestCase):
         self.assertEqual("deterministic-structural-inspection", report["scope"])
         self.assertEqual(
             {"path", "schema_version", "valid"}, set(report["configuration"])
+        )
+        self.assertEqual(
+            {"roots", "exceeded_budget", "missing_roots", "errors"},
+            set(report["scan"]),
         )
         self.assertEqual(
             {
@@ -248,6 +254,93 @@ class GardenReportTests(unittest.TestCase):
 
         self.assertTrue(report["complete"])
         self.assertEqual(1, report["summary"]["unknown"])
+
+    def test_scan_limit_severity_tracks_budget_and_always_marks_incomplete(
+        self,
+    ) -> None:
+        (self.root / ".garden.toml").write_text(
+            "schema_version = 1\n[documentation]\nroot_context_required = false\n",
+            encoding="utf-8",
+        )
+        cases = (
+            ("seconds", "advisory"),
+            ("entries", "error"),
+            (None, "error"),
+        )
+        for budget, severity in cases:
+            with self.subTest(budget=budget):
+                error = ScanLimitExceeded("forced project limit", budget=budget)
+                with patch("garden_scanner._walk_files", side_effect=error):
+                    report = inspect_project(self.root)
+
+                finding = next(
+                    item
+                    for item in report["findings"]
+                    if item["rule"] == "D-project-scan-limit"
+                )
+                self.assertEqual(severity, finding["severity"])
+                self.assertEqual("unknown", finding["state"])
+                self.assertFalse(report["complete"])
+                self.assertEqual(budget, report["scan"]["exceeded_budget"])
+                self.assertEqual(["forced project limit"], report["scan"]["errors"])
+
+    def test_missing_configured_scan_root_is_one_advisory_finding(self) -> None:
+        (self.root / ".garden.toml").write_text(
+            "schema_version = 1\n"
+            '[scan]\nroots = ["src", "missing"]\n'
+            "[documentation]\nroot_context_required = false\n",
+            encoding="utf-8",
+        )
+        (self.root / "src").mkdir()
+
+        report = inspect_project(self.root)
+
+        findings = [
+            item for item in report["findings"] if item["rule"] == "D-scan-root-missing"
+        ]
+        self.assertEqual(1, len(findings))
+        self.assertEqual("advisory", findings[0]["severity"])
+        self.assertEqual("unknown", findings[0]["state"])
+        self.assertEqual("missing", findings[0]["path"])
+        self.assertEqual("D-scan-root-missing", findings[0]["rule_id"])
+        self.assertIsNone(findings[0]["runtime_alias"])
+        self.assertEqual("DEFAULT", findings[0]["level"])
+        self.assertEqual(["missing"], report["scan"]["missing_roots"])
+
+    def test_project_and_file_findings_agree_for_nested_contract(self) -> None:
+        (self.root / ".garden.toml").write_text(
+            "schema_version = 2\n"
+            '[scan]\nroots = ["src"]\ninclude = ["**/*.py"]\n'
+            "[capabilities]\n"
+            'strategy = "children"\nroots = ["src"]\ndepth = 1\n'
+            "[[boundaries]]\n"
+            'path = "src/orders"\n'
+            'kind = "public-api"\n'
+            'owner = "orders-team"\n'
+            'versioning = "semver"\n'
+            "[documentation]\nroot_context_required = false\n",
+            encoding="utf-8",
+        )
+        artifact = self.root / "src" / "orders" / "nested" / "CONTRACT.md"
+        artifact.parent.mkdir(parents=True)
+        artifact.write_text("# missing version\n", encoding="utf-8")
+        source = self.root / "src" / "orders" / "handler.py"
+        source.write_text("pass\n", encoding="utf-8")
+
+        file_pairs = {
+            (finding.rule, finding.severity)
+            for finding in inspect_file(artifact, self.root)
+        }
+        report = inspect_project(self.root)
+        project_pairs = {
+            (finding["rule"], finding["severity"])
+            for finding in report["findings"]
+            if finding["path"] == "src/orders/nested/CONTRACT.md"
+        }
+
+        self.assertTrue(file_pairs)
+        self.assertIn("R-contract-version", {rule for rule, _ in file_pairs})
+        self.assertEqual(file_pairs, project_pairs)
 
     def test_inactive_project_is_incomplete(self) -> None:
         inactive = self.root / "inactive"
