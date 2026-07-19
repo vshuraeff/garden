@@ -26,8 +26,8 @@ clean_baseline_tasks = ["T2", "T3"]
 [harnesses.claude_code]
 command = ["claude", "-p", "--output-format", "json"]
 telemetry_format = "single JSON result object"
-main_model = "opus-4.8"
-subagent_models = ["sonnet-5"]
+main_model = "claude-opus-4-8"
+subagent_models = ["claude-sonnet-5"]
 
 [harnesses.codex]
 command = ["codex", "exec", "--json"]

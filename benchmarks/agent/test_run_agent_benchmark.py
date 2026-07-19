@@ -38,7 +38,7 @@ def sample_record() -> dict[str, object]:
         "condition": "garden_off",
         "task_id": "T1",
         "repetition": 1,
-        "models": {"main": "opus-4.8", "subagents": ["sonnet-5"]},
+        "models": {"main": "claude-opus-4-8", "subagents": ["claude-sonnet-5"]},
         "pass": False,
         "wall_clock_seconds": 1.25,
         "tokens": {"input": 1100, "output": 240, "cache": 650},
@@ -50,7 +50,7 @@ def sample_record() -> dict[str, object]:
         },
         "provenance": {
             "cli_version": "dry-run-mock/claude_code-v1",
-            "model_ids": ["opus-4.8", "sonnet-5"],
+            "model_ids": ["claude-opus-4-8", "claude-sonnet-5"],
             "fixture_hash": "a" * 64,
             "prompt_hash": "b" * 64,
             "timestamp": "2026-07-18T10:00:00Z",
@@ -61,7 +61,7 @@ def sample_record() -> dict[str, object]:
 
 class TelemetryParsingTests(unittest.TestCase):
     def test_claude_code_result_usage_is_normalized(self) -> None:
-        models = {"main_model": "opus-4.8", "subagent_models": ["sonnet-5"]}
+        models = {"main_model": "claude-opus-4-8", "subagent_models": ["claude-sonnet-5"]}
 
         telemetry = parse_claude_code_telemetry(
             mock_claude_code_telemetry(models)
@@ -69,8 +69,8 @@ class TelemetryParsingTests(unittest.TestCase):
 
         self.assertEqual(TokenUsage(1100, 240, 650), telemetry.tokens)
         self.assertEqual(1.25, telemetry.wall_clock_seconds)
-        self.assertEqual(("opus-4.8", "sonnet-5"), telemetry.model_ids)
-        self.assertEqual(TokenUsage(1000, 200, 600), telemetry.per_model_tokens["opus-4.8"])
+        self.assertEqual(("claude-opus-4-8", "claude-sonnet-5"), telemetry.model_ids)
+        self.assertEqual(TokenUsage(1000, 200, 600), telemetry.per_model_tokens["claude-opus-4-8"])
 
     def test_codex_completed_turn_separates_cached_input(self) -> None:
         models = {
@@ -94,19 +94,19 @@ class PricingTests(unittest.TestCase):
 
         cost = calculate_cost(
             TokenUsage(1_000_000, 1_000_000, 1_000_000),
-            pricing["opus-4.8"],
+            pricing["claude-opus-4-8"],
         )
 
         self.assertEqual(91.5, cost)
 
     def test_per_model_mock_cost_uses_main_and_subagent_rates(self) -> None:
         pricing = load_toml(PRICING_PATH)["models"]
-        models = {"main_model": "opus-4.8", "subagent_models": ["sonnet-5"]}
+        models = {"main_model": "claude-opus-4-8", "subagent_models": ["claude-sonnet-5"]}
         telemetry = parse_claude_code_telemetry(
             mock_claude_code_telemetry(models)
         )
 
-        cost = calculate_telemetry_cost(telemetry, pricing, "opus-4.8")
+        cost = calculate_telemetry_cost(telemetry, pricing, "claude-opus-4-8")
 
         self.assertAlmostEqual(0.031815, cost)
 
@@ -129,8 +129,8 @@ class ProtocolAndSchemaTests(unittest.TestCase):
 
         self.assertEqual(
             {
-                "opus-4.8",
-                "sonnet-5",
+                "claude-opus-4-8",
+                "claude-sonnet-5",
                 "gpt-5.6-sol",
                 "gpt-5.6-terra",
                 "gpt-5.6-luna",

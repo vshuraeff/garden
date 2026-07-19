@@ -21,7 +21,7 @@ A cell is one `(harness, condition, task)` triple. The matrix has 2 harnesses, 2
 
 ## Harnesses
 
-`claude_code` runs in headless mode with `claude -p --output-format json`. Its main model is `opus-4.8`, and its registered subagent model is `sonnet-5`. The runner adds the explicit main-model and local-plugin arguments when it constructs a live command.
+`claude_code` runs in headless mode with `claude -p --output-format json`. Its main model is `claude-opus-4-8`, and its registered subagent model is `claude-sonnet-5`. The runner adds the explicit main-model and local-plugin arguments when it constructs a live command.
 
 `codex` runs in headless mode with `codex exec --json`. Its main model is `gpt-5.6-sol` with `model_reasoning_effort = "xhigh"`; its registered subagent models are `gpt-5.6-terra` and `gpt-5.6-luna`.
 
