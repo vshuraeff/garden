@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.11.1
+
+- Fixed invalid Claude model IDs (`opus-4.8` and `sonnet-5`) in the agent-value
+  benchmark v2 protocol and pricing config, replacing them with
+  `claude-opus-4-8` and `claude-sonnet-5`.
+
 ## 0.11.0
 
 - Added the agent-value benchmark v2 scaffold: preregistered
