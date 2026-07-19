@@ -24,8 +24,14 @@ verifiable, and extensible across years of agent-driven changes.
 benchmark over fixed synthetic corpora. Its detection, evidence, and mutation
 suites pass; migration remains a documented negative result because the
 preregistered parity invariant conflicts with intentional configured-mode
-detection fixes. Nothing in this repository measures whether GARDEN improves
-LLM-agent task outcomes.
+detection fixes.
+
+[Benchmark v2](docs/evidence/benchmark-v2.md) records the 2026-07-19 live
+agent-value benchmark run. All 36 cell-runs passed across `garden_on` and
+`garden_off`, so these tasks show a ceiling effect and no task-success delta.
+The run measured enforcement overhead in tokens, wall-clock time, and estimated
+cost. The agent-value benchmark exists and has run, but this corpus does not
+demonstrate an outcome advantage for GARDEN.
 
 ## Who this is for
 

@@ -1,0 +1,38 @@
+{
+  "benchmark_version": "2",
+  "condition": "garden_on",
+  "cost_usd": 1.131213,
+  "diff_size": {
+    "files_changed": 20,
+    "lines_added": 70,
+    "lines_removed": 0
+  },
+  "harness": "claude_code",
+  "models": {
+    "main": "claude-opus-4-8",
+    "subagents": [
+      "claude-sonnet-5"
+    ]
+  },
+  "pass": true,
+  "provenance": {
+    "cli_version": "2.1.215 (Claude Code)",
+    "fixture_hash": "e06303c30bb871da1509f22ed9476372a44e599eb82429e35c5a6537d8e818d4",
+    "model_ids": [
+      "claude-opus-4-8",
+      "claude-sonnet-5"
+    ],
+    "prompt_hash": "b336ce4bdb529508548e4fa0961ecd33752dafd4a3a7234f8bf398a7be4358be",
+    "timestamp": "2026-07-19T07:57:26.920381Z"
+  },
+  "raw_telemetry_ref": "raw/claude_code__garden_on__T2__r3.json",
+  "repetition": 3,
+  "schema_version": "2",
+  "task_id": "T2",
+  "tokens": {
+    "cache": 552732,
+    "input": 16,
+    "output": 4025
+  },
+  "wall_clock_seconds": 70.93878213409334
+}
