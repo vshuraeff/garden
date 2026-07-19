@@ -1,0 +1,40 @@
+{
+  "benchmark_version": "2",
+  "condition": "garden_off",
+  "cost_usd": 0.6838,
+  "diff_size": {
+    "files_changed": 19,
+    "lines_added": 72,
+    "lines_removed": 0
+  },
+  "harness": "codex",
+  "models": {
+    "main": "gpt-5.6-sol",
+    "subagents": [
+      "gpt-5.6-terra",
+      "gpt-5.6-luna"
+    ]
+  },
+  "pass": true,
+  "provenance": {
+    "cli_version": "codex-cli 0.144.5",
+    "fixture_hash": "e06303c30bb871da1509f22ed9476372a44e599eb82429e35c5a6537d8e818d4",
+    "model_ids": [
+      "gpt-5.6-sol",
+      "gpt-5.6-terra",
+      "gpt-5.6-luna"
+    ],
+    "prompt_hash": "b336ce4bdb529508548e4fa0961ecd33752dafd4a3a7234f8bf398a7be4358be",
+    "timestamp": "2026-07-18T21:24:43.568384Z"
+  },
+  "raw_telemetry_ref": "raw/codex__garden_off__T2__r3.jsonl",
+  "repetition": 3,
+  "schema_version": "2",
+  "task_id": "T2",
+  "tokens": {
+    "cache": 180480,
+    "input": 29564,
+    "output": 5192
+  },
+  "wall_clock_seconds": 148.42340211383998
+}

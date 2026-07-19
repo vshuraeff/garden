@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.11.2
+
+- Published the live agent-value benchmark v2 results in
+  `docs/evidence/benchmark-v2.md` and `benchmarks/results/v2-live/`, and updated
+  the README evidence-status section. All 36 cell-runs pass with no outcome
+  delta; the results record enforcement overhead in tokens, wall-clock time,
+  and estimated cost. This release changes no runtime behavior.
+
 ## 0.11.1
 
 - Fixed invalid Claude model IDs (`opus-4.8` and `sonnet-5`) in the agent-value
